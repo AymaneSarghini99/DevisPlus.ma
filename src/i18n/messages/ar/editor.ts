@@ -18,7 +18,7 @@ export const editor: M["editor"] = {
   waNoLink: "لا تتم مشاركة أي رابط: أرفق ملف PDF لعرض السعر في المحادثة قبل الإرسال.",
   markSent: "تحديد كمُرسَل",
   quoteLabel: "عرض سعر",
-  whatsapp: "واتساب",
+  whatsapp: "إرسال عبر واتساب",
   invoiceLink: "الفاتورة {{number}}",
   invoiceDraftLink: "الفاتورة (مسودة)",
   convert: "تحويل إلى فاتورة",

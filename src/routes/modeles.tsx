@@ -26,7 +26,9 @@ import {
   saveSettings,
   type Settings,
 } from "@/lib/store";
-import { AppError, errorMessage } from "@/lib/storage";
+import { errorMessage } from "@/lib/storage";
+import { resizeLogo } from "@/lib/logo";
+import { sample } from "@/lib/sample";
 import { useTranslation } from "react-i18next";
 import { tFor } from "@/i18n/index";
 import { pageMeta } from "@/i18n/meta";
@@ -36,68 +38,6 @@ export const Route = createFileRoute("/modeles")({
   component: Templates,
 });
 
-/** Example content, clearly labelled as such, used only when no quote has been saved yet. */
-function sample(s: Settings): DocData {
-  const issue = today();
-  // Example content is written in the document language, like the document itself.
-  const t = tFor(s.docLang);
-  return {
-    lang: s.docLang,
-    kind: "devis",
-    number: t("templates.sample.number"),
-    issueDate: issue,
-    secondDate: addDays(issue, s.validityDays),
-    company: hasProfile(s)
-      ? s.company
-      : { ...emptyCompany(), name: t("doc.yourCompany"), city: t("templates.sample.companyCity") },
-    client: {
-      ...emptyCompany(),
-      name: t("templates.sample.client"),
-      city: t("templates.sample.clientCity"),
-    },
-    lines: [
-      {
-        id: "ex1",
-        description: t("templates.sample.line1"),
-        qty: 42,
-        unit: "m²",
-        unitPrice: 180,
-        discount: 0,
-        vatRate: 20,
-        kind: "materiel",
-      },
-      {
-        id: "ex2",
-        description: t("templates.sample.line2"),
-        qty: 42,
-        unit: "m²",
-        unitPrice: 75,
-        discount: 0,
-        vatRate: 20,
-        kind: "main_oeuvre",
-      },
-      {
-        id: "ex3",
-        description: t("templates.sample.line3"),
-        qty: 1,
-        unit: "forfait",
-        unitPrice: 1500,
-        discount: 10,
-        vatRate: 20,
-        kind: "service",
-      },
-    ],
-    globalDiscount: 0,
-    deposit: s.deposit,
-    terms: docTerms(s, s.docLang),
-    delivery: t("templates.sample.delivery"),
-    exemptionNote: "",
-    template: s.template,
-    accent: s.accent,
-    logo: s.logo,
-  };
-}
-
 const fromQuote = (q: Quote, s: Settings): DocData => ({
   ...q,
   lang: q.lang ?? s.docLang,
@@ -105,31 +45,6 @@ const fromQuote = (q: Quote, s: Settings): DocData => ({
   secondDate: q.validUntil,
   logo: s.logo,
 });
-
-/** Reads an image and shrinks it so it fits comfortably in browser storage. */
-function resizeLogo(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type))
-      return reject(new AppError("logoFormat"));
-    if (file.size > 5 * 1024 * 1024) return reject(new AppError("logoSize"));
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const scale = Math.min(1, 600 / img.width, 240 / img.height);
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(img.width * scale));
-      canvas.height = Math.max(1, Math.round(img.height * scale));
-      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/png"));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new AppError("logoRead"));
-    };
-    img.src = url;
-  });
-}
 
 function Templates() {
   const { t } = useTranslation();

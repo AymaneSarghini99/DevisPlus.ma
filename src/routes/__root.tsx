@@ -25,6 +25,7 @@ import {
   type Locale,
 } from "../i18n/config";
 import { LocaleProvider, useLocale } from "../i18n/LocaleProvider";
+import { AdminGate } from "../components/AdminGate";
 import { SiteFooter } from "../components/SiteFooter";
 import { WhatsAppWidget } from "../components/WhatsAppWidget";
 
@@ -142,6 +143,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap",
+        // Readable by scripts (Google allows it) so "Download PDF" can embed the fonts.
+        crossOrigin: "anonymous",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
@@ -176,7 +179,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LocaleProvider locale={locale}>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <AdminGate>
+          <Outlet />
+        </AdminGate>
         <SiteFooter />
         <WhatsAppWidget />
         <LocalizedToaster />

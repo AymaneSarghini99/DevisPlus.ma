@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import logo from "@/assets/devisplus-logo.png";
 import { LOCALES, NATIVE_NAME } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
+import { LogoutButton } from "./AdminGate";
 import { Flag } from "./Flags";
 
 export function Logo() {
@@ -85,6 +86,7 @@ export function AppHeader({ children }: { children?: ReactNode }) {
         <div className="flex h-14 items-center gap-2 md:h-auto">
           {children}
           <LanguageSwitcher />
+          <LogoutButton />
         </div>
       </div>
     </header>

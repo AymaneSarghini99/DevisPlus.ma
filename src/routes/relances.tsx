@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BellRing, ClipboardCopy, MessageCircle } from "lucide-react";
+import { BellRing, ClipboardCopy } from "lucide-react";
+import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { toast } from "sonner";
 import { AppHeader, EmptyState, PageTitle } from "@/components/Brand";
 import { useTranslation } from "react-i18next";
@@ -120,7 +121,7 @@ function FollowUps() {
                   {t("followups.logReminder")}
                 </button>
                 <button className="btn btn-primary h-9" onClick={() => prepare(q)}>
-                  <MessageCircle className="size-4" /> {t("followups.prepare")}
+                  <WhatsAppIcon className="size-4" /> {t("followups.prepare")}
                 </button>
               </div>
             </li>

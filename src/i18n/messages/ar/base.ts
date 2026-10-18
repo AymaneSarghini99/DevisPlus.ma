@@ -18,6 +18,9 @@ export const common: M["common"] = {
   copy: "نسخ",
   language: "اللغة",
   printPdf: "PDF / طباعة",
+  downloadPdf: "تحميل PDF",
+  pdfPreparing: "جارٍ تجهيز ملف PDF…",
+  pdfFailed: "تعذّر إنشاء ملف PDF. استخدم «PDF / طباعة».",
   printHint: "اختر «حفظ بصيغة PDF» لتنزيل الملف",
   previewA4: "معاينة A4 — ما سيُطبع أو يُحفظ بصيغة PDF",
   previewA4Short: "معاينة A4",
@@ -94,6 +97,14 @@ export const meta: M["meta"] = {
     title: "الأسعار — DevisPlus.ma",
     description: "عرض الأعمال من DevisPlus.ma بسعر 2.500 درهم يُؤدّى مرة واحدة، واستمارة الطلب.",
   },
+  admin: {
+    title: "الإدارة — DevisPlus.ma",
+    description: "سجل عملاء DevisPlus ومدفوعاتهم.",
+  },
+  onboarding: {
+    title: "إعداد فضائك — DevisPlus.ma",
+    description: "معالج إعداد فضائك: الملف، الشعار، الهوية، العروض والنطاق.",
+  },
   settings: {
     title: "الإعدادات — DevisPlus.ma",
     description: "معلومات الشركة والمعرفات الضريبية والبيانات البنكية وتفضيلات الوثائق.",
@@ -151,6 +162,13 @@ export const validation: M["validation"] = {
   vatList: "احتفظ بنسبة واحدة على الأقل",
   vatDefault: "يجب أن تكون النسبة الافتراضية ضمن القائمة",
   price: "سعر غير صالح",
+  url: "عنوان موقع غير صالح",
+  passwordShort: "8 أحرف على الأقل",
+  passwordMatch: "كلمتا المرور غير متطابقتين",
+  range: "القيمة خارج الحدود المسموح بها",
+  subdomain: "من 3 إلى 40 حرفًا: أحرف لاتينية صغيرة وأرقام وشرطات",
+  reserved: "هذا العنوان محجوز، اختر عنوانًا آخر",
+  domain: "اسم نطاق غير صالح (مثال: devis.mycompany.ma)",
   templateName: "أعطِ اسمًا لقالبك",
 };
 
@@ -169,6 +187,7 @@ export const errors: M["errors"] = {
   logoFormat: "الصيغ المقبولة: PNG أو JPG أو WebP أو SVG.",
   logoSize: "الصورة كبيرة جدًا (5 ميغابايت كحد أقصى).",
   logoRead: "تعذّرت قراءة الصورة.",
+  onboardingIncomplete: "بعض الخطوات غير مكتملة.",
   exportFailed: "التصدير غير متاح في هذا المتصفح.",
   copyFailed: "النسخ غير متاح في هذا المتصفح.",
   notFoundTitle: "الصفحة غير موجودة",

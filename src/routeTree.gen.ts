@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcceptableUseRouteImport } from './routes/acceptable-use'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as CookiesRouteImport } from './routes/cookies'
@@ -18,6 +19,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DataProcessingRouteImport } from './routes/data-processing'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ModelesRouteImport } from './routes/modeles'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RapportsRouteImport } from './routes/rapports'
@@ -37,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
 const AcceptableUseRoute = AcceptableUseRouteImport.update({
   id: '/acceptable-use',
   path: '/acceptable-use',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueRoute = CatalogueRouteImport.update({
@@ -72,6 +79,11 @@ const LegalRoute = LegalRouteImport.update({
 const ModelesRoute = ModelesRouteImport.update({
   id: '/modeles',
   path: '/modeles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParametresRoute = ParametresRouteImport.update({
@@ -128,6 +140,7 @@ const FacturesIdRoute = FacturesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acceptable-use': typeof AcceptableUseRoute
+  '/admin': typeof AdminRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/cookies': typeof CookiesRoute
@@ -135,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
@@ -149,6 +163,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acceptable-use': typeof AcceptableUseRoute
+  '/admin': typeof AdminRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/cookies': typeof CookiesRoute
@@ -156,6 +171,7 @@ export interface FileRoutesByTo {
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
@@ -171,6 +187,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/acceptable-use': typeof AcceptableUseRoute
+  '/admin': typeof AdminRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/cookies': typeof CookiesRoute
@@ -178,6 +195,7 @@ export interface FileRoutesById {
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
@@ -194,6 +212,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/acceptable-use'
+    | '/admin'
     | '/catalogue'
     | '/clients'
     | '/cookies'
@@ -201,6 +220,7 @@ export interface FileRouteTypes {
     | '/data-processing'
     | '/legal'
     | '/modeles'
+    | '/onboarding'
     | '/parametres'
     | '/privacy'
     | '/rapports'
@@ -215,6 +235,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/acceptable-use'
+    | '/admin'
     | '/catalogue'
     | '/clients'
     | '/cookies'
@@ -222,6 +243,7 @@ export interface FileRouteTypes {
     | '/data-processing'
     | '/legal'
     | '/modeles'
+    | '/onboarding'
     | '/parametres'
     | '/privacy'
     | '/rapports'
@@ -236,6 +258,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/acceptable-use'
+    | '/admin'
     | '/catalogue'
     | '/clients'
     | '/cookies'
@@ -243,6 +266,7 @@ export interface FileRouteTypes {
     | '/data-processing'
     | '/legal'
     | '/modeles'
+    | '/onboarding'
     | '/parametres'
     | '/privacy'
     | '/rapports'
@@ -258,6 +282,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcceptableUseRoute: typeof AcceptableUseRoute
+  AdminRoute: typeof AdminRoute
   CatalogueRoute: typeof CatalogueRoute
   ClientsRoute: typeof ClientsRoute
   CookiesRoute: typeof CookiesRoute
@@ -265,6 +290,7 @@ export interface RootRouteChildren {
   DataProcessingRoute: typeof DataProcessingRoute
   LegalRoute: typeof LegalRoute
   ModelesRoute: typeof ModelesRoute
+  OnboardingRoute: typeof OnboardingRoute
   ParametresRoute: typeof ParametresRoute
   PrivacyRoute: typeof PrivacyRoute
   RapportsRoute: typeof RapportsRoute
@@ -291,6 +317,13 @@ declare module '@tanstack/react-router' {
       path: '/acceptable-use'
       fullPath: '/acceptable-use'
       preLoaderRoute: typeof AcceptableUseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogue': {
@@ -340,6 +373,13 @@ declare module '@tanstack/react-router' {
       path: '/modeles'
       fullPath: '/modeles'
       preLoaderRoute: typeof ModelesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parametres': {
@@ -418,6 +458,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcceptableUseRoute: AcceptableUseRoute,
+  AdminRoute: AdminRoute,
   CatalogueRoute: CatalogueRoute,
   ClientsRoute: ClientsRoute,
   CookiesRoute: CookiesRoute,
@@ -425,6 +466,7 @@ const rootRouteChildren: RootRouteChildren = {
   DataProcessingRoute: DataProcessingRoute,
   LegalRoute: LegalRoute,
   ModelesRoute: ModelesRoute,
+  OnboardingRoute: OnboardingRoute,
   ParametresRoute: ParametresRoute,
   PrivacyRoute: PrivacyRoute,
   RapportsRoute: RapportsRoute,

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, Printer, Trash2 } from "lucide-react";
+import { DownloadPdfButton } from "@/components/DownloadPdfButton";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/Brand";
 import { F, Section, TotalRow } from "@/components/Form";
@@ -206,12 +207,16 @@ function InvoicePage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn-ghost"
+                className="btn btn-ghost w-10 px-0"
                 onClick={() => window.print()}
-                title={t("common.printHint")}
+                aria-label={t("common.printPdf")}
+                title={`${t("common.printPdf")} — ${t("common.printHint")}`}
               >
-                <Printer className="size-4" /> {t("common.printPdf")}
+                <Printer className="size-4" />
               </button>
+              <DownloadPdfButton
+                fileName={`${t("invoice.label")} ${inv.number || t("status.invoice.brouillon")}`}
+              />
               {draft && (
                 <button
                   className="btn btn-ghost"

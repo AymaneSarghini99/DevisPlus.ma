@@ -16,7 +16,7 @@ export const editor = {
     "Aucun lien n'est partagé : joignez le PDF du devis dans la conversation avant d'envoyer.",
   markSent: "Marquer envoyé",
   quoteLabel: "Devis",
-  whatsapp: "WhatsApp",
+  whatsapp: "Envoyer par WhatsApp",
   invoiceLink: "Facture {{number}}",
   invoiceDraftLink: "Facture (brouillon)",
   convert: "Convertir en facture",

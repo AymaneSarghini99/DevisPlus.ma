@@ -18,6 +18,9 @@ export const common: M["common"] = {
   copy: "Copy",
   language: "Language",
   printPdf: "PDF / Print",
+  downloadPdf: "Download PDF",
+  pdfPreparing: "Preparing the PDF…",
+  pdfFailed: "The PDF could not be created. Use “PDF / Print” instead.",
   printHint: "Choose “Save as PDF” to download the file",
   previewA4: "A4 preview — what will be printed or saved as PDF",
   previewA4Short: "A4 preview",
@@ -94,6 +97,14 @@ export const meta: M["meta"] = {
     title: "Pricing — DevisPlus.ma",
     description: "DevisPlus.ma Business offer at MAD 2,500, one-time payment, and request form.",
   },
+  admin: {
+    title: "Administration — DevisPlus.ma",
+    description: "DevisPlus customer and payment register.",
+  },
+  onboarding: {
+    title: "Set up your workspace — DevisPlus.ma",
+    description: "Setup wizard for your workspace: profile, logo, branding, quotes and domain.",
+  },
   settings: {
     title: "Settings — DevisPlus.ma",
     description: "Company profile, tax identifiers, bank details and document preferences.",
@@ -151,6 +162,13 @@ export const validation: M["validation"] = {
   vatList: "Keep at least one rate",
   vatDefault: "The default rate must be in the list",
   price: "Invalid price",
+  url: "Invalid web address",
+  passwordShort: "At least 8 characters",
+  passwordMatch: "The passwords do not match",
+  range: "Value out of range",
+  subdomain: "3 to 40 characters: lowercase letters, digits and hyphens",
+  reserved: "This address is reserved, choose another one",
+  domain: "Invalid domain name (e.g. quotes.mycompany.com)",
   templateName: "Give your template a name",
 };
 
@@ -169,6 +187,7 @@ export const errors: M["errors"] = {
   logoFormat: "Accepted formats: PNG, JPG, WebP or SVG.",
   logoSize: "Image too large (5 MB maximum).",
   logoRead: "The image could not be read.",
+  onboardingIncomplete: "Some steps are not complete.",
   exportFailed: "Export is not available in this browser.",
   copyFailed: "Copying is not available in this browser.",
   notFoundTitle: "Page not found",

@@ -18,6 +18,7 @@ import { useFormat } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
 import { errorMessage } from "@/lib/storage";
 import { Dropdown } from "@/components/Dropdown";
+import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
 
 export const Route = createFileRoute("/dashboard")({
   head: ({ match }) => pageMeta(match, "dashboard"),
@@ -84,6 +85,7 @@ function Dashboard() {
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
         <PageTitle title={t("dashboard.title")}>{create}</PageTitle>
+        <OnboardingBanner />
 
         {quotes && quotes.length > 0 && (
           <dl className="mt-6 grid grid-cols-1 divide-y border-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">

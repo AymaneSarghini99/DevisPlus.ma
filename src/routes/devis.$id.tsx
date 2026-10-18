@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy, MessageCircle, Printer, Receipt, UserPlus } from "lucide-react";
+import { Check, Copy, Printer, Receipt, UserPlus } from "lucide-react";
+import { WhatsAppIcon } from "@/components/WhatsAppWidget";
+import { DownloadPdfButton } from "@/components/DownloadPdfButton";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/Brand";
 import { LinesEditor } from "@/components/LinesEditor";
@@ -319,20 +321,27 @@ function Editor() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                className="btn btn-ghost"
+                className="btn btn-ghost w-10 px-0"
                 onClick={() => window.print()}
-                title={t("common.printHint")}
+                aria-label={t("common.printPdf")}
+                title={`${t("common.printPdf")} — ${t("common.printHint")}`}
               >
-                <Printer className="size-4" /> {t("common.printPdf")}
+                <Printer className="size-4" />
               </button>
-              <button className="btn btn-ghost" onClick={shareWhatsApp}>
-                <MessageCircle className="size-4" /> {t("editor.whatsapp")}
-              </button>
+              <DownloadPdfButton fileName={`${t("editor.quoteLabel")} ${q.number}`} />
               {id !== "nouveau" && (
-                <button className="btn btn-ghost" onClick={duplicate}>
-                  <Copy className="size-4" /> {t("common.duplicate")}
+                <button
+                  className="btn btn-ghost w-10 px-0"
+                  onClick={duplicate}
+                  aria-label={t("common.duplicate")}
+                  title={t("common.duplicate")}
+                >
+                  <Copy className="size-4" />
                 </button>
               )}
+              <button className="btn btn-ghost" onClick={shareWhatsApp}>
+                <WhatsAppIcon className="size-4 text-[#25D366]" /> {t("editor.whatsapp")}
+              </button>
               {invoice ? (
                 <Link to="/factures/$id" params={{ id: invoice.id }} className="btn btn-ghost">
                   <Receipt className="size-4" />{" "}

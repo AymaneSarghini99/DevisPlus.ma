@@ -13,7 +13,9 @@ type PageKey =
   | "reports"
   | "templates"
   | "settings"
-  | "pricing";
+  | "pricing"
+  | "onboarding"
+  | "admin";
 
 /** Translated <title> and description for a route's head(), using the language in the router context. */
 export function pageMeta(match: { context?: unknown }, page: PageKey) {

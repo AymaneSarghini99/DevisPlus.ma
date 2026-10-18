@@ -18,7 +18,7 @@ export const editor: M["editor"] = {
   waNoLink: "No link is shared: attach the quote PDF in the conversation before sending.",
   markSent: "Mark as sent",
   quoteLabel: "Quote",
-  whatsapp: "WhatsApp",
+  whatsapp: "Send via WhatsApp",
   invoiceLink: "Invoice {{number}}",
   invoiceDraftLink: "Invoice (draft)",
   convert: "Convert to invoice",

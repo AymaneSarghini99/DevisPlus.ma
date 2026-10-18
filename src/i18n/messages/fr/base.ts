@@ -15,6 +15,9 @@ export const common = {
   copy: "Copier",
   language: "Langue",
   printPdf: "PDF / Imprimer",
+  downloadPdf: "Télécharger PDF",
+  pdfPreparing: "Préparation du PDF…",
+  pdfFailed: "Le PDF n'a pas pu être créé. Utilisez « PDF / Imprimer ».",
   printHint: "Choisissez « Enregistrer au format PDF » pour télécharger le fichier",
   previewA4: "Aperçu A4 — ce qui sera imprimé ou enregistré en PDF",
   previewA4Short: "Aperçu A4",
@@ -93,6 +96,15 @@ export const meta = {
     description:
       "Offre Business DevisPlus.ma à 2 500 MAD en paiement unique, et formulaire de demande.",
   },
+  admin: {
+    title: "Administration — DevisPlus.ma",
+    description: "Registre des clients et des paiements DevisPlus.",
+  },
+  onboarding: {
+    title: "Configurer votre espace — DevisPlus.ma",
+    description:
+      "Assistant de configuration de votre espace : profil, logo, identité, devis et domaine.",
+  },
   settings: {
     title: "Paramètres — DevisPlus.ma",
     description:
@@ -151,6 +163,13 @@ export const validation = {
   vatList: "Gardez au moins un taux",
   vatDefault: "Le taux par défaut doit faire partie de la liste",
   price: "Prix invalide",
+  url: "Adresse web invalide",
+  passwordShort: "8 caractères minimum",
+  passwordMatch: "Les mots de passe ne correspondent pas",
+  range: "Valeur hors limites",
+  subdomain: "3 à 40 caractères : lettres minuscules, chiffres et tirets",
+  reserved: "Cette adresse est réservée, choisissez-en une autre",
+  domain: "Nom de domaine invalide (ex. devis.monentreprise.ma)",
   templateName: "Donnez un nom à votre modèle",
 };
 
@@ -170,6 +189,7 @@ export const errors = {
   logoFormat: "Format accepté : PNG, JPG, WebP ou SVG.",
   logoSize: "Image trop lourde (5 Mo maximum).",
   logoRead: "Image illisible.",
+  onboardingIncomplete: "Certaines étapes ne sont pas complètes.",
   exportFailed: "Export impossible dans ce navigateur.",
   copyFailed: "Copie impossible dans ce navigateur.",
   notFoundTitle: "Page introuvable",

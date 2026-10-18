@@ -6,18 +6,7 @@ import { LEGAL_DOCS } from "@/legal/documents";
 import { CONTACT } from "@/legal/operator";
 import { LanguageSwitcher, Logo } from "./Brand";
 import { LegalLink } from "./LegalPage";
-
-const MARKETING = [
-  "/",
-  "/tarifs",
-  "/legal",
-  "/terms",
-  "/privacy",
-  "/cookies",
-  "/refunds",
-  "/acceptable-use",
-  "/data-processing",
-];
+import { isPublicPath } from "@/lib/paths";
 
 const tel = CONTACT.phone.replace(/\s/g, "");
 const site = CONTACT.website.replace(/^https?:\/\//, "");
@@ -25,7 +14,7 @@ const site = CONTACT.website.replace(/^https?:\/\//, "");
 /** Full footer on the landing and legal pages, compact footer under the app screens. Never printed. */
 export function SiteFooter() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  return MARKETING.includes(path) ? <FullFooter /> : <CompactFooter />;
+  return isPublicPath(path) ? <FullFooter /> : <CompactFooter />;
 }
 
 function FullFooter() {

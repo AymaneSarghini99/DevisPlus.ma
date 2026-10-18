@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { SendHorizontal, Smile, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CONTACT } from "@/legal/operator";
 import { whatsappUrl } from "@/lib/quotes";
@@ -13,16 +13,22 @@ export function WhatsAppIcon({ className = "" }: { className?: string }) {
   );
 }
 
-/** Floating WhatsApp contact button (bottom end corner). Opens a small card, then WhatsApp
- *  with a greeting in the visitor's language. Nothing is sent until the visitor sends it. */
+const EMOJIS = ["👋", "😊", "🙏", "👍", "📄", "💬", "✅", "❓"];
+
+/** Floating WhatsApp contact chat (bottom end corner). The visitor types a message here and it
+ *  opens in WhatsApp, ready to send; nothing is sent until they press send in WhatsApp. */
 export function WhatsAppWidget() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [emojis, setEmojis] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    input.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
@@ -41,51 +47,101 @@ export function WhatsAppWidget() {
     };
   }, [open]);
 
+  const send = () => {
+    const message = text.trim() || t("site.waGreeting");
+    window.open(whatsappUrl(CONTACT.phone, message), "_blank", "noopener,noreferrer");
+    setText("");
+    setEmojis(false);
+    setOpen(false);
+  };
+
   return (
-    <div className="no-print fixed bottom-5 end-5 z-50 flex flex-col items-end gap-3">
+    <div className="no-print fixed bottom-5 end-5 z-50 flex flex-col items-end gap-4">
       {open && (
         <div
           ref={panel}
           id="wa-panel"
           role="dialog"
           aria-labelledby="wa-title"
-          className="w-72 overflow-hidden rounded-[var(--radius)] border bg-card shadow-[0_16px_40px_-16px_color-mix(in_oklab,var(--foreground)_45%,transparent)] data-[state=open]:animate-in"
+          className="wa-enter w-[min(20rem,calc(100vw-2.5rem))] overflow-hidden rounded-xl bg-[#efedf1] shadow-[0_18px_44px_-14px_rgb(20_30_60/0.35)]"
         >
-          <div className="flex items-start justify-between gap-3 bg-[#075E54] px-4 py-3 text-white">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-9 items-center justify-center rounded-full bg-[#25D366]">
-                <WhatsAppIcon className="size-5" />
-              </span>
-              <div>
-                <p id="wa-title" className="text-sm font-semibold">
-                  DevisPlus.ma
-                </p>
-                <p className="num text-xs opacity-80" dir="ltr">
-                  {CONTACT.phone}
-                </p>
-              </div>
-            </div>
+          <div className="relative bg-[#4a9179] px-4 pb-3 pt-3.5 pe-10 text-white">
+            <p id="wa-title" className="text-[15px] font-bold">
+              DevisPlus.ma
+            </p>
+            <p className="mt-0.5 text-xs opacity-90">{t("site.waSubtitle")}</p>
             <button
               type="button"
-              className="rounded-sm p-1 opacity-80 hover:bg-white/10 hover:opacity-100"
+              className="absolute end-3 top-3 rounded-sm p-0.5 text-white/60 transition hover:text-white"
               aria-label={t("common.close")}
               onClick={() => setOpen(false)}
             >
               <X className="size-4" />
             </button>
           </div>
-          <div className="space-y-3 p-4 text-sm">
-            <p className="rounded-sm bg-muted px-3 py-2">{t("site.waText")}</p>
-            <a
-              href={whatsappUrl(CONTACT.phone, t("site.waGreeting"))}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn w-full bg-[#25D366] text-[#0b2e13] hover:bg-[#1fbe5a]"
-              onClick={() => setOpen(false)}
+
+          <div className="min-h-[6.5rem] bg-[#e7dfda] px-3 py-4">
+            <p
+              dir="auto"
+              className="wa-bubble inline-block max-w-[85%] rounded-2xl bg-white px-3.5 py-2 text-[13px] text-[#1f2328] shadow-[0_1px_2px_rgb(0_0_0/0.08)]"
             >
-              <WhatsAppIcon className="size-4" /> {t("site.waStart")}
-            </a>
+              {t("site.waHello")}
+            </p>
           </div>
+
+          <form
+            className="relative flex items-center gap-2.5 px-3 py-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              send();
+            }}
+          >
+            {emojis && (
+              <div className="absolute bottom-full start-3 mb-2 flex gap-1 rounded-full bg-white px-2 py-1 shadow-md">
+                {EMOJIS.map((em) => (
+                  <button
+                    key={em}
+                    type="button"
+                    className="rounded-full p-1 text-base leading-none hover:bg-[#efedf1]"
+                    onClick={() => {
+                      setText((v) => v + em);
+                      setEmojis(false);
+                      input.current?.focus();
+                    }}
+                  >
+                    {em}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="relative flex-1">
+              <input
+                ref={input}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={t("site.waPlaceholder")}
+                aria-label={t("site.waPlaceholder")}
+                className="h-10 w-full rounded-full border-0 bg-white ps-4 pe-10 text-[13px] text-[#1f2328] shadow-[0_1px_2px_rgb(0_0_0/0.06)] outline-none placeholder:text-[#9a9aa3] focus:ring-2 focus:ring-[#4a9179]/40"
+              />
+              <button
+                type="button"
+                aria-label={t("site.waEmoji")}
+                aria-expanded={emojis}
+                onClick={() => setEmojis(!emojis)}
+                className="absolute end-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-[#8a8a93] transition hover:text-[#4a9179]"
+              >
+                <Smile className="size-[18px]" />
+              </button>
+            </div>
+            <button
+              type="submit"
+              aria-label={t("site.waSend")}
+              title={t("site.waSend")}
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#4a9179] text-white transition hover:scale-105 hover:bg-[#3f806a]"
+            >
+              <SendHorizontal className="size-[18px] fill-current rtl:-scale-x-100" />
+            </button>
+          </form>
         </div>
       )}
       <button
@@ -98,7 +154,7 @@ export function WhatsAppWidget() {
         onClick={() => setOpen(!open)}
         className="flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_-8px_rgb(0_0_0/0.45)] transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        {open ? <X className="size-6" /> : <WhatsAppIcon className="size-7" />}
+        {open ? <X className="size-6" /> : <WhatsAppIcon className="size-8" />}
       </button>
     </div>
   );
