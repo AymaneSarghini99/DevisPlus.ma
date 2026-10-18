@@ -35,7 +35,7 @@ function Landing() {
             Le devis que votre client lit, comprend et signe.
           </h1>
           <p className="mt-5 max-w-md text-muted-foreground">
-            DevisPlus prépare des devis conformes aux usages marocains en quelques minutes, sans tableur.
+            DevisPlus prépare des devis en dirhams, avec ICE, IF et TVA, en quelques minutes, sans tableur.
           </p>
           <div className="mt-8 flex gap-3">
             <Link to="/devis/$id" params={{ id: "nouveau" }} className="btn btn-accent">

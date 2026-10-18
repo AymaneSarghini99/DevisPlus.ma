@@ -1,26 +1,118 @@
-import { emptyParty, uid, type Party, type TemplateId, type Unit } from "./quotes";
+import {
+  DEFAULT_TERMS,
+  emptyCompany,
+  emptyParty,
+  uid,
+  VAT_RATES,
+  type Company,
+  type Defaults,
+  type LineKind,
+  type Party,
+  type TemplateId,
+  type Unit,
+} from "./quotes";
+import { read, write } from "./storage";
 
 export type Client = Party & { id: string; paymentTerms: string; createdAt: string };
-export type CatalogItem = { id: string; name: string; description: string; unit: Unit; unitPrice: number; vatRate: number };
-export type Settings = { company: Party; template: TemplateId; accent: string; logo: string };
+export type CatalogItem = {
+  id: string;
+  name: string;
+  description: string;
+  unit: Unit;
+  unitPrice: number;
+  vatRate: number;
+  kind?: LineKind;
+};
+export type Settings = {
+  company: Company;
+  template: TemplateId;
+  accent: string;
+  logo: string; // data URL, resized on upload
+  validityDays: number;
+  terms: string;
+  deposit: number;
+  vatRates: number[]; // rates offered in the editor; saved lines keep their own rate
+  defaultVat: number;
+};
 
-function read<T>(k: string, fb: T): T {
-  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch { return fb; }
+// ---------- clients ----------
+export const newClient = (): Client => ({
+  ...emptyParty(),
+  id: uid(),
+  paymentTerms: "",
+  createdAt: new Date().toISOString(),
+});
+export const loadClients = () =>
+  read<Client[]>("devisplus.clients", []).map((c) => ({ ...newClient(), ...c }));
+export function saveClient(c: Client) {
+  write("devisplus.clients", [c, ...loadClients().filter((x) => x.id !== c.id)]);
 }
-function write(k: string, v: unknown) {
-  try { localStorage.setItem(k, JSON.stringify(v)); return true; }
-  catch { alert("Stockage du navigateur plein : l'enregistrement a échoué (logo trop lourd ?)."); return false; }
+export function deleteClient(id: string) {
+  write(
+    "devisplus.clients",
+    loadClients().filter((x) => x.id !== id),
+  );
+}
+export const partyOf = ({ id: _i, paymentTerms: _p, createdAt: _c, ...p }: Client): Party => p;
+
+/** Field errors for a party (client or company); empty object when valid. */
+export function partyErrors(p: Party, requireName = true): Partial<Record<keyof Party, string>> {
+  const e: Partial<Record<keyof Party, string>> = {};
+  if (requireName && !p.name.trim()) e.name = "Champ requis";
+  if (p.ice && !/^\d{15}$/.test(p.ice)) e.ice = "L'ICE comporte 15 chiffres";
+  if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) e.email = "Adresse e-mail invalide";
+  if (p.phone && p.phone.replace(/\D/g, "").length < 9) e.phone = "Numéro trop court";
+  return e;
 }
 
-export const newClient = (): Client => ({ ...emptyParty(), id: uid(), paymentTerms: "", createdAt: new Date().toISOString() });
-export const loadClients = () => read<Client[]>("devisplus.clients", []).map((c) => ({ ...newClient(), ...c }));
-export function saveClient(c: Client) { write("devisplus.clients", [c, ...loadClients().filter((x) => x.id !== c.id)]); }
-export function deleteClient(id: string) { write("devisplus.clients", loadClients().filter((x) => x.id !== id)); }
-
-export const newItem = (): CatalogItem => ({ id: uid(), name: "", description: "", unit: "pièce", unitPrice: 0, vatRate: 20 });
+// ---------- catalogue ----------
+export const newItem = (): CatalogItem => ({
+  id: uid(),
+  name: "",
+  description: "",
+  unit: "pièce",
+  unitPrice: 0,
+  vatRate: 20,
+});
 export const loadCatalog = () => read<CatalogItem[]>("devisplus.catalog", []);
-export function saveItem(i: CatalogItem) { write("devisplus.catalog", [i, ...loadCatalog().filter((x) => x.id !== i.id)]); }
-export function deleteItem(id: string) { write("devisplus.catalog", loadCatalog().filter((x) => x.id !== id)); }
+export function saveItem(i: CatalogItem) {
+  write("devisplus.catalog", [i, ...loadCatalog().filter((x) => x.id !== i.id)]);
+}
+export function deleteItem(id: string) {
+  write(
+    "devisplus.catalog",
+    loadCatalog().filter((x) => x.id !== id),
+  );
+}
 
-export const loadSettings = (): Settings => ({ company: emptyParty(), template: "classic", accent: "#14213D", logo: "", ...read<Partial<Settings>>("devisplus.settings", {}) });
+// ---------- settings ----------
+export const defaultSettings = (): Settings => ({
+  company: emptyCompany(),
+  template: "classic",
+  accent: "#14213D",
+  logo: "",
+  validityDays: 30,
+  terms: DEFAULT_TERMS,
+  deposit: 30,
+  vatRates: VAT_RATES,
+  defaultVat: 20,
+});
+export function loadSettings(): Settings {
+  const s = { ...defaultSettings(), ...read<Partial<Settings>>("devisplus.settings", {}) };
+  return { ...s, company: { ...emptyCompany(), ...s.company } };
+}
 export const saveSettings = (s: Settings) => write("devisplus.settings", s);
+/** True once the user has saved a business profile (so it should prefill new documents). */
+export const hasProfile = (s: Settings) => !!s.company.name.trim();
+
+export function quoteDefaults(s: Settings): Defaults {
+  return {
+    ...(hasProfile(s) ? { company: s.company } : {}),
+    template: s.template,
+    accent: s.accent,
+    validityDays: s.validityDays,
+    terms: s.terms,
+    deposit: s.deposit,
+    vatRate: s.defaultVat,
+  };
+}

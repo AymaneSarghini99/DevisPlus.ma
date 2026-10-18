@@ -94,5 +94,8 @@
   .no-print { display: none !important; }
   .print-area { box-shadow: none !important; border: 0 !important; padding: 0 !important; max-width: none !important; }
   .print-area tr { break-inside: avoid; }
+  .print-area { min-height: 0 !important; }
+  .a4-frame { height: auto !important; }
+  .a4-sheet { transform: none !important; width: auto !important; }
   * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }

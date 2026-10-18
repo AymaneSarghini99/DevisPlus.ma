@@ -10,12 +10,30 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CatalogueRouteImport } from './routes/catalogue'
+import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ModelesRouteImport } from './routes/modeles'
+import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as RapportsRouteImport } from './routes/rapports'
+import { Route as RelancesRouteImport } from './routes/relances'
 import { Route as DevisIdRouteImport } from './routes/devis.$id'
+import { Route as FacturesIndexRouteImport } from './routes/factures.index'
+import { Route as FacturesIdRouteImport } from './routes/factures.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogueRoute = CatalogueRouteImport.update({
+  id: '/catalogue',
+  path: '/catalogue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsRoute = ClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -23,40 +41,136 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelesRoute = ModelesRouteImport.update({
+  id: '/modeles',
+  path: '/modeles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParametresRoute = ParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RapportsRoute = RapportsRouteImport.update({
+  id: '/rapports',
+  path: '/rapports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelancesRoute = RelancesRouteImport.update({
+  id: '/relances',
+  path: '/relances',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevisIdRoute = DevisIdRouteImport.update({
   id: '/devis/$id',
   path: '/devis/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FacturesIndexRoute = FacturesIndexRouteImport.update({
+  id: '/factures/',
+  path: '/factures/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FacturesIdRoute = FacturesIdRouteImport.update({
+  id: '/factures/$id',
+  path: '/factures/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/catalogue': typeof CatalogueRoute
+  '/clients': typeof ClientsRoute
   '/dashboard': typeof DashboardRoute
+  '/modeles': typeof ModelesRoute
+  '/parametres': typeof ParametresRoute
+  '/rapports': typeof RapportsRoute
+  '/relances': typeof RelancesRoute
   '/devis/$id': typeof DevisIdRoute
+  '/factures/$id': typeof FacturesIdRoute
+  '/factures/': typeof FacturesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/catalogue': typeof CatalogueRoute
+  '/clients': typeof ClientsRoute
   '/dashboard': typeof DashboardRoute
+  '/modeles': typeof ModelesRoute
+  '/parametres': typeof ParametresRoute
+  '/rapports': typeof RapportsRoute
+  '/relances': typeof RelancesRoute
   '/devis/$id': typeof DevisIdRoute
+  '/factures/$id': typeof FacturesIdRoute
+  '/factures': typeof FacturesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/catalogue': typeof CatalogueRoute
+  '/clients': typeof ClientsRoute
   '/dashboard': typeof DashboardRoute
+  '/modeles': typeof ModelesRoute
+  '/parametres': typeof ParametresRoute
+  '/rapports': typeof RapportsRoute
+  '/relances': typeof RelancesRoute
   '/devis/$id': typeof DevisIdRoute
+  '/factures/$id': typeof FacturesIdRoute
+  '/factures/': typeof FacturesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/devis/$id'
+  fullPaths:
+    | '/'
+    | '/catalogue'
+    | '/clients'
+    | '/dashboard'
+    | '/modeles'
+    | '/parametres'
+    | '/rapports'
+    | '/relances'
+    | '/devis/$id'
+    | '/factures/$id'
+    | '/factures/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/devis/$id'
-  id: '__root__' | '/' | '/dashboard' | '/devis/$id'
+  to:
+    | '/'
+    | '/catalogue'
+    | '/clients'
+    | '/dashboard'
+    | '/modeles'
+    | '/parametres'
+    | '/rapports'
+    | '/relances'
+    | '/devis/$id'
+    | '/factures/$id'
+    | '/factures'
+  id:
+    | '__root__'
+    | '/'
+    | '/catalogue'
+    | '/clients'
+    | '/dashboard'
+    | '/modeles'
+    | '/parametres'
+    | '/rapports'
+    | '/relances'
+    | '/devis/$id'
+    | '/factures/$id'
+    | '/factures/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatalogueRoute: typeof CatalogueRoute
+  ClientsRoute: typeof ClientsRoute
   DashboardRoute: typeof DashboardRoute
+  ModelesRoute: typeof ModelesRoute
+  ParametresRoute: typeof ParametresRoute
+  RapportsRoute: typeof RapportsRoute
+  RelancesRoute: typeof RelancesRoute
   DevisIdRoute: typeof DevisIdRoute
+  FacturesIdRoute: typeof FacturesIdRoute
+  FacturesIndexRoute: typeof FacturesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +182,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/catalogue': {
+      id: '/catalogue'
+      path: '/catalogue'
+      fullPath: '/catalogue'
+      preLoaderRoute: typeof CatalogueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients': {
+      id: '/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof ClientsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modeles': {
+      id: '/modeles'
+      path: '/modeles'
+      fullPath: '/modeles'
+      preLoaderRoute: typeof ModelesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parametres': {
+      id: '/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rapports': {
+      id: '/rapports'
+      path: '/rapports'
+      fullPath: '/rapports'
+      preLoaderRoute: typeof RapportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relances': {
+      id: '/relances'
+      path: '/relances'
+      fullPath: '/relances'
+      preLoaderRoute: typeof RelancesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/devis/$id': {
@@ -82,13 +238,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevisIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/factures/': {
+      id: '/factures/'
+      path: '/factures'
+      fullPath: '/factures/'
+      preLoaderRoute: typeof FacturesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/factures/$id': {
+      id: '/factures/$id'
+      path: '/factures/$id'
+      fullPath: '/factures/$id'
+      preLoaderRoute: typeof FacturesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatalogueRoute: CatalogueRoute,
+  ClientsRoute: ClientsRoute,
   DashboardRoute: DashboardRoute,
+  ModelesRoute: ModelesRoute,
+  ParametresRoute: ParametresRoute,
+  RapportsRoute: RapportsRoute,
+  RelancesRoute: RelancesRoute,
   DevisIdRoute: DevisIdRoute,
+  FacturesIdRoute: FacturesIdRoute,
+  FacturesIndexRoute: FacturesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
