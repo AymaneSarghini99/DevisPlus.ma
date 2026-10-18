@@ -10,6 +10,7 @@ import {
   type Quote,
   type TemplateId,
 } from "./quotes";
+import type { DocStyle, Watermark } from "./design";
 import { read, write } from "./storage";
 
 export type InvoiceStatus = "brouillon" | "emise";
@@ -60,6 +61,8 @@ export type Invoice = {
   template: TemplateId;
   accent: string;
   payments: Payment[];
+  watermark?: Watermark;
+  style?: DocStyle;
 };
 
 const KEY = "devisplus.invoices";
@@ -113,6 +116,8 @@ export function invoiceFromQuote(q: Quote): Invoice {
     template: q.template,
     accent: q.accent,
     payments: [],
+    ...(q.watermark ? { watermark: { ...q.watermark } } : {}),
+    ...(q.style ? { style: { ...q.style } } : {}),
   };
 }
 

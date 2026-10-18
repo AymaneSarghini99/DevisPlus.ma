@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, ImagePlus, X } from "lucide-react";
+import { Check, ImagePlus, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader, PageTitle } from "@/components/Brand";
-import { AccentPicker } from "@/components/Form";
+import { AccentPicker, Section } from "@/components/Form";
+import { TemplateBuilder } from "@/components/TemplateBuilder";
+import { WatermarkControls } from "@/components/WatermarkControls";
+import { CUSTOM_PREFIX, defaultStyle, designFrom, type CustomTemplate } from "@/lib/design";
 import { A4Preview, QuoteDocument, type DocData } from "@/components/QuoteDocument";
 import {
   addDays,
@@ -11,6 +14,7 @@ import {
   loadQuotes,
   TEMPLATES,
   today,
+  uid,
   type Quote,
   type TemplateId,
 } from "@/lib/quotes";
@@ -127,6 +131,7 @@ function Templates() {
   const [saved, setSaved] = useState<Settings>(defaultSettings);
   const [draft, setDraft] = useState<Settings>(defaultSettings);
   const [last, setLast] = useState<Quote | null>(null);
+  const [editing, setEditing] = useState<{ t: CustomTemplate; isNew: boolean } | null>(null);
   // Previews depend on this browser's data and date: render them only after mounting.
   const [ready, setReady] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -141,26 +146,51 @@ function Templates() {
 
   if (!ready) return <p className="p-8 text-sm text-muted-foreground">Chargement…</p>;
 
-  const changed =
-    draft.template !== saved.template || draft.accent !== saved.accent || draft.logo !== saved.logo;
-  const doc = (template: TemplateId): DocData => {
-    const base = last ? fromQuote(last, draft) : sample(draft);
-    return { ...base, template, accent: draft.accent, logo: draft.logo };
+  const pick = (s: Settings) => ({
+    template: s.template,
+    accent: s.accent,
+    logo: s.logo,
+    watermark: s.watermark,
+    defaultCustom: s.defaultCustom,
+  });
+  const changed = JSON.stringify(pick(draft)) !== JSON.stringify(pick(saved));
+  const selectedCustom = draft.customTemplates.find((c) => c.id === draft.defaultCustom);
+  const base = (): DocData => ({
+    ...(last ? fromQuote(last, draft) : sample(draft)),
+    logo: draft.logo,
+    watermark: draft.watermark,
+  });
+  const builtIn = (template: TemplateId): DocData => {
+    const { style: _s, ...rest } = base();
+    return { ...rest, template, accent: draft.accent };
   };
+  const custom = (c: CustomTemplate): DocData => ({ ...base(), ...designFrom(c) });
+  const current = selectedCustom ? custom(selectedCustom) : builtIn(draft.template);
 
   const persist = () => {
     try {
-      const next = {
-        ...loadSettings(),
-        template: draft.template,
-        accent: draft.accent,
-        logo: draft.logo,
-      };
+      const next = { ...loadSettings(), ...pick(draft) };
       saveSettings(next);
       setSaved(next);
       toast.success("Préférences enregistrées pour vos prochains devis.");
     } catch (e) {
       toast.error(errorMessage(e));
+    }
+  };
+
+  /** Custom templates are saved right away (the rest of the page waits for "Définir par défaut"). */
+  const storeCustoms = (customTemplates: CustomTemplate[], defaultCustom = draft.defaultCustom) => {
+    try {
+      const stored = { ...loadSettings(), customTemplates };
+      if (saved.defaultCustom && !customTemplates.some((c) => c.id === saved.defaultCustom))
+        stored.defaultCustom = "";
+      saveSettings(stored);
+      setSaved({ ...saved, customTemplates, defaultCustom: stored.defaultCustom });
+      setDraft({ ...draft, customTemplates, defaultCustom });
+      return true;
+    } catch (e) {
+      toast.error(errorMessage(e));
+      return false;
     }
   };
 
@@ -175,68 +205,175 @@ function Templates() {
     }
   };
 
+  const card = (
+    key: string,
+    active: boolean,
+    isDefault: boolean,
+    d: DocData,
+    name: string,
+    hint: string,
+    onClick: () => void,
+  ) => (
+    <button
+      key={key}
+      role="radio"
+      aria-checked={active}
+      onClick={onClick}
+      className={`group border bg-card text-left transition-colors ${active ? "border-foreground ring-1 ring-foreground" : "hover:border-foreground/40"}`}
+    >
+      <div className="relative h-44 overflow-hidden border-b bg-muted" aria-hidden>
+        <div className="pointer-events-none absolute left-1/2 top-3 w-[794px] origin-top -translate-x-1/2 scale-[0.24]">
+          <QuoteDocument d={d} className="shadow-sm" />
+        </div>
+      </div>
+      <div className="flex items-start justify-between gap-2 p-3">
+        <div>
+          <div className="text-sm font-semibold">
+            {name}
+            {isDefault && (
+              <span className="ml-2 text-xs font-normal text-muted-foreground">par défaut</span>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground">{hint}</div>
+        </div>
+        {active && <Check className="size-4 shrink-0" />}
+      </div>
+    </button>
+  );
+
+  const startNew = () =>
+    setEditing({
+      isNew: true,
+      t: {
+        id: uid(),
+        name: "",
+        base: selectedCustom?.base ?? draft.template,
+        accent: selectedCustom?.accent ?? draft.accent,
+        style: selectedCustom ? { ...selectedCustom.style } : defaultStyle(),
+        createdAt: new Date().toISOString(),
+      },
+    });
+
   return (
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
         <PageTitle title="Modèles">
+          <button className="btn btn-ghost" onClick={startNew}>
+            <Plus className="size-4" /> Créer un modèle
+          </button>
           <button className="btn btn-primary" disabled={!changed} onClick={persist}>
             Définir par défaut
           </button>
         </PageTitle>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Les huit modèles utilisent les mêmes données et le même calcul. Le modèle par défaut
+          Tous les modèles utilisent les mêmes données et le même calcul. Le modèle par défaut
           s'applique aux nouveaux devis ; chaque devis peut ensuite en changer.
           {last
             ? ` Aperçu avec votre dernier devis (${last.number}).`
             : " Aperçu avec un exemple, tant qu'aucun devis n'est enregistré."}
         </p>
 
-        <div
-          className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4"
-          role="radiogroup"
-          aria-label="Modèle"
-        >
-          {TEMPLATES.map((t) => {
-            const active = draft.template === t.id;
-            return (
-              <button
-                key={t.id}
-                role="radio"
-                aria-checked={active}
-                onClick={() => setDraft({ ...draft, template: t.id })}
-                className={`group border bg-card text-left transition-colors ${active ? "border-foreground ring-1 ring-foreground" : "hover:border-foreground/40"}`}
-              >
-                <div className="relative h-44 overflow-hidden border-b bg-muted" aria-hidden>
-                  <div className="pointer-events-none absolute left-1/2 top-3 w-[794px] origin-top -translate-x-1/2 scale-[0.24]">
-                    <QuoteDocument d={doc(t.id)} className="shadow-sm" />
-                  </div>
-                </div>
-                <div className="flex items-start justify-between gap-2 p-3">
-                  <div>
-                    <div className="text-sm font-semibold">
-                      {t.name}
-                      {saved.template === t.id && (
-                        <span className="ml-2 text-xs font-normal text-muted-foreground">
-                          par défaut
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{t.hint}</div>
-                  </div>
-                  {active && <Check className="size-4 shrink-0" />}
-                </div>
-              </button>
-            );
-          })}
+        {editing && (
+          <TemplateBuilder
+            key={editing.t.id}
+            initial={editing.t}
+            isNew={editing.isNew}
+            sample={base()}
+            onCancel={() => setEditing(null)}
+            onSave={(t) => {
+              const list = editing.isNew
+                ? [t, ...draft.customTemplates]
+                : draft.customTemplates.map((c) => (c.id === t.id ? t : c));
+              if (storeCustoms(list, editing.isNew ? t.id : draft.defaultCustom)) {
+                setEditing(null);
+                toast.success(`Modèle « ${t.name} » enregistré.`, {
+                  description: "Choisissez-le dans l'éditeur de devis, ou « Définir par défaut ».",
+                });
+              }
+            }}
+            onDelete={
+              editing.isNew
+                ? undefined
+                : () => {
+                    if (
+                      !confirm(
+                        `Supprimer le modèle « ${editing.t.name} » ? Les devis existants gardent leur mise en page.`,
+                      )
+                    )
+                      return;
+                    const list = draft.customTemplates.filter((c) => c.id !== editing.t.id);
+                    if (
+                      storeCustoms(
+                        list,
+                        draft.defaultCustom === editing.t.id ? "" : draft.defaultCustom,
+                      )
+                    )
+                      setEditing(null);
+                  }
+            }
+          />
+        )}
+
+        <div role="radiogroup" aria-label="Modèle par défaut" className="mt-6 space-y-6">
+          {draft.customTemplates.length > 0 && (
+            <div>
+              <h2 className="mb-3 text-sm font-semibold">Mes modèles</h2>
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {draft.customTemplates.map((c) =>
+                  card(
+                    CUSTOM_PREFIX + c.id,
+                    draft.defaultCustom === c.id,
+                    saved.defaultCustom === c.id,
+                    custom(c),
+                    c.name,
+                    `Basé sur ${TEMPLATES.find((x) => x.id === c.base)?.name ?? c.base}`,
+                    () => setDraft({ ...draft, defaultCustom: c.id }),
+                  ),
+                )}
+              </div>
+            </div>
+          )}
+          <div>
+            {draft.customTemplates.length > 0 && (
+              <h2 className="mb-3 text-sm font-semibold">Modèles DevisPlus</h2>
+            )}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {TEMPLATES.map((t) =>
+                card(
+                  t.id,
+                  !selectedCustom && draft.template === t.id,
+                  !saved.defaultCustom && saved.template === t.id,
+                  builtIn(t.id),
+                  t.name,
+                  t.hint,
+                  () => setDraft({ ...draft, template: t.id, defaultCustom: "" }),
+                ),
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
           <div className="space-y-6">
-            <AccentPicker
-              value={draft.accent}
-              onChange={(accent) => setDraft({ ...draft, accent })}
-            />
+            {selectedCustom ? (
+              <div className="border bg-card p-4 text-sm">
+                <p>
+                  Modèle sélectionné : <span className="font-semibold">{selectedCustom.name}</span>
+                </p>
+                <button
+                  className="btn btn-ghost mt-3"
+                  onClick={() => setEditing({ t: selectedCustom, isNew: false })}
+                >
+                  Modifier ce modèle
+                </button>
+              </div>
+            ) : (
+              <AccentPicker
+                value={draft.accent}
+                onChange={(accent) => setDraft({ ...draft, accent })}
+              />
+            )}
             <div>
               <span className="label">Logo</span>
               {draft.logo ? (
@@ -270,6 +407,17 @@ function Templates() {
                 PNG, JPG, WebP ou SVG. Réduit automatiquement ; conservé dans ce navigateur.
               </p>
             </div>
+            <Section title="Filigrane par défaut">
+              <WatermarkControls
+                idPrefix="wm-default"
+                value={draft.watermark}
+                onChange={(watermark) => setDraft({ ...draft, watermark })}
+                hasLogo={!!draft.logo}
+              />
+              <p className="text-xs text-muted-foreground">
+                Repris sur les nouveaux devis ; chaque devis peut le modifier.
+              </p>
+            </Section>
             {changed && (
               <p className="text-sm text-muted-foreground" role="status">
                 Modifications non enregistrées : cliquez sur « Définir par défaut ».
@@ -278,7 +426,10 @@ function Templates() {
           </div>
           <div className="min-w-0">
             <p className="mb-2 text-xs text-muted-foreground">Aperçu A4</p>
-            <A4Preview d={doc(draft.template)} />
+            <A4Preview
+              d={current}
+              onWatermarkChange={(watermark) => setDraft({ ...draft, watermark })}
+            />
           </div>
         </div>
       </main>

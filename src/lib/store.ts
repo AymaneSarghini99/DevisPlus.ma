@@ -11,6 +11,13 @@ import {
   type TemplateId,
   type Unit,
 } from "./quotes";
+import {
+  defaultWatermark,
+  designFrom,
+  normalizeWatermark,
+  type CustomTemplate,
+  type Watermark,
+} from "./design";
 import { read, write } from "./storage";
 
 export type Client = Party & { id: string; paymentTerms: string; createdAt: string };
@@ -33,6 +40,9 @@ export type Settings = {
   deposit: number;
   vatRates: number[]; // rates offered in the editor; saved lines keep their own rate
   defaultVat: number;
+  watermark: Watermark; // default for new quotes
+  customTemplates: CustomTemplate[];
+  defaultCustom: string; // id of the custom template used for new quotes, "" for none
 };
 
 // ---------- clients ----------
@@ -112,20 +122,30 @@ export const defaultSettings = (): Settings => ({
   deposit: 30,
   vatRates: VAT_RATES,
   defaultVat: 20,
+  watermark: defaultWatermark(),
+  customTemplates: [],
+  defaultCustom: "",
 });
 export function loadSettings(): Settings {
   const s = { ...defaultSettings(), ...read<Partial<Settings>>("devisplus.settings", {}) };
-  return { ...s, company: { ...emptyCompany(), ...s.company } };
+  return {
+    ...s,
+    company: { ...emptyCompany(), ...s.company },
+    watermark: normalizeWatermark(s.watermark),
+  };
 }
 export const saveSettings = (s: Settings) => write("devisplus.settings", s);
 /** True once the user has saved a business profile (so it should prefill new documents). */
 export const hasProfile = (s: Settings) => !!s.company.name.trim();
 
 export function quoteDefaults(s: Settings): Defaults {
+  const custom = s.customTemplates.find((c) => c.id === s.defaultCustom);
   return {
     ...(hasProfile(s) ? { company: s.company } : {}),
     template: s.template,
     accent: s.accent,
+    ...(custom ? designFrom(custom) : {}),
+    ...(s.watermark.enabled ? { watermark: s.watermark } : {}),
     validityDays: s.validityDays,
     terms: s.terms,
     deposit: s.deposit,

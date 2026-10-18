@@ -347,6 +347,8 @@ function InvoicePage() {
               quoteRef: inv.quoteNumber,
               paid: t.paid,
             }}
+
+            onWatermarkChange={draft ? (watermark) => update({ watermark }) : undefined}
           />
         </div>
       </main>

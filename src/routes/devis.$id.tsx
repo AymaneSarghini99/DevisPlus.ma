@@ -43,6 +43,8 @@ import { errorMessage } from "@/lib/storage";
 import { invoiceFromQuote, loadInvoices, saveInvoice, type Invoice } from "@/lib/invoices";
 import { Dropdown } from "@/components/Dropdown";
 import { DatePicker } from "@/components/DatePicker";
+import { WatermarkControls } from "@/components/WatermarkControls";
+import { chooseTemplate, normalizeWatermark, templateValue } from "@/lib/design";
 
 export const Route = createFileRoute("/devis/$id")({
   head: () => ({
@@ -550,13 +552,32 @@ function Editor() {
               <F label="Modèle" id="tpl">
                 <Dropdown
                   id="tpl"
-                  value={q.template}
-                  onChange={(v) => update({ template: v as TemplateId })}
-                  options={TEMPLATES.map((x) => ({ value: x.id, label: x.name, hint: x.hint }))}
+                  value={templateValue(q, settings.customTemplates)}
+                  onChange={(v) => {
+                    setQ(chooseTemplate(q, v, settings.customTemplates));
+                    setDirty(true);
+                    setSaved(false);
+                  }}
+                  options={[
+                    ...settings.customTemplates.map((c) => ({
+                      value: "custom:" + c.id,
+                      label: c.name,
+                      hint: "Mon modèle",
+                    })),
+                    ...TEMPLATES.map((x) => ({ value: x.id, label: x.name, hint: x.hint })),
+                  ]}
                 />
               </F>
               <AccentPicker value={q.accent} onChange={(accent) => update({ accent })} />
             </div>
+          </Section>
+
+          <Section title="Filigrane">
+            <WatermarkControls
+              value={normalizeWatermark(q.watermark)}
+              onChange={(watermark) => update({ watermark })}
+              hasLogo={!!settings.logo}
+            />
           </Section>
         </div>
 
@@ -564,7 +585,10 @@ function Editor() {
           <p className="no-print mb-2 text-xs text-muted-foreground">
             Aperçu A4 — ce qui sera imprimé ou enregistré en PDF
           </p>
-          <A4Preview d={{ ...q, kind: "devis", secondDate: q.validUntil, logo: settings.logo }} />
+          <A4Preview
+            d={{ ...q, kind: "devis", secondDate: q.validUntil, logo: settings.logo }}
+            onWatermarkChange={(watermark) => update({ watermark })}
+          />
         </div>
       </main>
     </div>

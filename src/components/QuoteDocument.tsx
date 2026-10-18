@@ -14,6 +14,8 @@ import {
   type TemplateId,
 } from "@/lib/quotes";
 import { MOROCCAN_TEMPLATES, MoroccanDocument } from "./MoroccanTemplates";
+import { WatermarkLayer } from "./WatermarkLayer";
+import { defaultStyle, type DocStyle, type Watermark } from "@/lib/design";
 
 export type DocData = {
   kind: "devis" | "facture";
@@ -36,6 +38,8 @@ export type DocData = {
   draft?: boolean;
   quoteRef?: string;
   paid?: number;
+  watermark?: Watermark;
+  style?: DocStyle;
 };
 
 /** Readable text colour (navy or white) on top of a given accent colour. */
@@ -49,17 +53,37 @@ export function onAccent(hex: string) {
 
 const pct = (n: number) => `${Number(n) || 0} %`;
 
-export function QuoteDocument({ d, className = "" }: { d: DocData; className?: string }) {
+export function QuoteDocument({
+  d: raw,
+  className = "",
+  onWatermarkChange,
+}: {
+  d: DocData;
+  className?: string;
+  /** When set, the watermark can be dragged (and moved with the arrow keys) in the preview. */
+  onWatermarkChange?: ((w: Watermark) => void) | undefined;
+}) {
+  const st = { ...defaultStyle(), ...raw.style };
+  // Style switches that simply remove content are applied once, for every layout.
+  const d: DocData = {
+    ...raw,
+    logo: st.showLogo ? raw.logo : "",
+    company: st.showBank ? raw.company : { ...raw.company, bank: "", rib: "" },
+  };
   const t = computeTotals(d.lines, d.globalDiscount, d.kind === "devis" ? d.deposit : 0);
-  const title = d.kind === "devis" ? "Devis" : "Facture";
+  const title = st.title.trim() || (d.kind === "devis" ? "Devis" : "Facture");
   const showDiscount = d.lines.some((l) => Number(l.discount) > 0);
   const exemption = needsExemptionNote(d.lines);
   const vars = { "--doc-accent": d.accent, "--doc-on-accent": onAccent(d.accent) } as CSSProperties;
 
   return (
     <article
-      style={vars}
-      className={`print-area relative overflow-hidden bg-paper p-8 text-[12.5px] leading-relaxed text-[#14213D] ${className}`}
+      style={{
+        ...vars,
+        containerType: "inline-size",
+        ...(st.font === "serif" ? { fontFamily: '"IBM Plex Serif", Georgia, serif' } : {}),
+      }}
+      className={`print-area relative isolate flex flex-col overflow-hidden bg-paper p-8 text-[12.5px] leading-relaxed text-[#14213D] ${className}`}
     >
       {d.draft && (
         <div className="mb-4 border border-dashed border-destructive px-3 py-2 text-center text-xs font-semibold uppercase tracking-widest text-destructive">
@@ -68,7 +92,7 @@ export function QuoteDocument({ d, className = "" }: { d: DocData; className?: s
       )}
 
       {(MOROCCAN_TEMPLATES as readonly string[]).includes(d.template) ? (
-        <MoroccanDocument d={d} />
+        <MoroccanDocument d={d} title={title} st={st} />
       ) : (
         <>
           <DocHeader d={d} title={title} />
@@ -118,7 +142,7 @@ export function QuoteDocument({ d, className = "" }: { d: DocData; className?: s
           )}
 
           <div className="mt-5 flex items-start justify-between gap-6">
-            <div className="max-w-sm text-[11.5px]">
+            <div className={`max-w-sm text-[11.5px] ${st.showWords ? "" : "invisible"}`}>
               <SmallLabel template={d.template} accent={d.accent}>
                 {d.kind === "facture" ? "Arrêtée la présente facture" : "Arrêté le présent devis"} à
                 la somme de
@@ -165,7 +189,9 @@ export function QuoteDocument({ d, className = "" }: { d: DocData; className?: s
             </dl>
           </div>
 
-          <footer className="mt-8 space-y-3 border-t pt-4 text-[11px] text-[#5b6478]">
+          {/* The footer is pushed to the bottom of the page; the spacer keeps a minimum gap. */}
+          <div className="h-8 shrink-0" />
+          <footer className="mt-auto space-y-3 border-t pt-4 text-[11px] text-[#5b6478]">
             {exemption && (
               <p>
                 <span className="font-semibold text-[#14213D]">Exonération de TVA : </span>
@@ -188,7 +214,8 @@ export function QuoteDocument({ d, className = "" }: { d: DocData; className?: s
                   .join(" — ")}
               </p>
             )}
-            {d.kind === "devis" && (
+            {st.footerNote && <p className="whitespace-pre-wrap">{st.footerNote}</p>}
+            {d.kind === "devis" && st.showSignature && (
               <div className="grid grid-cols-2 gap-6 pt-2">
                 <p>Devis valable jusqu'au {fmtDate(d.secondDate)}.</p>
                 <div className="h-20 border border-dashed p-2">
@@ -199,6 +226,9 @@ export function QuoteDocument({ d, className = "" }: { d: DocData; className?: s
             <LegalLine c={d.company} />
           </footer>
         </>
+      )}
+      {raw.watermark?.enabled && (
+        <WatermarkLayer w={raw.watermark} logo={raw.logo} onChange={onWatermarkChange} />
       )}
     </article>
   );
@@ -459,7 +489,15 @@ function LegalLine({ c }: { c: Company }) {
 
 /** Lays the document out at true A4 width (794 px) and scales it to fit its column, so the
  *  screen preview matches the printed page. Printing ignores the scale. */
-export function A4Preview({ d, className = "" }: { d: DocData; className?: string }) {
+export function A4Preview({
+  d,
+  className = "",
+  onWatermarkChange,
+}: {
+  d: DocData;
+  className?: string;
+  onWatermarkChange?: ((w: Watermark) => void) | undefined;
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -488,7 +526,11 @@ export function A4Preview({ d, className = "" }: { d: DocData; className?: strin
         className="a4-sheet w-[794px] origin-top-left"
         style={{ transform: `scale(${scale})` }}
       >
-        <QuoteDocument d={d} className="min-h-[1123px] border shadow-sm" />
+        <QuoteDocument
+          d={d}
+          className="min-h-[1123px] border shadow-sm"
+          onWatermarkChange={onWatermarkChange}
+        />
       </div>
     </div>
   );

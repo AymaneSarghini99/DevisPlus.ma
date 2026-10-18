@@ -115,8 +115,11 @@
   .no-print { display: none !important; }
   .print-area { box-shadow: none !important; border: 0 !important; padding: 0 !important; max-width: none !important; }
   .print-area tr { break-inside: avoid; }
-  .print-area { min-height: 0 !important; }
+  /* One A4 page minus the 14 mm margins, so the footer lands at the bottom of the page */
+  .print-area { min-height: 267mm !important; }
   .a4-frame { height: auto !important; }
   .a4-sheet { transform: none !important; width: auto !important; }
+  /* Fixed elements repeat on every printed page */
+  .watermark { position: fixed !important; }
   * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }

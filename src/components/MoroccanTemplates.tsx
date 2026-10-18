@@ -12,6 +12,7 @@ import {
   type Totals,
 } from "@/lib/quotes";
 import type { DocData } from "./QuoteDocument";
+import type { DocStyle } from "@/lib/design";
 
 /** Layouts common on Moroccan quotes and invoices: full-grid tables, boxed parties,
  *  "Arrêté à la somme de" box, stamp areas, zellige ornament and French/Arabic labels. */
@@ -37,10 +38,9 @@ function Bi({ fr, ar, on }: { fr: string; ar: string; on: boolean }) {
   );
 }
 
-export function MoroccanDocument({ d }: { d: DocData }) {
+export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; st: DocStyle }) {
   const t = computeTotals(d.lines, d.globalDiscount, d.kind === "devis" ? d.deposit : 0);
   const showDiscount = d.lines.some((l) => Number(l.discount) > 0);
-  const title = d.kind === "devis" ? "Devis" : "Facture";
   const number = d.number || "attribué à l'émission";
   const bi = d.template === "bilingue";
 
@@ -131,13 +131,15 @@ export function MoroccanDocument({ d }: { d: DocData }) {
           </div>
           <div className="shrink-0 text-right">
             <div className="text-lg font-semibold uppercase tracking-[0.18em]">{title}</div>
-            <div
-              lang="ar"
-              dir="rtl"
-              className="font-[IBM_Plex_Sans_Arabic,sans-serif] text-lg font-semibold"
-            >
-              {d.kind === "devis" ? "عرض أسعار" : "فاتورة"}
-            </div>
+            {!st.title.trim() && (
+              <div
+                lang="ar"
+                dir="rtl"
+                className="font-[IBM_Plex_Sans_Arabic,sans-serif] text-lg font-semibold"
+              >
+                {d.kind === "devis" ? "عرض أسعار" : "فاتورة"}
+              </div>
+            )}
             <div className="num">{number}</div>
           </div>
         </header>
@@ -252,17 +254,20 @@ export function MoroccanDocument({ d }: { d: DocData }) {
         </div>
       )}
 
-      <div className="mt-4 border-2 px-3 py-2" style={{ borderColor: "var(--doc-accent)" }}>
-        <span className="font-semibold">
-          {d.kind === "facture" ? "Arrêtée la présente facture" : "Arrêté le présent devis"} à la
-          somme de :{" "}
-        </span>
-        <span className={d.template === "marche" ? "uppercase" : ""}>
-          {amountInWords(t.ttc)} toutes taxes comprises.
-        </span>
-      </div>
+      {st.showWords && (
+        <div className="mt-4 border-2 px-3 py-2" style={{ borderColor: "var(--doc-accent)" }}>
+          <span className="font-semibold">
+            {d.kind === "facture" ? "Arrêtée la présente facture" : "Arrêté le présent devis"} à la
+            somme de :{" "}
+          </span>
+          <span className={d.template === "marche" ? "uppercase" : ""}>
+            {amountInWords(t.ttc)} toutes taxes comprises.
+          </span>
+        </div>
+      )}
 
-      <footer className={`mt-5 space-y-2 text-[11px] ${muted}`}>
+      <div className="h-5 shrink-0" />
+      <footer className={`mt-auto space-y-2 text-[11px] ${muted}`}>
         {needsExemptionNote(d.lines) && (
           <Note k="Exonération de TVA" v={d.exemptionNote || "motif à préciser"} />
         )}
@@ -275,20 +280,23 @@ export function MoroccanDocument({ d }: { d: DocData }) {
               .join(" — ")}
           />
         )}
-        <div className="grid grid-cols-2 gap-6 pt-3 text-[#14213D]">
-          <StampBox
-            label={
-              d.template === "bilingue"
-                ? "Cachet et signature — الختم والتوقيع"
-                : "Cachet et signature de l'entreprise"
-            }
-          />
-          {d.kind === "devis" ? (
-            <StampBox label="Bon pour accord — date, cachet et signature du client" />
-          ) : (
-            <div />
-          )}
-        </div>
+        {st.footerNote && <p className="whitespace-pre-wrap">{st.footerNote}</p>}
+        {st.showSignature && (
+          <div className="grid grid-cols-2 gap-6 pt-3 text-[#14213D]">
+            <StampBox
+              label={
+                d.template === "bilingue"
+                  ? "Cachet et signature — الختم والتوقيع"
+                  : "Cachet et signature de l'entreprise"
+              }
+            />
+            {d.kind === "devis" ? (
+              <StampBox label="Bon pour accord — date, cachet et signature du client" />
+            ) : (
+              <div />
+            )}
+          </div>
+        )}
         <LegalBox c={d.company} />
       </footer>
 

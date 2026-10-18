@@ -1,3 +1,4 @@
+import type { DocStyle, Watermark } from "./design";
 import { read, write } from "./storage";
 
 export type Unit = "pièce" | "heure" | "jour" | "m²" | "m³" | "ml" | "kg" | "forfait";
@@ -76,6 +77,9 @@ export type Quote = {
   template: TemplateId;
   accent: string;
   reminders: Reminder[]; // follow-ups the user prepared — never proof of delivery
+  watermark?: Watermark;
+  style?: DocStyle;
+  customTemplateId?: string; // set when the design came from one of the user's templates
 };
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -342,6 +346,9 @@ export type Defaults = {
   terms?: string;
   deposit?: number;
   vatRate?: number;
+  watermark?: Watermark;
+  style?: DocStyle;
+  customTemplateId?: string;
 };
 
 export const DEFAULT_TERMS =
@@ -368,6 +375,9 @@ export function newQuote(existing: Quote[], d: Defaults = {}): Quote {
     template: d.template ?? "classic",
     accent: d.accent ?? "#14213D",
     reminders: [],
+    ...(d.watermark ? { watermark: { ...d.watermark } } : {}),
+    ...(d.style ? { style: { ...d.style } } : {}),
+    ...(d.customTemplateId ? { customTemplateId: d.customTemplateId } : {}),
   };
 }
 
