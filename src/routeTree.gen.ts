@@ -20,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DataProcessingRouteImport } from './routes/data-processing'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ModelesRouteImport } from './routes/modeles'
+import { Route as NexxEntrepriseGroupRouteImport } from './routes/nexx-entreprise-group'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -95,6 +96,11 @@ const LegalRoute = LegalRouteImport.update({
 const ModelesRoute = ModelesRouteImport.update({
   id: '/modeles',
   path: '/modeles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NexxEntrepriseGroupRoute = NexxEntrepriseGroupRouteImport.update({
+  id: '/nexx-entreprise-group',
+  path: '/nexx-entreprise-group',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
   '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
   '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
   '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/data-processing'
     | '/legal'
     | '/modeles'
+    | '/nexx-entreprise-group'
     | '/onboarding'
     | '/parametres'
     | '/privacy'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/data-processing'
     | '/legal'
     | '/modeles'
+    | '/nexx-entreprise-group'
     | '/onboarding'
     | '/parametres'
     | '/privacy'
@@ -388,6 +399,7 @@ export interface FileRouteTypes {
     | '/data-processing'
     | '/legal'
     | '/modeles'
+    | '/nexx-entreprise-group'
     | '/onboarding'
     | '/parametres'
     | '/privacy'
@@ -423,6 +435,7 @@ export interface RootRouteChildren {
   DataProcessingRoute: typeof DataProcessingRoute
   LegalRoute: typeof LegalRoute
   ModelesRoute: typeof ModelesRoute
+  NexxEntrepriseGroupRoute: typeof NexxEntrepriseGroupRoute
   OnboardingRoute: typeof OnboardingRoute
   ParametresRoute: typeof ParametresRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       path: '/modeles'
       fullPath: '/modeles'
       preLoaderRoute: typeof ModelesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nexx-entreprise-group': {
+      id: '/nexx-entreprise-group'
+      path: '/nexx-entreprise-group'
+      fullPath: '/nexx-entreprise-group'
+      preLoaderRoute: typeof NexxEntrepriseGroupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -687,6 +707,7 @@ const rootRouteChildren: RootRouteChildren = {
   DataProcessingRoute: DataProcessingRoute,
   LegalRoute: LegalRoute,
   ModelesRoute: ModelesRoute,
+  NexxEntrepriseGroupRoute: NexxEntrepriseGroupRoute,
   OnboardingRoute: OnboardingRoute,
   ParametresRoute: ParametresRoute,
   PrivacyRoute: PrivacyRoute,

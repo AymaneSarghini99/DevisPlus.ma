@@ -185,3 +185,19 @@ export const guidesPage: M["guidesPage"] = {
   ctaTitle: "أعدّ عرض سعر مطابقًا في دقائق",
   frenchOnly: "هذا الدليل مكتوب بالفرنسية.",
 };
+
+export const group: M["group"] = {
+  eyebrow: "NEXX Entreprise Group",
+  line1: "مجموعة واحدة.",
+  line2: "طموحات مختلفة.",
+  intro:
+    "DevisPlus.ma جزء من NEXX Entreprise Group. لكل طموح من طموحات المجموعة اسمه ومهنته وفريقه، ويجمعها المستوى نفسه من الإتقان.",
+  first: "الطموح 01",
+  dpName: "DevisPlus.ma",
+  dpText: "عروض أسعار وفواتير واضحة بالدرهم للشركات المغربية.",
+  dpLink: "اكتشف DevisPlus",
+  next: "الطموح 0{{n}}",
+  nextText: "الطموح القادم",
+  closing: "مستوى واحد من الإتقان، وطموحات متعددة.",
+  visit: "زيارة NEXX Entreprise Group",
+};

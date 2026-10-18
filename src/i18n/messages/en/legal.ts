@@ -59,6 +59,7 @@ export const site: M["site"] = {
   navPricing: "Pricing",
   navTemplates: "Templates",
   navGuides: "Guides",
+  partOfGroup: "DevisPlus.ma is part of NEXX Entreprise Group",
   navCreateOnline: "Create a quote online (FR)",
   navContact: "Contact",
   menu: "Menu",

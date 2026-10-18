@@ -39,7 +39,7 @@ describe("translation dictionaries (missing-translation audit)", () => {
   }
   it("Arabic strings are actually Arabic (except brand names and identifiers)", () => {
     const allowedLatin =
-      /^(?:[A-Z]{2,4}|DevisPlus\.ma.*|© 2026 DevisPlus\.ma|PDF.*|m[²³]|Casablanca|Google Drive|clients|quotes|invoices|payments|mycompany|—|, |: |RIB.*)$/;
+      /^(?:[A-Z]{2,4}|DevisPlus\.ma.*|© 2026 DevisPlus\.ma|PDF.*|m[²³]|Casablanca|Google Drive|NEXX Entreprise Group|clients|quotes|invoices|payments|mycompany|—|, |: |RIB.*)$/;
     const offenders = [...flatten(RESOURCES.ar as unknown as Tree)]
       .flatMap(([k, vs]) => vs.map((v) => [k, v] as const))
       .filter(([, v]) => !/[؀-ۿ]/.test(v) && !allowedLatin.test(v));

@@ -182,3 +182,19 @@ export const guidesPage = {
   ctaTitle: "Préparez un devis conforme en quelques minutes",
   frenchOnly: "Ce guide est rédigé en français.",
 };
+
+export const group = {
+  eyebrow: "NEXX Entreprise Group",
+  line1: "Un groupe.",
+  line2: "Des ambitions différentes.",
+  intro:
+    "DevisPlus.ma fait partie de NEXX Entreprise Group. Chaque ambition du groupe a son nom, son métier et son équipe ; elles partagent la même exigence.",
+  first: "Ambition 01",
+  dpName: "DevisPlus.ma",
+  dpText: "Des devis et des factures clairs, en dirhams, pour les entreprises marocaines.",
+  dpLink: "Découvrir DevisPlus",
+  next: "Ambition 0{{n}}",
+  nextText: "Prochaine ambition",
+  closing: "Une seule exigence, plusieurs ambitions.",
+  visit: "Visiter NEXX Entreprise Group",
+};

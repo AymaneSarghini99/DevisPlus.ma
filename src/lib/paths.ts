@@ -4,6 +4,7 @@ export const MARKETING_PATHS = [
   "/tarifs",
   "/creer-devis-en-ligne",
   "/guides",
+  "/nexx-entreprise-group",
   "/legal",
   "/terms",
   "/privacy",

@@ -185,3 +185,19 @@ export const guidesPage: M["guidesPage"] = {
   ctaTitle: "Prepare a compliant quote in minutes",
   frenchOnly: "This guide is written in French.",
 };
+
+export const group: M["group"] = {
+  eyebrow: "NEXX Entreprise Group",
+  line1: "One group.",
+  line2: "Different ambitions.",
+  intro:
+    "DevisPlus.ma is part of NEXX Entreprise Group. Each of the group's ambitions has its own name, trade and team; they share the same standards.",
+  first: "Ambition 01",
+  dpName: "DevisPlus.ma",
+  dpText: "Clear quotes and invoices, in dirhams, for Moroccan businesses.",
+  dpLink: "Discover DevisPlus",
+  next: "Ambition 0{{n}}",
+  nextText: "Next ambition",
+  closing: "One standard, many ambitions.",
+  visit: "Visit NEXX Entreprise Group",
+};

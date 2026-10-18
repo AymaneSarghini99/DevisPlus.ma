@@ -368,3 +368,46 @@
 .feature-progress {
   animation: feature-progress linear both;
 }
+
+/* NEXX group page: the line that links the ambitions grows once the page is shown (a size
+   transition: reliably painted, unlike a scale animation on a 1px line); the lit point breathes. */
+.group-line {
+  position: absolute;
+  inset-inline-start: 7px;
+  top: 0;
+  width: 1px;
+  height: 0;
+  background: var(--foreground);
+  transition:
+    height 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s,
+    width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s;
+}
+.group-line[data-drawn="true"] {
+  height: 100%;
+}
+@media (min-width: 768px) {
+  .group-line {
+    inset-inline-start: 0;
+    top: 7px;
+    width: 0;
+    height: 1px;
+  }
+  .group-line[data-drawn="true"] {
+    width: 100%;
+    height: 1px;
+  }
+}
+@keyframes group-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+.group-pulse {
+  animation: group-pulse 2.4s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}

@@ -26,6 +26,12 @@ function FullFooter() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">{t("site.tagline")}</p>
+            <Link
+              to="/nexx-entreprise-group"
+              className="mt-4 inline-block text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            >
+              {t("site.partOfGroup")}
+            </Link>
           </div>
 
           <FooterCol title={t("site.product")}>

@@ -17,10 +17,11 @@ type PageKey =
   | "pricing"
   | "onboarding"
   | "admin"
-  | "guides";
+  | "guides"
+  | "group";
 
 /** Pages search engines should index; every other app page is "noindex". */
-const INDEXABLE: PageKey[] = ["landing", "pricing", "guides"];
+const INDEXABLE: PageKey[] = ["landing", "pricing", "guides", "group"];
 
 /** Translated title, description and SEO tags for a route's head(), using the router locale. */
 export function pageMeta(match: { context?: unknown; pathname?: string }, page: PageKey) {

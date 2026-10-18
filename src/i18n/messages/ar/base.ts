@@ -105,6 +105,10 @@ export const meta: M["meta"] = {
     description:
       "أدلة عملية للشركات المغربية (بالفرنسية): البيانات الإلزامية في الفاتورة، والضريبة 20% و10% في 2026، والفرق بين عرض السعر والفاتورة.",
   },
+  group: {
+    title: "NEXX Entreprise Group: مجموعة واحدة وطموحات مختلفة | DevisPlus.ma",
+    description: "DevisPlus.ma جزء من NEXX Entreprise Group. اكتشف المجموعة وطموحاتها.",
+  },
   admin: {
     title: "الإدارة — DevisPlus.ma",
     description: "سجل عملاء DevisPlus ومدفوعاتهم.",

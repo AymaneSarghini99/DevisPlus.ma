@@ -104,6 +104,11 @@ export const meta = {
     description:
       "Guides pratiques pour les entreprises marocaines : mentions obligatoires sur une facture, TVA à 20 % et 10 % en 2026, différences entre devis et facture.",
   },
+  group: {
+    title: "NEXX Entreprise Group : un groupe, des ambitions différentes | DevisPlus.ma",
+    description:
+      "DevisPlus.ma fait partie de NEXX Entreprise Group. Découvrez le groupe et ses ambitions.",
+  },
   admin: {
     title: "Administration — DevisPlus.ma",
     description: "Registre des clients et des paiements DevisPlus.",

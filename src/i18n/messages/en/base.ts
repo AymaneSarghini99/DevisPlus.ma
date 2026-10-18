@@ -106,6 +106,11 @@ export const meta: M["meta"] = {
     description:
       "Practical guides for Moroccan businesses (in French): mandatory invoice mentions, 20% and 10% VAT in 2026, quotes versus invoices.",
   },
+  group: {
+    title: "NEXX Entreprise Group: one group, different ambitions | DevisPlus.ma",
+    description:
+      "DevisPlus.ma is part of NEXX Entreprise Group. Discover the group and its ambitions.",
+  },
   admin: {
     title: "Administration — DevisPlus.ma",
     description: "DevisPlus customer and payment register.",

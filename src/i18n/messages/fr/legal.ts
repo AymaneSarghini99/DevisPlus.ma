@@ -57,6 +57,7 @@ export const site = {
   navPricing: "Tarifs",
   navTemplates: "Modèles",
   navGuides: "Guides",
+  partOfGroup: "DevisPlus.ma fait partie de NEXX Entreprise Group",
   navCreateOnline: "Créer un devis en ligne",
   navContact: "Contact",
   menu: "Menu",
