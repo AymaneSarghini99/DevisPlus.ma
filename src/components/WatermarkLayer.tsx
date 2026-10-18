@@ -1,4 +1,5 @@
 import { useRef, type KeyboardEvent, type PointerEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { normalizeWatermark, type Watermark } from "@/lib/design";
 
 /** Watermark drawn over the page. Sizes use container units, so it keeps the same place and
@@ -12,6 +13,7 @@ export function WatermarkLayer({
   logo: string;
   onChange?: ((w: Watermark) => void) | undefined;
 }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const useLogo = w.kind === "logo" && !!logo;
@@ -63,8 +65,11 @@ export function WatermarkLayer({
         ? {
             role: "slider",
             tabIndex: 0,
-            "aria-label": "Position du filigrane : faites glisser ou utilisez les flèches",
-            "aria-valuetext": `${Math.round(w.x)} % depuis la gauche, ${Math.round(w.y)} % depuis le haut`,
+            "aria-label": t("watermark.positionLabel"),
+            "aria-valuetext": t("watermark.positionValue", {
+              x: Math.round(w.x),
+              y: Math.round(w.y),
+            }),
             onPointerDown: (e: PointerEvent<HTMLDivElement>) => {
               e.preventDefault(); // no text selection while dragging
               dragging.current = true;

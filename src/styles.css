@@ -6,8 +6,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  /* Plex Sans Arabic second: Arabic text inside French/English screens and documents uses it too. */
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Sans Arabic", ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -59,6 +60,33 @@
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
   }
+}
+
+/* ---------- Arabic (RTL) typography ---------- */
+:root {
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  /* Plex Serif has no Arabic glyphs: Arabic falls back to Plex Sans Arabic, Latin stays serif. */
+  --font-doc-serif: "IBM Plex Serif", "IBM Plex Sans Arabic", Georgia, serif;
+}
+[lang="ar"] {
+  font-family: var(--font-arabic);
+  line-height: 1.7;
+}
+/* Arabic letters join: never add letter-spacing to Arabic text. */
+[lang="ar"] [class*="tracking-"],
+[lang="ar"][class*="tracking-"] {
+  letter-spacing: normal;
+}
+/* Plex Mono has no Arabic letters (month names, "درهم"): use the Arabic face, keep fixed-width digits. */
+[lang="ar"] .num {
+  font-family: var(--font-arabic);
+  font-variant-numeric: tabular-nums;
+}
+.doc[lang="ar"] {
+  line-height: 1.6;
+}
+[lang="ar"] .label {
+  font-size: 0.8125rem;
 }
 
 @utility num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -116,7 +144,9 @@
   .print-area { box-shadow: none !important; border: 0 !important; padding: 0 !important; max-width: none !important; }
   .print-area tr { break-inside: avoid; }
   /* One A4 page minus the 14 mm margins, so the footer lands at the bottom of the page */
-  .print-area { min-height: 267mm !important; }
+  .print-area { min-height: 258mm !important; }
+  /* Only the document prints: no page padding or grid gaps around it. */
+  .print-page { display: block !important; padding: 0 !important; margin: 0 !important; max-width: none !important; }
   .a4-frame { height: auto !important; }
   .a4-sheet { transform: none !important; width: auto !important; }
   /* Fixed elements repeat on every printed page */

@@ -1,4 +1,5 @@
 import { Move, RotateCcw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Dropdown } from "./Dropdown";
 import { defaultWatermark, normalizeWatermark, type Watermark } from "@/lib/design";
 
@@ -13,6 +14,7 @@ export function WatermarkControls({
   hasLogo: boolean;
   idPrefix?: string;
 }) {
+  const { t } = useTranslation();
   const set = (patch: Partial<Watermark>) => onChange(normalizeWatermark({ ...value, ...patch }));
   const id = (k: string) => `${idPrefix}-${k}`;
 
@@ -27,9 +29,9 @@ export function WatermarkControls({
         />
         <span
           aria-hidden
-          className="relative h-6 w-10 shrink-0 rounded-full bg-input transition-colors peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring after:absolute after:left-0.5 after:top-0.5 after:size-5 after:rounded-full after:bg-card after:shadow-sm after:transition-transform peer-checked:after:translate-x-4"
+          className="relative h-6 w-10 shrink-0 rounded-full bg-input transition-colors peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring after:absolute after:start-0.5 after:top-0.5 after:size-5 after:rounded-full after:bg-card after:shadow-sm after:transition-transform peer-checked:after:translate-x-4 rtl:peer-checked:after:-translate-x-4"
         />
-        Afficher un filigrane sur le document
+        {t("watermark.enable")}
       </label>
 
       {value.enabled && (
@@ -37,18 +39,18 @@ export function WatermarkControls({
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor={id("kind")}>
-                Type
+                {t("watermark.type")}
               </label>
               <Dropdown
                 id={id("kind")}
                 value={value.kind}
                 onChange={(v) => set({ kind: v as Watermark["kind"] })}
                 options={[
-                  { value: "text", label: "Texte" },
+                  { value: "text", label: t("watermark.text") },
                   {
                     value: "logo",
-                    label: "Logo",
-                    ...(hasLogo ? {} : { hint: "Importez d'abord un logo (page Modèles)" }),
+                    label: t("watermark.logo"),
+                    ...(hasLogo ? {} : { hint: t("watermark.logoMissing") }),
                   },
                 ]}
               />
@@ -56,14 +58,15 @@ export function WatermarkControls({
             {value.kind === "text" || !hasLogo ? (
               <div>
                 <label className="label" htmlFor={id("text")}>
-                  Texte
+                  {t("watermark.text")}
                 </label>
                 <input
                   id={id("text")}
                   className="field"
                   maxLength={40}
                   value={value.text}
-                  placeholder="Ex. : CONFIDENTIEL, COPIE, BROUILLON"
+                  placeholder={t("watermark.textPlaceholder")}
+                  dir="auto"
                   onChange={(e) => onChange({ ...value, text: e.target.value })}
                 />
               </div>
@@ -74,7 +77,7 @@ export function WatermarkControls({
 
           <Range
             id={id("opacity")}
-            label="Opacité"
+            label={t("watermark.opacity")}
             min={2}
             max={60}
             value={Math.round(value.opacity * 100)}
@@ -83,7 +86,7 @@ export function WatermarkControls({
           />
           <Range
             id={id("size")}
-            label="Taille"
+            label={t("watermark.size")}
             min={10}
             max={100}
             value={value.size}
@@ -92,7 +95,7 @@ export function WatermarkControls({
           />
           <Range
             id={id("rotation")}
-            label="Rotation"
+            label={t("watermark.rotation")}
             min={-90}
             max={90}
             value={value.rotation}
@@ -102,8 +105,7 @@ export function WatermarkControls({
 
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <Move className="size-3.5" /> Faites glisser le filigrane dans l'aperçu (ou flèches du
-              clavier).
+              <Move className="size-3.5" /> {t("watermark.dragHint")}
             </span>
             <button
               type="button"
@@ -113,7 +115,7 @@ export function WatermarkControls({
                 set({ x: d.x, y: d.y, rotation: d.rotation });
               }}
             >
-              <RotateCcw className="size-3.5" /> Recentrer
+              <RotateCcw className="size-3.5" /> {t("watermark.recenter")}
             </button>
           </div>
         </>
@@ -145,9 +147,9 @@ function Range({
         <label className="label" htmlFor={id}>
           {label}
         </label>
-        <span className="num text-xs text-muted-foreground">
+        <bdi dir="ltr" className="num text-xs text-muted-foreground">
           {value} {unit}
-        </span>
+        </bdi>
       </div>
       <input
         id={id}

@@ -102,13 +102,13 @@ describe("payments", () => {
     expect(invoiceTotals(paid).outstanding).toBe(Math.round((ttc - 0.3) * 100) / 100);
   });
   it("rejects payments on drafts, zero amounts and overpayments", () => {
-    expect(paymentError(invoiceFromQuote(accepted()), { amount: 10, date: "2026-05-01" })).toMatch(
-      /émise/,
+    expect(paymentError(invoiceFromQuote(accepted()), { amount: 10, date: "2026-05-01" })).toBe(
+      "paymentDraft",
     );
-    expect(paymentError(inv, { amount: 0, date: "2026-05-01" })).toMatch(/supérieur/);
-    expect(
-      paymentError(inv, { amount: invoiceTotals(inv).ttc + 0.01, date: "2026-05-01" }),
-    ).toMatch(/dépasse/);
+    expect(paymentError(inv, { amount: 0, date: "2026-05-01" })).toBe("paymentAmount");
+    expect(paymentError(inv, { amount: invoiceTotals(inv).ttc + 0.01, date: "2026-05-01" })).toBe(
+      "paymentTooHigh",
+    );
     expect(paymentError(inv, { amount: invoiceTotals(inv).ttc, date: "2026-05-01" })).toBeNull();
   });
 });

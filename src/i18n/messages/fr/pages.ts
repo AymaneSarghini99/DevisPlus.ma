@@ -1,0 +1,149 @@
+export const followups = {
+  title: "Relances",
+  intro:
+    "Les relances sont préparées dans WhatsApp et envoyées par vous. L'historique indique les relances que vous avez notées, pas leur réception par le client.",
+  emptyTitle: "Aucune relance à faire",
+  emptyText:
+    "Les devis marqués « Envoyé » et ceux qui expirent dans les {{days}} prochains jours apparaîtront ici.",
+  awaiting: "En attente de réponse",
+  expiring: "Expirent dans les {{days}} jours",
+  expired: "Expirés sans réponse",
+  expiredHint: "Prolongez la validité dans le devis ou passez-le en « Refusé ».",
+  sentToday: "envoyé aujourd'hui",
+  sentDaysAgo_one: "envoyé il y a {{count}} jour",
+  sentDaysAgo_other: "envoyé il y a {{count}} jours",
+  datedOn: "daté du {{date}}",
+  expiresToday: "expire aujourd'hui",
+  expiresOn_one: "expire le {{date}} (J-{{count}})",
+  expiresOn_other: "expire le {{date}} (J-{{count}})",
+  expiredOn: "expiré le {{date}}",
+  lastReminder: "dernière relance notée le {{date}} ({{count}})",
+  noReminder: "aucune relance notée",
+  noPhone: "pas de téléphone : choisissez le contact dans WhatsApp",
+  logReminder: "Noter une relance",
+  prepare: "Préparer la relance",
+  logged: "Relance notée dans l'historique du devis.",
+  preparedTitle: "Message de relance préparé dans WhatsApp",
+  preparedText:
+    "Envoyez-le depuis WhatsApp, puis notez la relance ici. DevisPlus ne sait pas si le message a été envoyé ou lu.",
+  copied: "Message copié.",
+};
+
+export const clients = {
+  title: "Clients",
+  new: "Nouveau client",
+  added: "Client ajouté.",
+  saved: "Fiche client enregistrée.",
+  confirmDelete: "Supprimer la fiche « {{name}} » ? Les devis déjà créés restent inchangés.",
+  noName: "Sans nom",
+  emptyTitle: "Aucun client enregistré",
+  addFirst: "Ajouter un client",
+  emptyText:
+    "Enregistrez vos clients une fois : leurs coordonnées, ICE et conditions de paiement seront reprises dans chaque devis.",
+  searchLabel: "Rechercher un client",
+  searchPlaceholder: "Nom, ICE, ville, contact…",
+  quoteCount_one: "{{count}} devis",
+  quoteCount_other: "{{count}} devis",
+  deleteThis: "Supprimer ce client",
+  usualTerms: "Conditions de paiement habituelles",
+  usualTermsHint: "Reprises automatiquement dans les devis de ce client.",
+  usualTermsPlaceholder: "Ex. : 50 % à la commande, solde à 30 jours",
+  history: "Historique des devis",
+  noHistory: "Aucun devis lié à cette fiche pour l'instant.",
+  selectHint: "Sélectionnez un client pour voir sa fiche et ses devis.",
+};
+
+export const catalogue = {
+  title: "Catalogue",
+  new: "Nouvel article",
+  edit: "Modifier l'article",
+  added: "Ajouté au catalogue.",
+  saved: "Article enregistré. Les devis existants ne sont pas modifiés.",
+  confirmDelete: "Retirer « {{name}} » du catalogue ? Les devis existants ne sont pas modifiés.",
+  intro:
+    "Insérez ces articles dans un devis depuis l'éditeur. La quantité et le prix restent modifiables dans chaque devis sans changer l'article enregistré ici.",
+  name: "Nom *",
+  price: "Prix unitaire HT (DH)",
+  description: "Description",
+  kind: "Nature (modèle BTP)",
+  emptyTitle: "Catalogue vide",
+  addFirst: "Ajouter un article",
+  emptyText:
+    "Ajoutez les produits et prestations que vous facturez souvent : pose au m², heure de main-d'œuvre, forfait de déplacement…",
+  searchLabel: "Rechercher un article",
+  searchPlaceholder: "Rechercher…",
+  colItem: "Article",
+  deleteOf: "Supprimer {{name}}",
+};
+
+export const reports = {
+  title: "Rapports",
+  intro:
+    "Calculés uniquement à partir des devis et factures enregistrés dans ce navigateur. Un montant devisé n'est pas un chiffre d'affaires : seules les factures émises et les paiements enregistrés le sont.",
+  quotes: "Devis",
+  created: "Devis créés",
+  createdSub: "Brouillons : {{drafts}} · En attente : {{pending}}",
+  quotedTotal: "Montant total devisé (TTC)",
+  allStatuses: "Tous statuts confondus",
+  accepted: "Acceptés",
+  refused: "Refusés",
+  rateNone: "Taux d'acceptation : aucun devis accepté ou refusé pour l'instant.",
+  rate: "Taux d'acceptation : {{pct}} des devis tranchés (acceptés ou refusés).",
+  perMonth: "Devis créés par mois",
+  perMonthHint: "12 derniers mois, selon la date du devis",
+  tooltip: "Devis : {{count}} · {{amount}}",
+  showTable: "Voir le tableau",
+  month: "Mois",
+  amountTtc: "Montant TTC",
+  invoicesTitle: "Factures et encaissements",
+  issued: "Factures émises",
+  draftsSub: "Brouillons non comptés : {{drafts}}",
+  invoiced: "Facturé (TTC)",
+  exportTitle: "Exporter",
+  exportHint:
+    "Fichiers CSV (séparateur « ; », virgule décimale) qui s'ouvrent directement dans Excel.",
+  export: { clients: "Clients", quotes: "Devis", invoices: "Factures", payments: "Paiements" },
+  file: { clients: "clients", quotes: "devis", invoices: "factures", payments: "paiements" },
+};
+
+export const settings = {
+  title: "Paramètres",
+  notSaved: "Paramètres non enregistrés",
+  saved: "Paramètres enregistrés. Ils s'appliquent aux nouveaux documents.",
+  confirmExample: "Remplacer les informations de l'entreprise par l'exemple ?",
+  exampleLoaded: "Exemple chargé : données fictives",
+  exampleHint:
+    "Remplacez-les par vos vraies informations avant d'envoyer des devis, puis enregistrez.",
+  fillExample: "Remplir avec un exemple",
+  companyHint:
+    "Repris automatiquement sur chaque nouveau devis. Les devis et factures déjà créés gardent les informations de leur date.",
+  icePlaceholder: "15 chiffres, ex. 002345678000091",
+  addressPlaceholder: "Ex. : 45, boulevard Zerktouni, 3ᵉ étage",
+  bank: "Banque",
+  rib: "RIB (24 chiffres)",
+  bankHint: "Imprimés en pied de devis et de facture lorsqu'ils sont renseignés.",
+  mentions: "Mentions sur vos documents",
+  mentionsMissing:
+    "Informations encore absentes, généralement attendues sur une facture au Maroc :",
+  mentionsOk: "ICE, IF, RC, TP et adresse sont renseignés.",
+  disclaimer:
+    "DevisPlus vous aide à faire figurer ces mentions mais ne certifie pas la conformité fiscale de vos documents. Faites valider vos modèles et taux par votre comptable.",
+  preferences: "Préférences des devis",
+  validity: "Validité (jours)",
+  deposit: "Acompte par défaut (%)",
+  defaultVat: "TVA par défaut",
+  docLang: "Langue des documents",
+  docLangHint:
+    "Langue des devis, factures et messages WhatsApp. Indépendante de la langue de l'interface.",
+  terms: "Conditions de paiement par défaut",
+  termsHint:
+    "Le texte par défaut est traduit dans la langue du document ; un texte personnalisé est repris tel quel.",
+  vatRates: "Taux de TVA proposés",
+  removeRate: "Retirer le taux {{rate}}",
+  newRate: "Nouveau taux",
+  restoreRates: "Rétablir 20 / 14 / 10 / 7 / 0 %",
+  ratesHint:
+    "Retirer un taux ne modifie aucun devis ni aucune facture existants : chaque ligne garde le taux saisi.",
+  templatesLink: "Modèle, couleur et logo :",
+  templatesPage: "page Modèles",
+};

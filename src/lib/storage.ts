@@ -1,3 +1,6 @@
+import type { TFunction } from "i18next";
+import type { fr } from "@/i18n/messages/fr/index";
+
 // Single persistence layer. Everything is saved in this browser (localStorage) for now;
 // swapping these two functions for a database client is the only change needed to move
 // to server storage. There is no account or per-user isolation until then.
@@ -11,18 +14,25 @@ export function read<T>(key: string, fallback: T): T {
   }
 }
 
-export class StorageError extends Error {}
+export type ErrorCode = keyof (typeof fr)["errors"];
+
+/** Business error carrying a translation key (under "errors"), never a hard-coded sentence. */
+export class AppError extends Error {
+  constructor(public code: ErrorCode) {
+    super(code);
+  }
+}
+export class StorageError extends AppError {}
 
 /** Throws StorageError when the browser refuses the write (quota full, private mode…). */
 export function write(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
-    throw new StorageError(
-      "Enregistrement impossible : le stockage du navigateur est plein ou bloqué (logo trop lourd ?).",
-    );
+    throw new StorageError("storage");
   }
 }
 
-export const errorMessage = (e: unknown) =>
-  e instanceof Error ? e.message : "Une erreur inattendue est survenue.";
+/** Text to show for any caught error, in the interface language. */
+export const errorMessage = (e: unknown, t: TFunction) =>
+  e instanceof AppError ? t(`errors.${e.code}`) : t("errors.unexpected");

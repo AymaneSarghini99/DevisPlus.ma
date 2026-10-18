@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AccentPicker, F } from "./Form";
 import { Dropdown } from "./Dropdown";
 import { A4Preview, type DocData } from "./QuoteDocument";
 import { TEMPLATES, type TemplateId } from "@/lib/quotes";
 import type { CustomTemplate, DocStyle } from "@/lib/design";
 
-const SWITCHES: [keyof DocStyle, string][] = [
-  ["showLogo", "Logo"],
-  ["showWords", "Montant en toutes lettres"],
-  ["showBank", "Coordonnées bancaires"],
-  ["showSignature", "Zones de signature"],
-];
+const SWITCHES = ["showLogo", "showWords", "showBank", "showSignature"] as const;
 
 /** Creates or edits a user template: a layout plus colour, font, title and section choices.
  *  The quote data and the calculations stay exactly the same. */
@@ -30,19 +26,21 @@ export function TemplateBuilder({
   onCancel: () => void;
   onDelete?: (() => void) | undefined;
 }) {
-  const [t, setT] = useState(initial);
+  const { t } = useTranslation();
+  const [tpl, setTpl] = useState(initial);
   const [tried, setTried] = useState(false);
-  const setStyle = (patch: Partial<DocStyle>) => setT({ ...t, style: { ...t.style, ...patch } });
-  const nameError = tried && !t.name.trim() ? "Donnez un nom à votre modèle" : undefined;
+  const setStyle = (patch: Partial<DocStyle>) =>
+    setTpl({ ...tpl, style: { ...tpl.style, ...patch } });
+  const nameError = tried && !tpl.name.trim() ? t("validation.templateName") : undefined;
 
   return (
     <section
       className="mt-8 border bg-card p-5"
-      aria-label={isNew ? "Créer un modèle" : "Modifier le modèle"}
+      aria-label={isNew ? t("templates.create") : t("templates.editTitle")}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-semibold">
-          {isNew ? "Créer un modèle" : `Modifier « ${initial.name} »`}
+          {isNew ? t("templates.create") : t("templates.editNamed", { name: initial.name })}
         </h2>
         <div className="flex gap-2">
           {onDelete && (
@@ -50,105 +48,108 @@ export function TemplateBuilder({
               type="button"
               className="btn btn-ghost"
               onClick={onDelete}
-              aria-label="Supprimer ce modèle"
+              aria-label={t("templates.deleteThis")}
             >
               <Trash2 className="size-4" />
             </button>
           )}
           <button type="button" className="btn btn-ghost" onClick={onCancel}>
-            Annuler
+            {t("common.cancel")}
           </button>
           <button
             type="button"
             className="btn btn-primary"
             onClick={() => {
               setTried(true);
-              if (t.name.trim()) onSave({ ...t, name: t.name.trim() });
+              if (tpl.name.trim()) onSave({ ...tpl, name: tpl.name.trim() });
             }}
           >
-            Enregistrer le modèle
+            {t("templates.saveTemplate")}
           </button>
         </div>
       </div>
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
         <div className="space-y-4">
-          <F label="Nom du modèle *" id="ct-name" error={nameError}>
+          <F label={t("templates.name")} id="ct-name" error={nameError}>
             <input
               id="ct-name"
               className="field"
               aria-invalid={!!nameError}
-              value={t.name}
-              placeholder="Ex. : Devis chantier"
-              onChange={(e) => setT({ ...t, name: e.target.value })}
+              value={tpl.name}
+              placeholder={t("templates.namePlaceholder")}
+              dir="auto"
+              onChange={(e) => setTpl({ ...tpl, name: e.target.value })}
             />
           </F>
-          <F label="Mise en page de base" id="ct-base">
+          <F label={t("templates.base")} id="ct-base">
             <Dropdown
               id="ct-base"
-              value={t.base}
-              onChange={(v) => setT({ ...t, base: v as TemplateId })}
-              options={TEMPLATES.map((x) => ({ value: x.id, label: x.name, hint: x.hint }))}
+              value={tpl.base}
+              onChange={(v) => setTpl({ ...tpl, base: v as TemplateId })}
+              options={TEMPLATES.map((x) => ({
+                value: x.id,
+                label: t(`templates.names.${x.id}.name`),
+                hint: t(`templates.names.${x.id}.hint`),
+              }))}
             />
           </F>
-          <AccentPicker value={t.accent} onChange={(accent) => setT({ ...t, accent })} />
+          <AccentPicker value={tpl.accent} onChange={(accent) => setTpl({ ...tpl, accent })} />
           <div className="grid gap-3 sm:grid-cols-2">
-            <F label="Police" id="ct-font">
+            <F label={t("templates.font")} id="ct-font">
               <Dropdown
                 id="ct-font"
-                value={t.style.font}
+                value={tpl.style.font}
                 onChange={(v) => setStyle({ font: v as DocStyle["font"] })}
                 options={[
-                  { value: "sans", label: "Moderne (sans serif)" },
-                  { value: "serif", label: "Classique (avec serif)" },
+                  { value: "sans", label: t("templates.fontSans") },
+                  { value: "serif", label: t("templates.fontSerif") },
                 ]}
               />
             </F>
-            <F label="Titre du document" id="ct-title" hint="Vide = « Devis » ou « Facture »">
+            <F label={t("templates.docTitle")} id="ct-title" hint={t("templates.docTitleHint")}>
               <input
                 id="ct-title"
                 className="field"
                 maxLength={30}
-                value={t.style.title}
-                placeholder="Ex. : Proforma"
+                value={tpl.style.title}
+                placeholder={t("templates.docTitlePlaceholder")}
+                dir="auto"
                 onChange={(e) => setStyle({ title: e.target.value })}
               />
             </F>
           </div>
           <fieldset>
-            <legend className="label">Sections affichées</legend>
+            <legend className="label">{t("templates.sections")}</legend>
             <div className="grid gap-2 sm:grid-cols-2">
-              {SWITCHES.map(([k, label]) => (
+              {SWITCHES.map((k) => (
                 <label key={k} className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     className="size-4 accent-[var(--primary)]"
-                    checked={!!t.style[k]}
+                    checked={!!tpl.style[k]}
                     onChange={(e) => setStyle({ [k]: e.target.checked } as Partial<DocStyle>)}
                   />
-                  {label}
+                  {t(`templates.switch.${k}`)}
                 </label>
               ))}
             </div>
           </fieldset>
-          <F
-            label="Mention en pied de page"
-            id="ct-footer"
-            hint="Ex. : garantie, assurance décennale, horaires…"
-          >
+          <F label={t("templates.footerNote")} id="ct-footer" hint={t("templates.footerNoteHint")}>
             <textarea
               id="ct-footer"
+              dir="auto"
               rows={3}
               maxLength={400}
               className="field h-auto py-2"
-              value={t.style.footerNote}
+              value={tpl.style.footerNote}
               onChange={(e) => setStyle({ footerNote: e.target.value })}
             />
           </F>
         </div>
         <div className="min-w-0">
-          <p className="mb-2 text-xs text-muted-foreground">Aperçu A4</p>
-          <A4Preview d={{ ...sample, template: t.base, accent: t.accent, style: t.style }} />
+          <p className="mb-2 text-xs text-muted-foreground">{t("common.previewA4Short")}</p>
+          <A4Preview d={{ ...sample, template: tpl.base, accent: tpl.accent, style: tpl.style }} />
         </div>
       </div>
     </section>

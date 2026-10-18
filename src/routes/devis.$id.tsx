@@ -6,16 +6,21 @@ import { AppHeader } from "@/components/Brand";
 import { LinesEditor } from "@/components/LinesEditor";
 import { A4Preview } from "@/components/QuoteDocument";
 import { AccentPicker, F, PartyFields, Section, TotalRow } from "@/components/Form";
+import { useTranslation } from "react-i18next";
+import { LOCALES, NATIVE_NAME, type Locale } from "@/i18n/config";
+import { makeFormat } from "@/i18n/format";
+import { tFor } from "@/i18n/index";
+import { useLocale } from "@/i18n/LocaleProvider";
+import { pageMeta } from "@/i18n/meta";
 import {
   amountInWords,
   duplicateQuote,
   loadQuotes,
-  mad,
   needsExemptionNote,
   newQuote,
   quoteTotals,
   saveQuote,
-  STATUS_LABEL,
+  STATUSES,
   TEMPLATES,
   whatsappText,
   whatsappUrl,
@@ -23,10 +28,10 @@ import {
   type Party,
   type Quote,
   type Status,
-  type TemplateId,
 } from "@/lib/quotes";
 import {
   defaultSettings,
+  docTerms,
   loadCatalog,
   loadClients,
   loadSettings,
@@ -47,41 +52,33 @@ import { WatermarkControls } from "@/components/WatermarkControls";
 import { chooseTemplate, normalizeWatermark, templateValue } from "@/lib/design";
 
 export const Route = createFileRoute("/devis/$id")({
-  head: () => ({
-    meta: [
-      { title: "Éditeur de devis — DevisPlus.ma" },
-      {
-        name: "description",
-        content: "Saisissez client, lignes et conditions ; l'aperçu A4 se met à jour en direct.",
-      },
-      { property: "og:title", content: "Éditeur de devis — DevisPlus.ma" },
-      { property: "og:description", content: "Éditeur de devis avec aperçu A4 en direct." },
-    ],
-  }),
+  head: ({ match }) => pageMeta(match, "editor"),
   validateSearch: (s: Record<string, unknown>): { client?: string } =>
     typeof s["client"] === "string" ? { client: s["client"] } : {},
   component: Editor,
 });
 
+type ValidationKey = string;
+
+/** Field → validation code (translated under "validation"). */
 function quoteErrors(q: Quote) {
-  const e: Record<string, string> = {};
-  if (!q.company.name.trim()) e["company.name"] = "Indiquez la raison sociale de votre entreprise";
+  const e: Record<string, ValidationKey> = {};
+  if (!q.company.name.trim()) e["company.name"] = "companyName";
   for (const [k, v] of Object.entries(partyErrors(q.company)))
     if (k !== "name") e[`company.${k}`] = v;
   for (const [k, v] of Object.entries(partyErrors(q.client)))
-    e[`client.${k}`] = k === "name" ? "Indiquez le client" : v;
-  if (!q.lines.some((l) => l.description.trim()))
-    e["lines"] = "Ajoutez au moins une ligne avec une désignation";
-  if (!q.issueDate) e["issueDate"] = "Date requise";
-  if (!q.validUntil) e["validUntil"] = "Date requise";
-  else if (q.issueDate && q.validUntil < q.issueDate)
-    e["validUntil"] = "Doit être postérieure à la date du devis";
-  if (needsExemptionNote(q.lines) && !q.exemptionNote.trim())
-    e["exemptionNote"] = "Une ligne est à 0 % : précisez le motif d'exonération";
+    e[`client.${k}`] = k === "name" ? "clientName" : v;
+  if (!q.lines.some((l) => l.description.trim())) e["lines"] = "lines";
+  if (!q.issueDate) e["issueDate"] = "date";
+  if (!q.validUntil) e["validUntil"] = "date";
+  else if (q.issueDate && q.validUntil < q.issueDate) e["validUntil"] = "validUntil";
+  if (needsExemptionNote(q.lines) && !q.exemptionNote.trim()) e["exemptionNote"] = "exemption";
   return e;
 }
 
 function Editor() {
+  const { t } = useTranslation();
+  const { fmt, locale } = useLocale();
   const { id } = Route.useParams();
   const { client: preselect } = Route.useSearch();
   const navigate = useNavigate();
@@ -133,31 +130,27 @@ function Editor() {
   }, [id, preselect]);
 
   useBlocker({
-    shouldBlockFn: () =>
-      dirtyRef.current &&
-      !confirm("Des modifications ne sont pas enregistrées. Quitter quand même ?"),
+    shouldBlockFn: () => dirtyRef.current && !confirm(t("common.unsavedLeave")),
     enableBeforeUnload: () => dirtyRef.current,
   });
 
   const errors = useMemo(() => (q ? quoteErrors(q) : {}), [q]);
-  const t = useMemo(() => (q ? quoteTotals(q) : null), [q]);
+  const tot = useMemo(() => (q ? quoteTotals(q) : null), [q]);
 
   if (missing)
     return (
       <div className="min-h-screen">
         <AppHeader />
         <main className="mx-auto max-w-6xl px-4 py-16 text-center">
-          <h1 className="text-xl font-semibold">Devis introuvable</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Il a peut-être été supprimé, ou enregistré dans un autre navigateur.
-          </p>
+          <h1 className="text-xl font-semibold">{t("editor.notFoundTitle")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("editor.notFoundText")}</p>
           <Link to="/dashboard" className="btn btn-primary mt-6">
-            Retour à mes devis
+            {t("editor.backToQuotes")}
           </Link>
         </main>
       </div>
     );
-  if (!q || !t) return <p className="p-8 text-sm text-muted-foreground">Chargement…</p>;
+  if (!q || !tot) return <p className="p-8 text-sm text-muted-foreground">{t("common.loading")}</p>;
 
   const update = (patch: Partial<Quote>) => {
     setQ({ ...q, ...patch });
@@ -166,7 +159,8 @@ function Editor() {
   };
   const setParty = (who: "company" | "client", patch: Partial<Party>) =>
     update({ [who]: { ...q[who], ...patch } } as Partial<Quote>);
-  const err = (k: string) => (tried ? errors[k] : undefined);
+  const err = (k: string) =>
+    tried && errors[k] ? t(`validation.${errors[k]}` as never) : undefined;
   const invalid = Object.keys(errors).length > 0;
   const linked = clients.find((c) => c.id === q.clientId);
   const linkedChanged = linked && JSON.stringify(partyOf(linked)) !== JSON.stringify(q.client);
@@ -174,14 +168,12 @@ function Editor() {
   const save = () => {
     setTried(true);
     if (invalid) {
-      toast.error("Le devis n'est pas enregistré", {
-        description: "Corrigez les champs signalés en rouge.",
-      });
+      toast.error(t("editor.notSaved"), { description: t("common.fixFields") });
       return null;
     }
     try {
       const s = saveQuote(q);
-      if (s.number !== q.number) toast.info(`Numéro déjà utilisé : le devis devient ${s.number}.`);
+      if (s.number !== q.number) toast.info(t("editor.numberTaken", { number: s.number }));
       setQ(s);
       setDirty(false);
       setSaved(true);
@@ -189,7 +181,7 @@ function Editor() {
         navigate({ to: "/devis/$id", params: { id: s.id }, search: {}, replace: true });
       return s;
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
       return null;
     }
   };
@@ -213,7 +205,7 @@ function Editor() {
     const pe = partyErrors(q.client);
     if (Object.keys(pe).length) {
       setTried(true);
-      toast.error("Complétez la fiche client avant de l'enregistrer.");
+      toast.error(t("editor.completeClient"));
       return;
     }
     try {
@@ -223,24 +215,23 @@ function Editor() {
       saveClient(c);
       setClients(loadClients());
       update({ clientId: c.id });
-      toast.success(linked ? "Fiche client mise à jour." : "Client ajouté à votre liste.");
+      toast.success(linked ? t("editor.clientUpdated") : t("editor.clientAdded"));
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
     }
   };
 
   const duplicate = () => {
-    if (dirty && !confirm("Les modifications non enregistrées ne seront pas copiées. Continuer ?"))
-      return;
+    if (dirty && !confirm(t("editor.confirmDuplicateDirty"))) return;
     try {
       const all = loadQuotes();
       const source = all.find((x) => x.id === q.id) ?? q;
       const copy = saveQuote(duplicateQuote(source, all));
       setDirty(false);
-      toast.success(`Copie créée : ${copy.number}`);
+      toast.success(t("dashboard.copied", { number: copy.number }));
       navigate({ to: "/devis/$id", params: { id: copy.id }, search: {} });
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
     }
   };
 
@@ -248,41 +239,46 @@ function Editor() {
   const convert = () => {
     const stored = loadQuotes().find((x) => x.id === q.id);
     if (!stored || dirty) {
-      toast.error("Enregistrez le devis avant de le convertir.");
+      toast.error(t("editor.saveBeforeConvert"));
       return;
     }
     if (loadInvoices().some((x) => x.quoteId === q.id)) {
-      toast.error("Ce devis a déjà une facture.");
+      toast.error(t("editor.alreadyInvoiced"));
       return;
     }
     try {
       const draft = invoiceFromQuote(stored);
       saveInvoice(draft);
-      toast.success("Brouillon de facture créé. Le devis reste inchangé.");
+      toast.success(t("editor.invoiceCreated"));
       navigate({ to: "/factures/$id", params: { id: draft.id } });
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
     }
   };
 
   const shareWhatsApp = () => {
     const s = dirty || id === "nouveau" ? save() : q;
     if (!s) return;
-    window.open(whatsappUrl(s.client.phone, whatsappText(s)), "_blank", "noopener");
-    toast("Message WhatsApp préparé", {
-      description:
-        "Aucun lien n'est partagé : joignez le PDF du devis dans la conversation avant d'envoyer.",
+    // The message is written in the document language, like the PDF it accompanies.
+    const lang = s.lang ?? "fr";
+    window.open(
+      whatsappUrl(s.client.phone, whatsappText(s, tFor(lang), makeFormat(lang))),
+      "_blank",
+      "noopener",
+    );
+    toast(t("editor.waPrepared"), {
+      description: t("editor.waNoLink"),
       duration: 10000,
       ...(s.status === "brouillon"
         ? {
             action: {
-              label: "Marquer envoyé",
+              label: t("editor.markSent"),
               onClick: () => {
                 try {
                   const next = saveQuote(withStatus(s, "envoye"));
                   setQ(next);
                 } catch (e) {
-                  toast.error(errorMessage(e));
+                  toast.error(errorMessage(e, t));
                 }
               },
             },
@@ -299,45 +295,50 @@ function Editor() {
             className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex"
             role="status"
           >
-            <Check className="size-4" /> Enregistré
+            <Check className="size-4" /> {t("common.saved")}
           </span>
         )}
         {dirty && (
           <span className="hidden text-sm text-muted-foreground sm:inline" role="status">
-            Non enregistré
+            {t("common.unsaved")}
           </span>
         )}
         <button className="btn btn-primary" onClick={save} disabled={!dirty && id !== "nouveau"}>
-          Enregistrer
+          {t("common.save")}
         </button>
       </AppHeader>
 
-      <main className="mx-auto grid max-w-[1400px] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="no-print min-w-0 space-y-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <span className="label">Devis</span>
-              <h1 className="num text-xl font-semibold">{q.number}</h1>
+              <span className="label">{t("editor.quoteLabel")}</span>
+              <h1 className="num text-xl font-semibold">
+                <bdi>{q.number}</bdi>
+              </h1>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 className="btn btn-ghost"
                 onClick={() => window.print()}
-                title="Choisissez « Enregistrer au format PDF » pour télécharger le fichier"
+                title={t("common.printHint")}
               >
-                <Printer className="size-4" /> PDF / Imprimer
+                <Printer className="size-4" /> {t("common.printPdf")}
               </button>
               <button className="btn btn-ghost" onClick={shareWhatsApp}>
-                <MessageCircle className="size-4" /> WhatsApp
+                <MessageCircle className="size-4" /> {t("editor.whatsapp")}
               </button>
               {id !== "nouveau" && (
                 <button className="btn btn-ghost" onClick={duplicate}>
-                  <Copy className="size-4" /> Dupliquer
+                  <Copy className="size-4" /> {t("common.duplicate")}
                 </button>
               )}
               {invoice ? (
                 <Link to="/factures/$id" params={{ id: invoice.id }} className="btn btn-ghost">
-                  <Receipt className="size-4" /> Facture {invoice.number || "(brouillon)"}
+                  <Receipt className="size-4" />{" "}
+                  {invoice.number
+                    ? t("editor.invoiceLink", { number: invoice.number })
+                    : t("editor.invoiceDraftLink")}
                 </Link>
               ) : (
                 q.status === "accepte" &&
@@ -346,9 +347,9 @@ function Editor() {
                     className="btn btn-accent"
                     onClick={convert}
                     disabled={dirty}
-                    title={dirty ? "Enregistrez d'abord le devis" : undefined}
+                    title={dirty ? t("editor.saveFirst") : undefined}
                   >
-                    <Receipt className="size-4" /> Convertir en facture
+                    <Receipt className="size-4" /> {t("editor.convert")}
                   </button>
                 )
               )}
@@ -357,26 +358,26 @@ function Editor() {
 
           {tried && invalid && (
             <div role="alert" className="border border-destructive bg-card p-3 text-sm">
-              <p className="font-medium text-destructive">À corriger avant d'enregistrer :</p>
-              <ul className="mt-1 list-disc pl-5 text-muted-foreground">
+              <p className="font-medium text-destructive">{t("editor.fixBeforeSave")}</p>
+              <ul className="mt-1 list-disc ps-5 text-muted-foreground">
                 {[...new Set(Object.values(errors))].map((m) => (
-                  <li key={m}>{m}</li>
+                  <li key={m}>{t(`validation.${m}` as never)}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          <Section title="Document">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <F label="Statut" id="status">
+          <Section title={t("editor.sectionDocument")}>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <F label={t("editor.status")} id="status">
                 <Dropdown
                   id="status"
                   value={q.status}
                   onChange={(v) => update(withStatus(q, v as Status))}
-                  options={Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v }))}
+                  options={STATUSES.map((k) => ({ value: k, label: t(`status.quote.${k}`) }))}
                 />
               </F>
-              <F label="Date du devis" id="issue" error={err("issueDate")}>
+              <F label={t("editor.issueDate")} id="issue" error={err("issueDate")}>
                 <DatePicker
                   id="issue"
                   value={q.issueDate}
@@ -384,7 +385,7 @@ function Editor() {
                   onChange={(v) => update({ issueDate: v })}
                 />
               </F>
-              <F label="Valable jusqu'au" id="valid" error={err("validUntil")}>
+              <F label={t("editor.validUntil")} id="valid" error={err("validUntil")}>
                 <DatePicker
                   id="valid"
                   value={q.validUntil}
@@ -393,12 +394,29 @@ function Editor() {
                   onChange={(v) => update({ validUntil: v })}
                 />
               </F>
+              <F label={t("editor.docLang")} id="doc-lang" hint={t("editor.docLangHint")}>
+                <Dropdown
+                  id="doc-lang"
+                  value={q.lang ?? "fr"}
+                  onChange={(v) => {
+                    const lang = v as Locale;
+                    const before = q.lang ?? "fr";
+                    // Untouched default terms follow the new language; edited terms are kept.
+                    const terms =
+                      q.terms === tFor(before)("defaults.terms")
+                        ? docTerms(settings, lang)
+                        : q.terms;
+                    update({ lang, terms });
+                  }}
+                  options={LOCALES.map((l) => ({ value: l, label: NATIVE_NAME[l] }))}
+                />
+              </F>
             </div>
           </Section>
 
-          <Section title="Client">
+          <Section title={t("editor.sectionClient")}>
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-              <F label="Choisir un client enregistré" id="client-pick">
+              <F label={t("editor.pickClient")} id="client-pick">
                 <Dropdown
                   id="client-pick"
                   value={q.clientId ?? ""}
@@ -406,10 +424,10 @@ function Editor() {
                   options={[
                     {
                       value: "",
-                      label: clients.length ? "— Saisie libre —" : "Aucun client enregistré",
+                      label: clients.length ? t("editor.freeEntry") : t("editor.noSavedClients"),
                     },
                     ...[...clients]
-                      .sort((a, b) => a.name.localeCompare(b.name, "fr"))
+                      .sort((a, b) => a.name.localeCompare(b.name, locale))
                       .map((c) => ({
                         value: c.id,
                         label: c.name,
@@ -421,7 +439,7 @@ function Editor() {
               {(!linked || linkedChanged) && q.client.name.trim() && (
                 <button type="button" className="btn btn-ghost" onClick={storeClient}>
                   <UserPlus className="size-4" />{" "}
-                  {linked ? "Mettre à jour la fiche" : "Enregistrer ce client"}
+                  {linked ? t("editor.updateClient") : t("editor.saveClient")}
                 </button>
               )}
             </div>
@@ -429,13 +447,13 @@ function Editor() {
           </Section>
 
           <Section
-            title="Votre entreprise"
+            title={t("editor.sectionCompany")}
             aside={
               <Link
                 to="/modeles"
                 className="text-xs text-muted-foreground underline underline-offset-2"
               >
-                Logo et modèle par défaut
+                {t("editor.logoLink")}
               </Link>
             }
           >
@@ -448,7 +466,7 @@ function Editor() {
             />
           </Section>
 
-          <Section title="Prestations">
+          <Section title={t("editor.sectionLines")}>
             {err("lines") && <p className="mb-2 text-xs text-destructive">{err("lines")}</p>}
             <LinesEditor
               lines={q.lines}
@@ -460,12 +478,12 @@ function Editor() {
             />
           </Section>
 
-          <Section title="Remise, TVA et acompte">
+          <Section title={t("editor.sectionTotals")}>
             <div className="grid gap-3 sm:grid-cols-2">
               <F
-                label="Remise globale (%)"
+                label={t("editor.globalDiscount")}
                 id="gdisc"
-                hint="Appliquée au total HT après les remises de ligne."
+                hint={t("editor.globalDiscountHint")}
               >
                 <input
                   id="gdisc"
@@ -473,7 +491,8 @@ function Editor() {
                   min={0}
                   max={100}
                   step="any"
-                  className="field num text-right"
+                  dir="ltr"
+                  className="field num text-end"
                   value={q.globalDiscount}
                   onChange={(e) =>
                     update({
@@ -482,14 +501,15 @@ function Editor() {
                   }
                 />
               </F>
-              <F label="Acompte à la commande (%)" id="deposit" hint="Calculé sur le total TTC.">
+              <F label={t("editor.deposit")} id="deposit" hint={t("editor.depositHint")}>
                 <input
                   id="deposit"
                   type="number"
                   min={0}
                   max={100}
                   step="any"
-                  className="field num text-right"
+                  dir="ltr"
+                  className="field num text-end"
                   value={q.deposit}
                   onChange={(e) =>
                     update({ deposit: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })
@@ -499,57 +519,73 @@ function Editor() {
             </div>
             {(needsExemptionNote(q.lines) || q.exemptionNote) && (
               <F
-                label="Motif d'exonération de TVA"
+                label={t("editor.exemption")}
                 id="exempt"
                 error={err("exemptionNote")}
-                hint="Imprimé sur le devis pour les lignes à 0 %, avec la référence du texte applicable."
+                hint={t("editor.exemptionHint")}
               >
                 <input
                   id="exempt"
                   className="field"
                   aria-invalid={!!err("exemptionNote")}
                   value={q.exemptionNote}
-                  placeholder="Ex. : Exonéré de TVA en vertu de l'article … du CGI"
+                  placeholder={t("editor.exemptionPlaceholder")}
+                  dir="auto"
                   onChange={(e) => update({ exemptionNote: e.target.value })}
                 />
               </F>
             )}
             <dl className="mt-1 space-y-1 border-t pt-3 text-sm">
-              {t.discount > 0 && <TotalRow k="Remises" v={"− " + mad(t.discount)} />}
-              <TotalRow k="Total HT" v={mad(t.ht)} />
-              {t.byRate.map((r) => (
-                <TotalRow key={r.rate} k={`TVA ${r.rate} %`} v={mad(r.tva)} />
+              {tot.discount > 0 && (
+                <TotalRow k={t("doc.discounts")} v={"− " + fmt.money(tot.discount)} />
+              )}
+              <TotalRow k={t("doc.totalHt")} v={fmt.money(tot.ht)} />
+              {tot.byRate.map((r) => (
+                <TotalRow
+                  key={r.rate}
+                  k={t("doc.vat", { rate: fmt.percent(r.rate) })}
+                  v={fmt.money(r.tva)}
+                />
               ))}
-              <TotalRow k="Total TTC" v={mad(t.ttc)} strong />
-              {q.deposit > 0 && <TotalRow k={`Acompte ${q.deposit} %`} v={mad(t.deposit)} />}
-              <p className="pt-1 text-xs text-muted-foreground">{amountInWords(t.ttc)} TTC</p>
+              <TotalRow k={t("doc.totalTtc")} v={fmt.money(tot.ttc)} strong />
+              {q.deposit > 0 && (
+                <TotalRow
+                  k={t("doc.depositShort", { pct: fmt.percent(q.deposit) })}
+                  v={fmt.money(tot.deposit)}
+                />
+              )}
+              <p className="pt-1 text-xs text-muted-foreground">
+                {t("doc.wordsInline", { words: amountInWords(tot.ttc, locale) })}
+              </p>
             </dl>
           </Section>
 
-          <Section title="Conditions">
-            <F label="Conditions de paiement" id="terms">
+          <Section title={t("editor.sectionTerms")}>
+            <F label={t("editor.terms")} id="terms">
               <textarea
                 id="terms"
+                dir="auto"
                 rows={3}
                 className="field h-auto py-2"
                 value={q.terms}
                 onChange={(e) => update({ terms: e.target.value })}
               />
             </F>
-            <F label="Délai de livraison ou d'exécution" id="delivery">
+            <F label={t("editor.delivery")} id="delivery">
               <input
                 id="delivery"
                 className="field"
-                placeholder="Ex. : 3 semaines à compter de l'acompte"
+                placeholder={t("editor.deliveryPlaceholder")}
+                dir="auto"
                 value={q.delivery}
                 onChange={(e) => update({ delivery: e.target.value })}
               />
             </F>
           </Section>
 
-          <Section title="Mise en page">
+          <Section title={t("editor.sectionLayout")}>
             <div className="grid gap-3 sm:grid-cols-2">
-              <F label="Modèle" id="tpl">
+              <F label={t("editor.template")} id="tpl">
                 <Dropdown
                   id="tpl"
                   value={templateValue(q, settings.customTemplates)}
@@ -562,9 +598,13 @@ function Editor() {
                     ...settings.customTemplates.map((c) => ({
                       value: "custom:" + c.id,
                       label: c.name,
-                      hint: "Mon modèle",
+                      hint: t("templates.mineHint"),
                     })),
-                    ...TEMPLATES.map((x) => ({ value: x.id, label: x.name, hint: x.hint })),
+                    ...TEMPLATES.map((x) => ({
+                      value: x.id,
+                      label: t(`templates.names.${x.id}.name`),
+                      hint: t(`templates.names.${x.id}.hint`),
+                    })),
                   ]}
                 />
               </F>
@@ -572,7 +612,7 @@ function Editor() {
             </div>
           </Section>
 
-          <Section title="Filigrane">
+          <Section title={t("editor.sectionWatermark")}>
             <WatermarkControls
               value={normalizeWatermark(q.watermark)}
               onChange={(watermark) => update({ watermark })}
@@ -582,9 +622,7 @@ function Editor() {
         </div>
 
         <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
-          <p className="no-print mb-2 text-xs text-muted-foreground">
-            Aperçu A4 — ce qui sera imprimé ou enregistré en PDF
-          </p>
+          <p className="no-print mb-2 text-xs text-muted-foreground">{t("common.previewA4")}</p>
           <A4Preview
             d={{ ...q, kind: "devis", secondDate: q.validUntil, logo: settings.logo }}
             onWatermarkChange={(watermark) => update({ watermark })}

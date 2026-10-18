@@ -11,22 +11,20 @@ import {
   type TemplateId,
 } from "./quotes";
 import type { DocStyle, Watermark } from "./design";
-import { read, write } from "./storage";
+import type { Locale } from "@/i18n/config";
+import { AppError, read, write, type ErrorCode } from "./storage";
 
 export type InvoiceStatus = "brouillon" | "emise";
-export const INVOICE_STATUS_LABEL: Record<InvoiceStatus, string> = {
-  brouillon: "Brouillon",
-  emise: "Émise",
-};
+
 export type PaymentMethod = "virement" | "cheque" | "especes" | "carte" | "effet" | "autre";
-export const METHOD_LABEL: Record<PaymentMethod, string> = {
-  virement: "Virement",
-  cheque: "Chèque",
-  especes: "Espèces",
-  carte: "Carte",
-  effet: "Effet de commerce",
-  autre: "Autre",
-};
+export const METHODS: PaymentMethod[] = [
+  "virement",
+  "cheque",
+  "especes",
+  "carte",
+  "effet",
+  "autre",
+];
 export type Payment = {
   id: string;
   date: string;
@@ -61,6 +59,7 @@ export type Invoice = {
   template: TemplateId;
   accent: string;
   payments: Payment[];
+  lang?: Locale;
   watermark?: Watermark;
   style?: DocStyle;
 };
@@ -73,8 +72,7 @@ export function saveInvoice(inv: Invoice) {
 /** Only drafts can be deleted: an issued invoice is part of the accounting record. */
 export function deleteDraftInvoice(id: string) {
   const all = loadInvoices();
-  if (all.find((x) => x.id === id)?.status !== "brouillon")
-    throw new Error("Une facture émise ne peut pas être supprimée.");
+  if (all.find((x) => x.id === id)?.status !== "brouillon") throw new AppError("issuedLocked");
   write(
     KEY,
     all.filter((x) => x.id !== id),
@@ -90,8 +88,7 @@ export function invoiceTotals(inv: Pick<Invoice, "lines" | "globalDiscount" | "p
 
 /** Builds a draft invoice from an accepted quote. The quote itself is not modified. */
 export function invoiceFromQuote(q: Quote): Invoice {
-  if (q.status !== "accepte")
-    throw new Error("Seul un devis accepté peut être converti en facture.");
+  if (q.status !== "accepte") throw new AppError("quoteNotAccepted");
   const issue = today();
   return {
     id: uid(),
@@ -117,28 +114,32 @@ export function invoiceFromQuote(q: Quote): Invoice {
     accent: q.accent,
     payments: [],
     ...(q.watermark ? { watermark: { ...q.watermark } } : {}),
+    ...(q.lang ? { lang: q.lang } : {}),
     ...(q.style ? { style: { ...q.style } } : {}),
   };
 }
 
+export type MentionCode =
+  "companyIce" | "companyIf" | "companyRc" | "companyTp" | "companyAddress" | "clientIce";
+
 /** Missing seller/buyer details that Moroccan invoices are expected to show. Advisory only. */
 export function missingInvoiceMentions(inv: Pick<Invoice, "company" | "client">) {
-  const m: string[] = [];
+  const m: MentionCode[] = [];
   const co = inv.company;
-  if (!co.ice) m.push("ICE de votre entreprise");
-  if (!co.if_) m.push("Identifiant fiscal (IF)");
-  if (!co.rc) m.push("Registre de commerce (RC)");
-  if (!co.tp) m.push("Taxe professionnelle (TP)");
-  if (!co.address) m.push("Adresse de votre entreprise");
-  if (!inv.client.ice) m.push("ICE du client (obligatoire s'il est une entreprise)");
+  if (!co.ice) m.push("companyIce");
+  if (!co.if_) m.push("companyIf");
+  if (!co.rc) m.push("companyRc");
+  if (!co.tp) m.push("companyTp");
+  if (!co.address) m.push("companyAddress");
+  if (!inv.client.ice) m.push("clientIce");
   return m;
 }
 
 /** Issues a draft: assigns the next FA-year number among issued invoices and locks it. */
 export function issueInvoice(inv: Invoice, all: Invoice[]): Invoice {
-  if (inv.status !== "brouillon") throw new Error("Cette facture est déjà émise.");
-  if (!inv.client.name.trim()) throw new Error("Le nom du client est requis.");
-  if (!inv.lines.length) throw new Error("La facture ne contient aucune ligne.");
+  if (inv.status !== "brouillon") throw new AppError("alreadyIssued");
+  if (!inv.client.name.trim()) throw new AppError("invoiceClient");
+  if (!inv.lines.length) throw new AppError("invoiceLines");
   const issued = all.filter((x) => x.status === "emise" && x.id !== inv.id);
   const year = Number(inv.issueDate.slice(0, 4)) || new Date().getFullYear();
   return {
@@ -149,11 +150,11 @@ export function issueInvoice(inv: Invoice, all: Invoice[]): Invoice {
   };
 }
 
-export function paymentError(inv: Invoice, p: Pick<Payment, "amount" | "date">): string | null {
-  if (inv.status !== "emise") return "Les paiements s'enregistrent sur une facture émise.";
-  if (!p.date) return "Indiquez la date du paiement.";
-  if (!(p.amount > 0)) return "Le montant doit être supérieur à zéro.";
-  if (cents(p.amount) > cents(invoiceTotals(inv).outstanding))
-    return "Le montant dépasse le reste à payer.";
+/** Error code (translated under "errors") or null when the payment can be recorded. */
+export function paymentError(inv: Invoice, p: Pick<Payment, "amount" | "date">): ErrorCode | null {
+  if (inv.status !== "emise") return "paymentDraft";
+  if (!p.date) return "paymentDate";
+  if (!(p.amount > 0)) return "paymentAmount";
+  if (cents(p.amount) > cents(invoiceTotals(inv).outstanding)) return "paymentTooHigh";
   return null;
 }

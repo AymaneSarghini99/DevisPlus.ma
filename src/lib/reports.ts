@@ -1,33 +1,38 @@
-import { INVOICE_STATUS_LABEL, invoiceTotals, METHOD_LABEL, type Invoice } from "./invoices";
-import { quoteTotals, STATUS_LABEL, type Quote } from "./quotes";
+import type { TFunction } from "i18next";
+import type { Locale } from "@/i18n/config";
+import { invoiceTotals, type Invoice } from "./invoices";
+import { quoteTotals, type Quote } from "./quotes";
 import type { Client } from "./store";
 
-// ---------- CSV (opens in Excel: ";" separator, decimal comma, UTF-8 BOM) ----------
+// ---------- CSV (UTF-8 with BOM so Excel reads accents and Arabic) ----------
+// French and Arabic use ";" and a decimal comma (Excel with French regional settings);
+// English uses "," and a decimal point.
 type Cell = string | number;
-const cell = (v: Cell) => {
+const sep = (l: Locale) => (l === "en" ? "," : ";");
+const cell = (v: Cell, l: Locale) => {
   // Text starting with = + - @ would run as a formula in Excel: neutralise it.
   const s =
-    typeof v === "number" ? v.toFixed(2).replace(".", ",") : /^[=+\-@\t]/.test(v) ? "'" + v : v;
-  return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    typeof v === "number"
+      ? l === "en"
+        ? v.toFixed(2)
+        : v.toFixed(2).replace(".", ",")
+      : /^[=+\-@\t]/.test(v)
+        ? "'" + v
+        : v;
+  return new RegExp(`["${sep(l)}\\n\\r]`).test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
-export function toCsv(header: string[], rows: Cell[][]) {
-  return "﻿" + [header, ...rows].map((r) => r.map(cell).join(";")).join("\r\n");
+export function toCsv(header: string[], rows: Cell[][], l: Locale = "fr") {
+  return (
+    "\uFEFF" + [header, ...rows].map((r) => r.map((c) => cell(c, l)).join(sep(l))).join("\r\n")
+  );
 }
 
-export const clientsCsv = (clients: Client[]) =>
+/** Column headers and status labels follow the interface language; data stays as entered. */
+export const clientsCsv = (clients: Client[], t: TFunction, l: Locale = "fr") =>
   toCsv(
-    [
-      "Raison sociale",
-      "ICE",
-      "IF",
-      "RC",
-      "Adresse",
-      "Ville",
-      "Contact",
-      "Téléphone",
-      "E-mail",
-      "Conditions de paiement",
-    ],
+    (
+      ["name", "ice", "if", "rc", "address", "city", "contact", "phone", "email", "terms"] as const
+    ).map((k) => t(`csv.client.${k}`)),
     clients.map((c) => [
       c.name,
       c.ice,
@@ -40,92 +45,102 @@ export const clientsCsv = (clients: Client[]) =>
       c.email,
       c.paymentTerms,
     ]),
+    l,
   );
 
-export const quotesCsv = (quotes: Quote[]) =>
+export const quotesCsv = (quotes: Quote[], t: TFunction, l: Locale = "fr") =>
   toCsv(
-    [
-      "N° devis",
-      "Date",
-      "Validité",
-      "Statut",
-      "Client",
-      "ICE client",
-      "Remise globale %",
-      "Total HT",
-      "TVA",
-      "Total TTC",
-      "Acompte %",
-      "Acompte",
-    ],
+    (
+      [
+        "number",
+        "date",
+        "validity",
+        "status",
+        "client",
+        "clientIce",
+        "globalDiscount",
+        "ht",
+        "tva",
+        "ttc",
+        "depositPct",
+        "deposit",
+      ] as const
+    ).map((k) => t(`csv.quote.${k}`)),
     quotes.map((q) => {
-      const t = quoteTotals(q);
+      const tt = quoteTotals(q);
       return [
         q.number,
         q.issueDate,
         q.validUntil,
-        STATUS_LABEL[q.status],
+        t(`status.quote.${q.status}`),
         q.client.name,
         q.client.ice,
         q.globalDiscount,
-        t.ht,
-        t.tva,
-        t.ttc,
+        tt.ht,
+        tt.tva,
+        tt.ttc,
         q.deposit,
-        t.deposit,
+        tt.deposit,
       ];
     }),
+    l,
   );
 
-export const invoicesCsv = (invoices: Invoice[]) =>
+export const invoicesCsv = (invoices: Invoice[], t: TFunction, l: Locale = "fr") =>
   toCsv(
-    [
-      "N° facture",
-      "Statut",
-      "Date",
-      "Échéance",
-      "Devis d'origine",
-      "Client",
-      "ICE client",
-      "Total HT",
-      "TVA",
-      "Total TTC",
-      "Encaissé",
-      "Reste à payer",
-    ],
+    (
+      [
+        "number",
+        "status",
+        "date",
+        "due",
+        "quote",
+        "client",
+        "clientIce",
+        "ht",
+        "tva",
+        "ttc",
+        "paid",
+        "outstanding",
+      ] as const
+    ).map((k) => t(`csv.invoice.${k}`)),
     invoices.map((i) => {
-      const t = invoiceTotals(i);
+      const tt = invoiceTotals(i);
       return [
-        i.number || "(brouillon)",
-        INVOICE_STATUS_LABEL[i.status],
+        i.number || t("csv.invoice.draftNumber"),
+        t(`status.invoice.${i.status}`),
         i.issueDate,
         i.dueDate,
         i.quoteNumber,
         i.client.name,
         i.client.ice,
-        t.ht,
-        t.tva,
-        t.ttc,
-        t.paid,
-        t.outstanding,
+        tt.ht,
+        tt.tva,
+        tt.ttc,
+        tt.paid,
+        tt.outstanding,
       ];
     }),
+    l,
   );
 
-export const paymentsCsv = (invoices: Invoice[]) =>
+export const paymentsCsv = (invoices: Invoice[], t: TFunction, l: Locale = "fr") =>
   toCsv(
-    ["N° facture", "Client", "Date", "Montant", "Mode", "Référence", "Note"],
+    (["invoice", "client", "date", "amount", "method", "reference", "note"] as const).map((k) =>
+      t(`csv.payment.${k}`),
+    ),
     invoices.flatMap((i) =>
       i.payments.map((p) => [
         i.number,
         i.client.name,
         p.date,
         p.amount,
-        METHOD_LABEL[p.method],
+        t(`methods.${p.method}`),
         p.reference,
         p.note,
       ]),
     ),
+    l,
   );
 
 // ---------- figures, computed only from saved records ----------

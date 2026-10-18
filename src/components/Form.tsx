@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import type { Party } from "@/lib/quotes";
 
 export const ACCENTS = ["#14213D", "#1F4E79", "#0F766E", "#7C2D12", "#4C1D95", "#B7F34A"];
@@ -10,10 +11,11 @@ export function AccentPicker({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div>
       <span className="label" id="accent-label">
-        Couleur d'accent
+        {t("design.accent")}
       </span>
       <div
         className="flex flex-wrap items-center gap-2"
@@ -24,7 +26,7 @@ export function AccentPicker({
           <button
             key={c}
             type="button"
-            aria-label={`Couleur ${c}`}
+            aria-label={t("design.colourOf", { value: c })}
             aria-pressed={value.toLowerCase() === c.toLowerCase()}
             className="size-8 rounded-sm border-2 border-transparent aria-pressed:border-foreground"
             style={{ background: c, boxShadow: "inset 0 0 0 1px rgb(0 0 0 / .12)" }}
@@ -60,6 +62,9 @@ export function PartyFields({
   compact?: boolean;
   placeholders?: Partial<Record<keyof Party, string>>;
 }) {
+  const { t } = useTranslation();
+  // Identifiers, phones and emails are always left-to-right; names and addresses follow their text.
+  const ltr = new Set<keyof Party>(["ice", "if_", "rc", "phone", "email"]);
   const f = (
     k: keyof Party,
     label: string,
@@ -73,6 +78,7 @@ export function PartyFields({
         aria-invalid={!!err(`${who}.${k}`)}
         value={p[k]}
         placeholder={placeholders[k]}
+        dir={ltr.has(k) ? "ltr" : "auto"}
         {...extra}
         onChange={(e) =>
           set({ [k]: k === "ice" ? e.target.value.replace(/\D/g, "") : e.target.value })
@@ -82,15 +88,15 @@ export function PartyFields({
   );
   return (
     <div className="mt-3 grid gap-3 sm:grid-cols-2">
-      {f("name", "Raison sociale *", {}, true)}
-      {f("ice", "ICE", { inputMode: "numeric", maxLength: 15, className: "field num" })}
-      {!compact && f("contact", "Contact")}
-      {f("address", "Adresse", {}, true)}
-      {f("city", "Ville")}
-      {f("phone", "Téléphone", { type: "tel", inputMode: "tel" })}
-      {f("email", "E-mail", { type: "email" })}
-      {!compact && f("if_", "Identifiant fiscal (IF)", { className: "field num" })}
-      {!compact && f("rc", "Registre de commerce (RC)", { className: "field num" })}
+      {f("name", t("party.name"), {}, true)}
+      {f("ice", t("party.ice"), { inputMode: "numeric", maxLength: 15, className: "field num" })}
+      {!compact && f("contact", t("party.contact"))}
+      {f("address", t("party.address"), {}, true)}
+      {f("city", t("party.city"))}
+      {f("phone", t("party.phone"), { type: "tel", inputMode: "tel" })}
+      {f("email", t("party.email"), { type: "email" })}
+      {!compact && f("if_", t("party.if"), { className: "field num" })}
+      {!compact && f("rc", t("party.rc"), { className: "field num" })}
     </div>
   );
 }

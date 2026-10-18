@@ -1,13 +1,14 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
-import { fr } from "react-day-picker/locale";
+import { arMA, enGB, fr } from "react-day-picker/locale";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/LocaleProvider";
 import { CalendarDays } from "lucide-react";
 
 const toDate = (iso: string) => (iso ? new Date(iso + "T12:00:00") : undefined);
 const toISO = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const label = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 
 type Props = {
   id?: string;
@@ -19,8 +20,12 @@ type Props = {
   disabled?: boolean;
 };
 
-/** French calendar picker (weeks start on Monday) that reads and writes yyyy-mm-dd strings. */
+const CALENDAR_LOCALE = { fr, en: enGB, ar: arMA };
+
+/** Calendar in the interface language (weeks start on Monday), reading and writing yyyy-mm-dd. */
 export function DatePicker({ id, value, onChange, min, invalid, disabled }: Props) {
+  const { t } = useTranslation();
+  const { locale, dir, fmt } = useLocale();
   const [open, setOpen] = useState(false);
   const selected = toDate(value);
   const pick = (d: Date | undefined) => {
@@ -35,11 +40,11 @@ export function DatePicker({ id, value, onChange, min, invalid, disabled }: Prop
         id={id}
         disabled={disabled}
         aria-invalid={invalid || undefined}
-        className="group flex h-10 w-full min-w-0 items-center gap-2 rounded-[var(--radius)] border border-input bg-card px-3 text-left text-sm transition-colors hover:border-foreground/40 focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[state=open]:border-foreground"
+        className="group flex h-10 w-full min-w-0 items-center gap-2 rounded-[var(--radius)] border border-input bg-card px-3 text-start text-sm transition-colors hover:border-foreground/40 focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[state=open]:border-foreground"
       >
         <CalendarDays className="size-4 shrink-0 text-muted-foreground" />
         <span className={`min-w-0 truncate ${selected ? "" : "text-muted-foreground"}`}>
-          {selected ? label.format(selected) : "Choisir une date"}
+          {selected ? fmt.pickerDate(selected) : t("common.pickDate")}
         </span>
       </Popover.Trigger>
       <Popover.Portal>
@@ -51,8 +56,11 @@ export function DatePicker({ id, value, onChange, min, invalid, disabled }: Prop
         >
           <DayPicker
             mode="single"
-            locale={fr}
+            locale={CALENDAR_LOCALE[locale]}
+            dir={dir}
             weekStartsOn={1}
+            // Western digits in every language, as on the rest of the interface.
+            numerals="latn"
             {...(selected ? { selected, defaultMonth: selected } : {})}
             onSelect={pick}
             {...(min ? { disabled: { before: toDate(min)! } } : {})}
@@ -64,14 +72,14 @@ export function DatePicker({ id, value, onChange, min, invalid, disabled }: Prop
               className="rounded-sm px-2 py-1 text-xs font-medium hover:bg-muted"
               onClick={() => pick(new Date())}
             >
-              Aujourd'hui
+              {t("common.today")}
             </button>
             <button
               type="button"
               className="rounded-sm px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
               onClick={() => setOpen(false)}
             >
-              Fermer
+              {t("common.close")}
             </button>
           </div>
         </Popover.Content>

@@ -44,7 +44,7 @@ export function Dropdown({
         aria-label={ariaLabel}
         aria-invalid={invalid || undefined}
         className={cn(
-          "group flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-[var(--radius)] border border-input bg-card px-3 text-left text-sm transition-colors hover:border-foreground/40 focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[state=open]:border-foreground",
+          "group flex h-10 w-full min-w-0 items-center justify-between gap-2 rounded-[var(--radius)] border border-input bg-card px-3 text-start text-sm transition-colors hover:border-foreground/40 focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[state=open]:border-foreground",
           className,
         )}
       >
@@ -67,9 +67,9 @@ export function Dropdown({
               <Select.Item
                 key={o.value}
                 value={toKey(o.value)}
-                className="relative flex cursor-pointer select-none items-start gap-2 rounded-sm py-2 pl-8 pr-3 outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-muted data-[state=checked]:font-medium"
+                className="relative flex cursor-pointer select-none items-start gap-2 rounded-sm py-2 ps-8 pe-3 outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-muted data-[state=checked]:font-medium"
               >
-                <Select.ItemIndicator className="absolute left-2 top-2.5">
+                <Select.ItemIndicator className="absolute start-2 top-2.5">
                   <Check className="size-4" />
                 </Select.ItemIndicator>
                 <span className="min-w-0">

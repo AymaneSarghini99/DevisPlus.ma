@@ -1,48 +1,54 @@
 import { useId, type ReactNode } from "react";
+import type { DocStyle } from "@/lib/design";
+import { tFor } from "@/i18n/index";
 import {
   amountInWords,
   computeTotals,
-  fmtDate,
   lineHT,
-  mad,
   needsExemptionNote,
   type Company,
   type Line,
-  type Party,
   type Totals,
 } from "@/lib/quotes";
-import type { DocData } from "./QuoteDocument";
-import type { DocStyle } from "@/lib/design";
+import { Contact, idList, Ltr, PartyLines, useDoc, type DocData } from "./QuoteDocument";
 
 /** Layouts common on Moroccan quotes and invoices: full-grid tables, boxed parties,
- *  "Arrêté à la somme de" box, stamp areas, zellige ornament and French/Arabic labels. */
+ *  "amount in words" box, stamp areas, zellige ornament and bilingual headings. */
 export const MOROCCAN_TEMPLATES = ["zellige", "marche", "bilingue", "commercial"] as const;
 
-const pct = (n: number) => `${Number(n) || 0} %`;
 const muted = "text-[#5b6478]";
 
-// French label with its Arabic equivalent (bilingual template only).
-function Bi({ fr, ar, on }: { fr: string; ar: string; on: boolean }) {
-  if (!on) return <>{fr}</>;
+type DocKey = Parameters<ReturnType<typeof useDoc>["t"]>[0];
+
+/** Label in the document language; the bilingual layout adds a second language underneath
+ *  (Arabic, or French when the document itself is in Arabic). */
+function Bi({ k, vars, on }: { k: DocKey; vars?: Record<string, string>; on: boolean }) {
+  const { t, lang } = useDoc();
+  const main = t(k as never, vars as never) as unknown as string;
+  if (!on) return <>{main}</>;
+  const second = lang === "ar" ? "fr" : "ar";
   return (
     <span className="inline-flex flex-col leading-tight">
-      <span>{fr}</span>
+      <span>{main}</span>
       <span
-        lang="ar"
-        dir="rtl"
-        className="font-[IBM_Plex_Sans_Arabic,sans-serif] text-[0.95em] normal-case tracking-normal"
+        lang={second}
+        dir={second === "ar" ? "rtl" : "ltr"}
+        className="text-[0.95em] normal-case tracking-normal opacity-80"
       >
-        {ar}
+        {tFor(second)(k as never, vars as never) as unknown as string}
       </span>
     </span>
   );
 }
 
 export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; st: DocStyle }) {
-  const t = computeTotals(d.lines, d.globalDiscount, d.kind === "devis" ? d.deposit : 0);
+  const { t, fmt, lang } = useDoc();
+  const tot = computeTotals(d.lines, d.globalDiscount, d.kind === "devis" ? d.deposit : 0);
   const showDiscount = d.lines.some((l) => Number(l.discount) > 0);
-  const number = d.number || "attribué à l'émission";
+  const number = d.number ? <Ltr>{d.number}</Ltr> : t("doc.numberPendingShort");
   const bi = d.template === "bilingue";
+  const name = d.company.name || t("doc.yourCompany");
+  const place = [d.company.address, d.company.city].filter(Boolean).join(t("doc.listSep"));
 
   return (
     <>
@@ -58,24 +64,25 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
             />
           )}
           <div className="text-lg font-semibold uppercase tracking-[0.2em]">
-            {d.company.name || "Votre entreprise"}
+            <bdi dir="auto">{name}</bdi>
           </div>
           <div className={muted}>
-            {[d.company.address, d.company.city].filter(Boolean).join(" — ")}
-            {(d.company.phone || d.company.email) && (
-              <> · {[d.company.phone, d.company.email].filter(Boolean).join(" · ")}</>
-            )}
+            <bdi>{place}</bdi>
           </div>
+          <Contact p={d.company} />
           <div
             className="mx-auto mt-5 inline-block border-4 border-double px-8 py-2"
             style={{ borderColor: "var(--doc-accent)" }}
           >
             <div className="text-base font-semibold uppercase tracking-[0.25em]">{title}</div>
-            <div className="num">N° {number}</div>
+            <div className="num">
+              {t("doc.numberLabel")} {number}
+            </div>
           </div>
           <div className={`mt-2 ${muted}`}>
-            {d.company.city ? `${d.company.city}, le ` : "Le "}
-            {fmtDate(d.issueDate)}
+            {d.company.city
+              ? t("doc.place", { city: d.company.city, date: fmt.date(d.issueDate) })
+              : t("doc.placeNoCity", { date: fmt.date(d.issueDate) })}
           </div>
         </header>
       )}
@@ -88,28 +95,33 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
                 <img src={d.logo} alt="" className="mb-2 max-h-12 max-w-[160px] object-contain" />
               )}
               <div className="text-[14px] font-semibold uppercase">
-                {d.company.name || "Votre entreprise"}
+                <bdi dir="auto">{name}</bdi>
               </div>
-              <div>{[d.company.address, d.company.city].filter(Boolean).join(", ")}</div>
-              <div className={muted}>
-                {[d.company.phone, d.company.email].filter(Boolean).join(" · ")}
+              <div>
+                <bdi>{place}</bdi>
               </div>
+              <Contact p={d.company} />
               <CompanyIds c={d.company} />
             </Box>
             <Box className="flex flex-col justify-center text-center">
               <div className="text-base font-semibold uppercase tracking-[0.2em]">{title}</div>
-              <div className="num font-medium">N° {number}</div>
+              <div className="num font-medium">
+                {t("doc.numberLabel")} {number}
+              </div>
               <div className={`mt-1 ${muted}`}>
-                Date : <span className="num">{fmtDate(d.issueDate)}</span>
+                {t("doc.date")}
+                {t("doc.colon")}
+                <bdi className="num">{fmt.date(d.issueDate)}</bdi>
               </div>
               <div className={muted}>
-                {d.kind === "devis" ? "Validité" : "Échéance"} :{" "}
-                <span className="num">{fmtDate(d.secondDate)}</span>
+                {t(d.kind === "devis" ? "doc.validity" : "doc.dueDate")}
+                {t("doc.colon")}
+                <bdi className="num">{fmt.date(d.secondDate)}</bdi>
               </div>
             </Box>
           </div>
           <h2 className="mt-5 text-center text-[13px] font-semibold uppercase tracking-wider underline underline-offset-4">
-            Bordereau des prix — détail estimatif
+            {t("doc.bordereauTitle")}
           </h2>
         </header>
       )}
@@ -123,23 +135,18 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
             {d.logo && (
               <img src={d.logo} alt="" className="mb-2 max-h-14 max-w-[180px] object-contain" />
             )}
-            <div className="text-[15px] font-semibold">{d.company.name || "Votre entreprise"}</div>
-            <div>{[d.company.address, d.company.city].filter(Boolean).join(", ")}</div>
-            <div className={muted}>
-              {[d.company.phone, d.company.email].filter(Boolean).join(" · ")}
+            <div className="text-[15px] font-semibold">
+              <bdi dir="auto">{name}</bdi>
             </div>
+            <div>
+              <bdi>{place}</bdi>
+            </div>
+            <Contact p={d.company} />
           </div>
-          <div className="shrink-0 text-right">
-            <div className="text-lg font-semibold uppercase tracking-[0.18em]">{title}</div>
-            {!st.title.trim() && (
-              <div
-                lang="ar"
-                dir="rtl"
-                className="font-[IBM_Plex_Sans_Arabic,sans-serif] text-lg font-semibold"
-              >
-                {d.kind === "devis" ? "عرض أسعار" : "فاتورة"}
-              </div>
-            )}
+          <div className="shrink-0 text-end">
+            <div className="text-lg font-semibold uppercase tracking-[0.18em]">
+              {st.title.trim() ? title : <Bi on k={`doc.title.${d.kind}`} />}
+            </div>
             <div className="num">{number}</div>
           </div>
         </header>
@@ -151,18 +158,22 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
             {d.logo && (
               <img src={d.logo} alt="" className="mb-2 max-h-14 max-w-[180px] object-contain" />
             )}
-            <div className="text-[16px] font-semibold">{d.company.name || "Votre entreprise"}</div>
-            <div className={muted}>
-              {[d.company.phone, d.company.email].filter(Boolean).join(" · ")}
+            <div className="text-[16px] font-semibold">
+              <bdi dir="auto">{name}</bdi>
             </div>
+            <Contact p={d.company} />
           </div>
           <div
-            className="shrink-0 px-6 py-3 text-right"
+            className="shrink-0 px-6 py-3 text-end"
             style={{ background: "var(--doc-accent)", color: "var(--doc-on-accent)" }}
           >
             <div className="text-xl font-semibold uppercase tracking-[0.2em]">{title}</div>
-            <div className="num">N° {number}</div>
-            <div className="num opacity-90">{fmtDate(d.issueDate)}</div>
+            <div className="num">
+              {t("doc.numberLabel")} {number}
+            </div>
+            <div className="num opacity-90">
+              <bdi>{fmt.date(d.issueDate)}</bdi>
+            </div>
           </div>
         </header>
       )}
@@ -170,98 +181,108 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
       {/* Parties */}
       {d.template === "commercial" ? (
         <div className="mt-5 grid grid-cols-2 gap-4">
-          <TitledBox title="Émetteur">
-            <PartyBlock p={d.company} />
-            <CompanyIds c={d.company} />
+          <TitledBox title={t("doc.issuer")}>
+            <PartyLines p={d.company} />
           </TitledBox>
-          <TitledBox title={d.kind === "devis" ? "Client" : "Facturé à"}>
-            <PartyBlock p={d.client} />
+          <TitledBox title={t(d.kind === "devis" ? "doc.client" : "doc.billedTo")}>
+            <PartyLines p={d.client} />
           </TitledBox>
         </div>
       ) : d.template === "marche" ? (
         <Box className="mt-4">
           <span className="font-semibold">
-            {d.kind === "devis" ? "Maître d'ouvrage / Client : " : "Client : "}
+            {t(d.kind === "devis" ? "doc.owner" : "doc.client")}
+            {t("doc.colon")}
           </span>
-          {d.client.name || "—"}
-          {d.client.address && (
-            <> — {[d.client.address, d.client.city].filter(Boolean).join(", ")}</>
+          <bdi dir="auto">{d.client.name || "—"}</bdi>
+          {(d.client.address || d.client.city) && (
+            <>
+              {" — "}
+              <bdi dir="auto">
+                {[d.client.address, d.client.city].filter(Boolean).join(t("doc.listSep"))}
+              </bdi>
+            </>
           )}
-          <ClientIds p={d.client} inline />
+          {idList(d.client).map((x) => (
+            <span key={x}>
+              {" — "}
+              <Ltr className="num">{x}</Ltr>
+            </span>
+          ))}
           {d.delivery && (
             <div className="mt-1">
-              <span className="font-semibold">Délai d'exécution : </span>
-              {d.delivery}
+              <span className="font-semibold">
+                {t("doc.delivery.btp")}
+                {t("doc.colon")}
+              </span>
+              <bdi dir="auto">{d.delivery}</bdi>
             </div>
           )}
         </Box>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-6">
           <dl className="space-y-0.5 self-start">
-            {d.template === "bilingue" && (
-              <>
-                <MetaRow k={<Bi on fr="Date" ar="التاريخ" />} v={fmtDate(d.issueDate)} />
-              </>
-            )}
+            {bi && <MetaRow k={<Bi on k="doc.date" />} v={fmt.date(d.issueDate)} />}
             <MetaRow
-              k={
-                <Bi
-                  on={bi}
-                  fr={d.kind === "devis" ? "Valable jusqu'au" : "Échéance"}
-                  ar={d.kind === "devis" ? "صالح إلى غاية" : "تاريخ الاستحقاق"}
-                />
-              }
-              v={fmtDate(d.secondDate)}
+              k={<Bi on={bi} k={d.kind === "devis" ? "doc.validUntil" : "doc.dueDate"} />}
+              v={fmt.date(d.secondDate)}
             />
-            {d.quoteRef && <MetaRow k="Devis d'origine" v={d.quoteRef} />}
+            {d.quoteRef && <MetaRow k={<Bi on={bi} k="doc.quoteRef" />} v={d.quoteRef} />}
             {d.delivery && (
-              <MetaRow k={<Bi on={bi} fr="Délai de livraison" ar="أجل التسليم" />} v={d.delivery} />
+              <MetaRow k={<Bi on={bi} k="doc.delivery.default" />} v={d.delivery} text />
             )}
           </dl>
           <Box className={d.template === "zellige" ? "border-2" : ""}>
             <div className={`mb-1 text-[10.5px] uppercase tracking-wider ${muted}`}>
-              <Bi on={bi} fr={d.kind === "devis" ? "Client" : "Facturé à"} ar="الزبون" />
+              <Bi on={bi} k={d.kind === "devis" ? "doc.client" : "doc.billedTo"} />
             </div>
-            <PartyBlock p={d.client} />
+            <PartyLines p={d.client} />
           </Box>
         </div>
       )}
 
       {d.template === "commercial" && (
         <div className="mt-4 grid grid-cols-4 border text-[11.5px]">
-          {[
-            ["Date", fmtDate(d.issueDate)],
-            [d.kind === "devis" ? "Validité" : "Échéance", fmtDate(d.secondDate)],
-            ["Délai", d.delivery || "—"],
+          {(
             [
-              d.kind === "devis" ? "Acompte" : "Devis d'origine",
-              d.kind === "devis" ? pct(d.deposit) : d.quoteRef || "—",
-            ],
-          ].map(([k, v], i) => (
-            <div key={k} className={`px-3 py-2 ${i ? "border-l" : ""}`}>
+              [t("doc.date"), fmt.date(d.issueDate), false],
+              [
+                t(d.kind === "devis" ? "doc.validity" : "doc.dueDate"),
+                fmt.date(d.secondDate),
+                false,
+              ],
+              [t("doc.delay"), d.delivery || "—", true],
+              d.kind === "devis"
+                ? [t("doc.depositShortLabel"), fmt.percent(d.deposit), false]
+                : [t("doc.quoteRef"), d.quoteRef || "—", false],
+            ] as const
+          ).map(([k, v, text], i) => (
+            <div key={i} className={`px-3 py-2 ${i ? "border-s" : ""}`}>
               <div className={`text-[10px] uppercase tracking-wider ${muted}`}>{k}</div>
-              <div className="num font-medium">{v}</div>
+              <div className={text ? "font-medium" : "num font-medium"}>
+                <bdi>{v}</bdi>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <GridTable d={d} t={t} showDiscount={showDiscount} />
+      <GridTable d={d} tot={tot} showDiscount={showDiscount} />
 
       {d.template !== "marche" && (
         <div className="mt-4 flex justify-end">
-          <TotalsBox d={d} t={t} bi={bi} />
+          <TotalsBox d={d} tot={tot} bi={bi} />
         </div>
       )}
 
       {st.showWords && (
         <div className="mt-4 border-2 px-3 py-2" style={{ borderColor: "var(--doc-accent)" }}>
           <span className="font-semibold">
-            {d.kind === "facture" ? "Arrêtée la présente facture" : "Arrêté le présent devis"} à la
-            somme de :{" "}
+            {t(d.kind === "facture" ? "doc.wordsFacture" : "doc.wordsDevis")}
+            {t("doc.colon")}
           </span>
           <span className={d.template === "marche" ? "uppercase" : ""}>
-            {amountInWords(t.ttc)} toutes taxes comprises.
+            {t("doc.wordsFull", { words: amountInWords(tot.ttc, lang) })}
           </span>
         </div>
       )}
@@ -269,32 +290,29 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
       <div className="h-5 shrink-0" />
       <footer className={`mt-auto space-y-2 text-[11px] ${muted}`}>
         {needsExemptionNote(d.lines) && (
-          <Note k="Exonération de TVA" v={d.exemptionNote || "motif à préciser"} />
+          <Note k={t("doc.exemption")} v={d.exemptionNote || t("doc.exemptionMissing")} />
         )}
-        {d.terms && <Note k="Conditions de paiement" v={d.terms} />}
+        {d.terms && <Note k={t("doc.terms")} v={d.terms} />}
         {(d.company.bank || d.company.rib) && (
-          <Note
-            k="Règlement par virement"
-            v={[d.company.bank, d.company.rib && `RIB ${d.company.rib}`]
-              .filter(Boolean)
-              .join(" — ")}
-          />
+          <p>
+            <span className="font-semibold text-[#14213D]">
+              {t("doc.bankTransfer")}
+              {t("doc.colon")}
+            </span>
+            <bdi dir="auto">{d.company.bank}</bdi>
+            {d.company.bank && d.company.rib && " — "}
+            {d.company.rib && <Ltr className="num">RIB {d.company.rib}</Ltr>}
+          </p>
         )}
-        {st.footerNote && <p className="whitespace-pre-wrap">{st.footerNote}</p>}
+        {st.footerNote && (
+          <p className="whitespace-pre-wrap">
+            <bdi>{st.footerNote}</bdi>
+          </p>
+        )}
         {st.showSignature && (
           <div className="grid grid-cols-2 gap-6 pt-3 text-[#14213D]">
-            <StampBox
-              label={
-                d.template === "bilingue"
-                  ? "Cachet et signature — الختم والتوقيع"
-                  : "Cachet et signature de l'entreprise"
-              }
-            />
-            {d.kind === "devis" ? (
-              <StampBox label="Bon pour accord — date, cachet et signature du client" />
-            ) : (
-              <div />
-            )}
+            <StampBox label={<Bi on={bi} k="doc.companyStamp" />} />
+            {d.kind === "devis" ? <StampBox label={<Bi on={bi} k="doc.approval" />} /> : <div />}
           </div>
         )}
         <LegalBox c={d.company} />
@@ -305,12 +323,13 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
   );
 }
 
-function GridTable({ d, t, showDiscount }: { d: DocData; t: Totals; showDiscount: boolean }) {
+function GridTable({ d, tot, showDiscount }: { d: DocData; tot: Totals; showDiscount: boolean }) {
+  const { t, fmt } = useDoc();
   const marche = d.template === "marche";
   const bi = d.template === "bilingue";
   const filled = d.template === "commercial" || d.template === "zellige";
   const th = "border px-2 py-1.5 font-semibold";
-  const cols = 6 + (showDiscount ? 1 : 0) + (marche ? 0 : 1); // N°, désignation, unité, qté, P.U., montant
+  const cols = 6 + (showDiscount ? 1 : 0) + (marche ? 0 : 1); // N°, designation, unit, qty, unit price, amount
   return (
     <table className="mt-5 w-full border-collapse text-[12px]">
       <thead>
@@ -322,23 +341,25 @@ function GridTable({ d, t, showDiscount }: { d: DocData; t: Totals; showDiscount
               : { background: "#f1f1ec" }
           }
         >
-          <th className={`${th} w-10 text-center`}>{marche ? "N° prix" : "N°"}</th>
-          <th className={`${th} text-left`}>
-            <Bi on={bi} fr={marche ? "Désignation des ouvrages" : "Désignation"} ar="البيان" />
+          <th className={`${th} w-10 text-center`}>
+            {t(marche ? "doc.col.priceNo" : "doc.col.no")}
+          </th>
+          <th className={`${th} text-start`}>
+            <Bi on={bi} k={marche ? "doc.col.works" : "doc.col.designation"} />
           </th>
           <th className={`${th} w-14 text-center`}>
-            <Bi on={bi} fr="Unité" ar="الوحدة" />
+            <Bi on={bi} k="doc.col.unit" />
           </th>
-          <th className={`${th} w-16 text-right`}>
-            <Bi on={bi} fr="Qté" ar="الكمية" />
+          <th className={`${th} w-16 text-end`}>
+            <Bi on={bi} k="doc.col.qty" />
           </th>
-          <th className={`${th} w-24 text-right`}>
-            <Bi on={bi} fr="P.U. HT" ar="الثمن الأحادي" />
+          <th className={`${th} w-24 text-end`}>
+            <Bi on={bi} k="doc.col.unitPrice" />
           </th>
-          {showDiscount && <th className={`${th} w-12 text-right`}>Rem.</th>}
-          {!marche && <th className={`${th} w-12 text-right`}>TVA</th>}
-          <th className={`${th} w-28 text-right`}>
-            <Bi on={bi} fr={marche ? "Prix total HT" : "Montant HT"} ar="المبلغ" />
+          {showDiscount && <th className={`${th} w-12 text-end`}>{t("doc.col.discount")}</th>}
+          {!marche && <th className={`${th} w-12 text-end`}>{t("doc.col.vat")}</th>}
+          <th className={`${th} w-28 text-end`}>
+            <Bi on={bi} k={marche ? "doc.col.totalPriceHt" : "doc.col.amountHt"} />
           </th>
         </tr>
       </thead>
@@ -349,22 +370,37 @@ function GridTable({ d, t, showDiscount }: { d: DocData; t: Totals; showDiscount
       </tbody>
       {marche && (
         <tfoot className="font-semibold">
-          <FootRow cols={cols} k="Total HT" v={mad(t.ht)} />
-          {t.discount > 0 && (
-            <FootRow cols={cols} k={`Dont remises`} v={"− " + mad(t.discount)} muted />
+          <FootRow cols={cols} k={t("doc.totalHt")} v={fmt.money(tot.ht)} />
+          {tot.discount > 0 && (
+            <FootRow
+              cols={cols}
+              k={t("doc.ofWhichDiscounts")}
+              v={"− " + fmt.money(tot.discount)}
+              light
+            />
           )}
-          {t.byRate.map((r) => (
-            <FootRow key={r.rate} cols={cols} k={`TVA ${pct(r.rate)}`} v={mad(r.tva)} />
+          {tot.byRate.map((r) => (
+            <FootRow
+              key={r.rate}
+              cols={cols}
+              k={t("doc.vat", { rate: fmt.percent(r.rate) })}
+              v={fmt.money(r.tva)}
+            />
           ))}
-          <FootRow cols={cols} k="Total TTC" v={mad(t.ttc)} strong />
+          <FootRow cols={cols} k={t("doc.totalTtc")} v={fmt.money(tot.ttc)} strong />
           {d.kind === "devis" && d.deposit > 0 && (
-            <FootRow cols={cols} k={`Acompte (${pct(d.deposit)})`} v={mad(t.deposit)} muted />
+            <FootRow
+              cols={cols}
+              k={t("doc.depositShort", { pct: fmt.percent(d.deposit) })}
+              v={fmt.money(tot.deposit)}
+              light
+            />
           )}
           {d.kind === "facture" && d.paid ? (
             <FootRow
               cols={cols}
-              k="Reste à payer"
-              v={mad(Math.round((t.ttc - d.paid) * 100) / 100)}
+              k={t("doc.remaining")}
+              v={fmt.money(Math.round((tot.ttc - d.paid) * 100) / 100)}
             />
           ) : null}
         </tfoot>
@@ -384,25 +420,42 @@ function GridRow({
   showDiscount: boolean;
   showVat: boolean;
 }) {
+  const { t, fmt } = useDoc();
   const [first, ...rest] = (l.description || "—").split("\n");
   const td = "border px-2 py-1.5 align-top";
   return (
     <tr className="break-inside-avoid">
       <td className={`${td} num text-center`}>{n}</td>
       <td className={`${td} break-words`}>
-        <div>{first}</div>
+        <div>
+          <bdi>{first}</bdi>
+        </div>
         {rest.length > 0 && (
-          <div className={`whitespace-pre-wrap text-[11px] ${muted}`}>{rest.join("\n")}</div>
+          <div className={`whitespace-pre-wrap text-[11px] ${muted}`}>
+            <bdi>{rest.join("\n")}</bdi>
+          </div>
         )}
       </td>
-      <td className={`${td} text-center`}>{l.unit}</td>
-      <td className={`${td} num text-right`}>{l.qty}</td>
-      <td className={`${td} num text-right`}>{mad(l.unitPrice)}</td>
+      <td className={`${td} text-center`}>{t(`units.${l.unit}`)}</td>
+      <td className={`${td} num text-end`}>
+        <Ltr>{fmt.number(l.qty)}</Ltr>
+      </td>
+      <td className={`${td} num text-end`}>
+        <bdi>{fmt.money(l.unitPrice)}</bdi>
+      </td>
       {showDiscount && (
-        <td className={`${td} num text-right`}>{l.discount ? pct(l.discount) : ""}</td>
+        <td className={`${td} num text-end`}>
+          {l.discount ? <Ltr>{fmt.percent(l.discount)}</Ltr> : ""}
+        </td>
       )}
-      {showVat && <td className={`${td} num text-right`}>{pct(l.vatRate)}</td>}
-      <td className={`${td} num text-right`}>{mad(lineHT(l))}</td>
+      {showVat && (
+        <td className={`${td} num text-end`}>
+          <Ltr>{fmt.percent(l.vatRate)}</Ltr>
+        </td>
+      )}
+      <td className={`${td} num text-end`}>
+        <bdi>{fmt.money(lineHT(l))}</bdi>
+      </td>
     </tr>
   );
 }
@@ -412,55 +465,74 @@ function FootRow({
   k,
   v,
   strong,
-  muted: m,
+  light,
 }: {
   cols: number;
   k: string;
   v: string;
   strong?: boolean;
-  muted?: boolean;
+  light?: boolean;
 }) {
   return (
     <tr
       style={
         strong ? { background: "var(--doc-accent)", color: "var(--doc-on-accent)" } : undefined
       }
-      className={m ? "font-normal" : ""}
+      className={light ? "font-normal" : ""}
     >
-      <td colSpan={cols - 1} className="border px-2 py-1.5 text-right">
+      <td colSpan={cols - 1} className="border px-2 py-1.5 text-end">
         {k}
       </td>
-      <td className="num border px-2 py-1.5 text-right">{v}</td>
+      <td className="num border px-2 py-1.5 text-end">
+        <bdi>{v}</bdi>
+      </td>
     </tr>
   );
 }
 
-function TotalsBox({ d, t, bi }: { d: DocData; t: Totals; bi: boolean }) {
-  const row = (k: ReactNode, v: string, strong = false) => (
+function TotalsBox({ d, tot, bi }: { d: DocData; tot: Totals; bi: boolean }) {
+  const { fmt } = useDoc();
+  const row = (key: string, k: ReactNode, v: string, strong = false) => (
     <tr
+      key={key}
       style={
         strong ? { background: "var(--doc-accent)", color: "var(--doc-on-accent)" } : undefined
       }
       className={strong ? "font-semibold" : ""}
     >
       <td className="border px-3 py-1.5">{k}</td>
-      <td className="num border px-3 py-1.5 text-right whitespace-nowrap">{v}</td>
+      <td className="num whitespace-nowrap border px-3 py-1.5 text-end">
+        <bdi>{v}</bdi>
+      </td>
     </tr>
   );
   return (
     <table className="w-80 border-collapse">
       <tbody>
-        {t.discount > 0 && row(<Bi on={bi} fr="Remises" ar="التخفيض" />, "− " + mad(t.discount))}
-        {row(<Bi on={bi} fr="Total HT" ar="المجموع دون احتساب الرسوم" />, mad(t.ht))}
-        {t.byRate.map((r) =>
-          row(<Bi on={bi} fr={`TVA ${pct(r.rate)}`} ar="الضريبة على القيمة المضافة" />, mad(r.tva)),
+        {tot.discount > 0 &&
+          row("disc", <Bi on={bi} k="doc.discounts" />, "− " + fmt.money(tot.discount))}
+        {row("ht", <Bi on={bi} k="doc.totalHt" />, fmt.money(tot.ht))}
+        {tot.byRate.map((r) =>
+          row(
+            `vat${r.rate}`,
+            <Bi on={bi} k="doc.vat" vars={{ rate: fmt.percent(r.rate) }} />,
+            fmt.money(r.tva),
+          ),
         )}
-        {row(<Bi on={bi} fr="Total TTC" ar="المجموع مع احتساب الرسوم" />, mad(t.ttc), true)}
+        {row("ttc", <Bi on={bi} k="doc.totalTtc" />, fmt.money(tot.ttc), true)}
         {d.kind === "devis" &&
           d.deposit > 0 &&
-          row(<Bi on={bi} fr={`Acompte (${pct(d.deposit)})`} ar="التسبيق" />, mad(t.deposit))}
+          row(
+            "dep",
+            <Bi on={bi} k="doc.depositShort" vars={{ pct: fmt.percent(d.deposit) }} />,
+            fmt.money(tot.deposit),
+          )}
         {d.kind === "facture" && d.paid
-          ? row("Reste à payer", mad(Math.round((t.ttc - d.paid) * 100) / 100))
+          ? row(
+              "rest",
+              <Bi on={bi} k="doc.remaining" />,
+              fmt.money(Math.round((tot.ttc - d.paid) * 100) / 100),
+            )
           : null}
       </tbody>
     </table>
@@ -485,80 +557,67 @@ function TitledBox({ title, children }: { title: string; children: ReactNode }) 
   );
 }
 
-function PartyBlock({ p }: { p: Party }) {
-  return (
-    <>
-      <div className="font-semibold">{p.name || "—"}</div>
-      {p.contact && <div>À l'attention de {p.contact}</div>}
-      {p.address && <div>{p.address}</div>}
-      {p.city && <div>{p.city}</div>}
-      {(p.phone || p.email) && (
-        <div className={muted}>{[p.phone, p.email].filter(Boolean).join(" · ")}</div>
-      )}
-      <ClientIds p={p} />
-    </>
-  );
-}
-
-function ClientIds({ p, inline }: { p: Party; inline?: boolean }) {
-  const ids = [p.ice && `ICE ${p.ice}`, p.if_ && `IF ${p.if_}`, p.rc && `RC ${p.rc}`].filter(
-    Boolean,
-  );
-  if (!ids.length) return null;
-  return inline ? (
-    <span className="num"> — {ids.join(" · ")}</span>
-  ) : (
-    <div className="num text-[11.5px]">{ids.join(" · ")}</div>
-  );
-}
-
 function CompanyIds({ c }: { c: Company }) {
-  const ids = [
-    c.ice && `ICE ${c.ice}`,
-    c.if_ && `IF ${c.if_}`,
-    c.rc && `RC ${c.rc}`,
-    c.tp && `TP ${c.tp}`,
-  ].filter(Boolean);
-  return ids.length ? <div className="num mt-1 text-[11px]">{ids.join(" · ")}</div> : null;
+  const ids = idList(c);
+  if (!ids.length) return null;
+  return (
+    <div className="num mt-1 text-[11px]">
+      {ids.map((x, i) => (
+        <span key={x}>
+          {i > 0 && " · "}
+          <Ltr>{x}</Ltr>
+        </span>
+      ))}
+    </div>
+  );
 }
 
-function MetaRow({ k, v }: { k: ReactNode; v: string }) {
+function MetaRow({ k, v, text }: { k: ReactNode; v: string; text?: boolean }) {
   return (
     <div className="flex items-start gap-3">
       <dt className={`min-w-28 ${muted}`}>{k}</dt>
-      <dd className="num">{v}</dd>
+      <dd className={text ? "" : "num"}>
+        <bdi>{v}</bdi>
+      </dd>
     </div>
   );
 }
 
 function Note({ k, v }: { k: string; v: string }) {
+  const { t } = useDoc();
   return (
     <p>
-      <span className="font-semibold text-[#14213D]">{k} : </span>
-      {v}
+      <span className="font-semibold text-[#14213D]">
+        {k}
+        {t("doc.colon")}
+      </span>
+      <bdi dir="auto">{v}</bdi>
     </p>
   );
 }
 
-function StampBox({ label }: { label: string }) {
+function StampBox({ label }: { label: ReactNode }) {
   return <div className="h-24 border p-2 text-[11px]">{label}</div>;
 }
 
 function LegalBox({ c }: { c: Company }) {
-  const ids = [
-    c.ice && `ICE : ${c.ice}`,
-    c.if_ && `IF : ${c.if_}`,
-    c.rc && `RC : ${c.rc}`,
-    c.tp && `TP : ${c.tp}`,
-  ].filter(Boolean);
+  const { t } = useDoc();
+  const ids = idList(c);
   if (!c.name && !ids.length) return null;
   return (
     <p className="num mt-3 border-t pt-2 text-center text-[10.5px]">
-      <span className="font-sans">{[c.name, c.address, c.city].filter(Boolean).join(" — ")}</span>
+      <bdi dir="auto" className="font-sans">
+        {[c.name, c.address, c.city].filter(Boolean).join(t("doc.listSep"))}
+      </bdi>
       {ids.length > 0 && (
         <>
           <br />
-          {ids.join(" | ")}
+          {ids.map((x, i) => (
+            <span key={x}>
+              {i > 0 && " | "}
+              <Ltr>{x}</Ltr>
+            </span>
+          ))}
         </>
       )}
     </p>

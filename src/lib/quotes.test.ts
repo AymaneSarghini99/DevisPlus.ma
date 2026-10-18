@@ -1,4 +1,6 @@
 import { beforeEach, describe, it, expect } from "vitest";
+import { makeFormat } from "@/i18n/format";
+import { tFor } from "@/i18n/index";
 import {
   amountInWords,
   computeTotals,
@@ -159,7 +161,7 @@ describe("WhatsApp", () => {
   it("mentions client, number and total", () => {
     const q = { ...newQuote([]), lines: [line({ unitPrice: 1000 })] };
     q.client.name = "Atlas SARL";
-    const text = whatsappText(q);
+    const text = whatsappText(q, tFor("fr"), makeFormat("fr"));
     expect(text).toContain("Atlas SARL");
     expect(text).toContain(q.number);
     expect(text).toMatch(/1\u00a0200,00\u00a0DH TTC/);

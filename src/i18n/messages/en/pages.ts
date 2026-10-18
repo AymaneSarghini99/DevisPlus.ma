@@ -1,0 +1,148 @@
+import type { fr } from "../fr/index";
+type M = typeof fr;
+
+export const followups: M["followups"] = {
+  title: "Follow-ups",
+  intro:
+    "Reminders are prepared in WhatsApp and sent by you. The history shows the reminders you noted, not whether the client received them.",
+  emptyTitle: "No follow-ups to do",
+  emptyText: "Quotes marked “Sent” and those expiring in the next {{days}} days will appear here.",
+  awaiting: "Awaiting a reply",
+  expiring: "Expiring within {{days}} days",
+  expired: "Expired without a reply",
+  expiredHint: "Extend the validity in the quote or mark it as “Declined”.",
+  sentToday: "sent today",
+  sentDaysAgo_one: "sent {{count}} day ago",
+  sentDaysAgo_other: "sent {{count}} days ago",
+  datedOn: "dated {{date}}",
+  expiresToday: "expires today",
+  expiresOn_one: "expires on {{date}} (in {{count}} day)",
+  expiresOn_other: "expires on {{date}} (in {{count}} days)",
+  expiredOn: "expired on {{date}}",
+  lastReminder: "last reminder noted on {{date}} ({{count}})",
+  noReminder: "no reminder noted",
+  noPhone: "no phone number: pick the contact in WhatsApp",
+  logReminder: "Note a reminder",
+  prepare: "Prepare the reminder",
+  logged: "Reminder noted in the quote history.",
+  preparedTitle: "Reminder prepared in WhatsApp",
+  preparedText:
+    "Send it from WhatsApp, then note the reminder here. DevisPlus cannot tell whether the message was sent or read.",
+  copied: "Message copied.",
+};
+
+export const clients: M["clients"] = {
+  title: "Clients",
+  new: "New client",
+  added: "Client added.",
+  saved: "Client record saved.",
+  confirmDelete: "Delete the record “{{name}}”? Existing quotes stay unchanged.",
+  noName: "Unnamed",
+  emptyTitle: "No saved clients",
+  addFirst: "Add a client",
+  emptyText:
+    "Save your clients once: their contact details, ICE and payment terms will be reused on every quote.",
+  searchLabel: "Search clients",
+  searchPlaceholder: "Name, ICE, city, contact…",
+  quoteCount_one: "{{count}} quote",
+  quoteCount_other: "{{count}} quotes",
+  deleteThis: "Delete this client",
+  usualTerms: "Usual payment terms",
+  usualTermsHint: "Reused automatically on this client's quotes.",
+  usualTermsPlaceholder: "e.g. 50% on order, balance at 30 days",
+  history: "Quote history",
+  noHistory: "No quotes linked to this record yet.",
+  selectHint: "Select a client to see their record and quotes.",
+};
+
+export const catalogue: M["catalogue"] = {
+  title: "Catalogue",
+  new: "New item",
+  edit: "Edit the item",
+  added: "Added to the catalogue.",
+  saved: "Item saved. Existing quotes are not changed.",
+  confirmDelete: "Remove “{{name}}” from the catalogue? Existing quotes are not changed.",
+  intro:
+    "Insert these items into a quote from the editor. Quantity and price stay editable on each quote without changing the item saved here.",
+  name: "Name *",
+  price: "Unit price excl. VAT (MAD)",
+  description: "Description",
+  kind: "Type (Construction template)",
+  emptyTitle: "Empty catalogue",
+  addFirst: "Add an item",
+  emptyText:
+    "Add the products and services you often bill: tiling per m², an hour of labour, a travel flat fee…",
+  searchLabel: "Search items",
+  searchPlaceholder: "Search…",
+  colItem: "Item",
+  deleteOf: "Delete {{name}}",
+};
+
+export const reports: M["reports"] = {
+  title: "Reports",
+  intro:
+    "Calculated only from the quotes and invoices saved in this browser. A quoted amount is not revenue: only issued invoices and recorded payments are.",
+  quotes: "Quotes",
+  created: "Quotes created",
+  createdSub: "Drafts: {{drafts}} · Awaiting reply: {{pending}}",
+  quotedTotal: "Total quoted (incl. VAT)",
+  allStatuses: "All statuses",
+  accepted: "Accepted",
+  refused: "Declined",
+  rateNone: "Acceptance rate: no quote accepted or declined yet.",
+  rate: "Acceptance rate: {{pct}} of decided quotes (accepted or declined).",
+  perMonth: "Quotes created per month",
+  perMonthHint: "Last 12 months, by quote date",
+  tooltip: "Quotes: {{count}} · {{amount}}",
+  showTable: "Show the table",
+  month: "Month",
+  amountTtc: "Amount incl. VAT",
+  invoicesTitle: "Invoices and payments",
+  issued: "Invoices issued",
+  draftsSub: "Drafts not counted: {{drafts}}",
+  invoiced: "Invoiced (incl. VAT)",
+  exportTitle: "Export",
+  exportHint: "CSV files (comma separator, decimal point) that open directly in Excel.",
+  export: { clients: "Clients", quotes: "Quotes", invoices: "Invoices", payments: "Payments" },
+  file: { clients: "clients", quotes: "quotes", invoices: "invoices", payments: "payments" },
+};
+
+export const settings: M["settings"] = {
+  title: "Settings",
+  notSaved: "Settings not saved",
+  saved: "Settings saved. They apply to new documents.",
+  confirmExample: "Replace the company details with the example?",
+  exampleLoaded: "Example loaded: fictional data",
+  exampleHint: "Replace it with your real details before sending quotes, then save.",
+  fillExample: "Fill in an example",
+  companyHint:
+    "Reused automatically on every new quote. Existing quotes and invoices keep the details from their date.",
+  icePlaceholder: "15 digits, e.g. 002345678000091",
+  addressPlaceholder: "e.g. 45 Boulevard Zerktouni, 3rd floor",
+  bank: "Bank",
+  rib: "RIB (24 digits)",
+  bankHint: "Printed at the foot of quotes and invoices when filled in.",
+  mentions: "Details on your documents",
+  mentionsMissing: "Details still missing, usually expected on an invoice in Morocco:",
+  mentionsOk: "ICE, IF, RC, TP and address are filled in.",
+  disclaimer:
+    "DevisPlus helps you show these details but does not certify the tax compliance of your documents. Have your templates and rates checked by your accountant.",
+  preferences: "Quote preferences",
+  validity: "Validity (days)",
+  deposit: "Default deposit (%)",
+  defaultVat: "Default VAT",
+  docLang: "Document language",
+  docLangHint:
+    "Language of quotes, invoices and WhatsApp messages. Independent of the interface language.",
+  terms: "Default payment terms",
+  termsHint:
+    "The built-in text is translated into the document language; your own text is kept as written.",
+  vatRates: "VAT rates offered",
+  removeRate: "Remove the {{rate}} rate",
+  newRate: "New rate",
+  restoreRates: "Restore 20 / 14 / 10 / 7 / 0%",
+  ratesHint:
+    "Removing a rate does not change any existing quote or invoice: each line keeps its rate.",
+  templatesLink: "Template, colour and logo:",
+  templatesPage: "Templates page",
+};

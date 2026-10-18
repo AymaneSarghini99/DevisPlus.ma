@@ -3,15 +3,17 @@ import { useEffect, useState } from "react";
 import { BellRing, ClipboardCopy, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader, EmptyState, PageTitle } from "@/components/Brand";
+import { useTranslation } from "react-i18next";
+import { makeFormat } from "@/i18n/format";
+import { tFor } from "@/i18n/index";
+import { useFormat } from "@/i18n/LocaleProvider";
+import { pageMeta } from "@/i18n/meta";
 import {
   daysBetween,
-  fmtDate,
   loadQuotes,
-  mad,
   quoteTotals,
   reminderText,
   saveQuote,
-  STATUS_LABEL,
   today,
   whatsappUrl,
   type Quote,
@@ -19,21 +21,21 @@ import {
 import { errorMessage } from "@/lib/storage";
 
 export const Route = createFileRoute("/relances")({
-  head: () => ({
-    meta: [
-      { title: "Relances — DevisPlus.ma" },
-      {
-        name: "description",
-        content: "Devis en attente de réponse et devis proches de leur date d'expiration.",
-      },
-    ],
-  }),
+  head: ({ match }) => pageMeta(match, "followups"),
   component: FollowUps,
 });
 
 const SOON = 7; // days before expiry
 
+/** Reminder message in the quote's document language. */
+const reminderFor = (q: Quote) => {
+  const lang = q.lang ?? "fr";
+  return reminderText(q, tFor(lang), makeFormat(lang));
+};
+
 function FollowUps() {
+  const { t } = useTranslation();
+  const fmt = useFormat();
   const [quotes, setQuotes] = useState<Quote[] | null>(null);
   useEffect(() => setQuotes(loadQuotes()), []);
 
@@ -53,26 +55,25 @@ function FollowUps() {
     try {
       saveQuote({ ...q, reminders: [...q.reminders, { date: today(), channel: "whatsapp" }] });
       setQuotes(loadQuotes());
-      toast.success("Relance notée dans l'historique du devis.");
+      toast.success(t("followups.logged"));
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
     }
   };
   const prepare = (q: Quote) => {
-    window.open(whatsappUrl(q.client.phone, reminderText(q)), "_blank", "noopener");
-    toast("Message de relance préparé dans WhatsApp", {
-      description:
-        "Envoyez-le depuis WhatsApp, puis notez la relance ici. DevisPlus ne sait pas si le message a été envoyé ou lu.",
+    window.open(whatsappUrl(q.client.phone, reminderFor(q)), "_blank", "noopener");
+    toast(t("followups.preparedTitle"), {
+      description: t("followups.preparedText"),
       duration: 12000,
-      action: { label: "Noter la relance", onClick: () => logReminder(q) },
+      action: { label: t("followups.logReminder"), onClick: () => logReminder(q) },
     });
   };
   const copy = async (q: Quote) => {
     try {
-      await navigator.clipboard.writeText(reminderText(q));
-      toast.success("Message copié.");
+      await navigator.clipboard.writeText(reminderFor(q));
+      toast.success(t("followups.copied"));
     } catch {
-      toast.error("Copie impossible dans ce navigateur.");
+      toast.error(t("errors.copyFailed"));
     }
   };
 
@@ -94,28 +95,32 @@ function FollowUps() {
                     search={{}}
                     className="num font-medium underline-offset-2 hover:underline"
                   >
-                    {q.number}
+                    <bdi>{q.number}</bdi>
                   </Link>
-                  <span className="truncate">{q.client.name || "Sans client"}</span>
-                  <span className="num text-sm">{mad(quoteTotals(q).ttc)}</span>
+                  <bdi className="truncate">{q.client.name || t("common.noClient")}</bdi>
+                  <bdi className="num text-sm">{fmt.money(quoteTotals(q).ttc)}</bdi>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  {STATUS_LABEL[q.status]} · {note(q)}
+                  {t(`status.quote.${q.status}`)} · {note(q)}
+                  {" · "}
                   {last
-                    ? ` · dernière relance notée le ${fmtDate(last.date)} (${q.reminders.length})`
-                    : " · aucune relance notée"}
-                  {!q.client.phone && " · pas de téléphone : choisissez le contact dans WhatsApp"}
+                    ? t("followups.lastReminder", {
+                        date: fmt.date(last.date),
+                        count: q.reminders.length,
+                      })
+                    : t("followups.noReminder")}
+                  {!q.client.phone && ` · ${t("followups.noPhone")}`}
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
                 <button className="btn btn-ghost h-9" onClick={() => copy(q)}>
-                  <ClipboardCopy className="size-4" /> Copier
+                  <ClipboardCopy className="size-4" /> {t("common.copy")}
                 </button>
                 <button className="btn btn-ghost h-9" onClick={() => logReminder(q)}>
-                  Noter une relance
+                  {t("followups.logReminder")}
                 </button>
                 <button className="btn btn-primary h-9" onClick={() => prepare(q)}>
-                  <MessageCircle className="size-4" /> Préparer la relance
+                  <MessageCircle className="size-4" /> {t("followups.prepare")}
                 </button>
               </div>
             </li>
@@ -123,71 +128,65 @@ function FollowUps() {
         })}
       </ul>
     ) : (
-      <p className="mt-2 text-sm text-muted-foreground">Rien à signaler.</p>
+      <p className="mt-2 text-sm text-muted-foreground">{t("common.nothingToReport")}</p>
     );
 
   return (
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <PageTitle title="Relances" />
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Les relances sont préparées dans WhatsApp et envoyées par vous. L'historique indique les
-          relances que vous avez notées, pas leur réception par le client.
-        </p>
+        <PageTitle title={t("followups.title")} />
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("followups.intro")}</p>
 
         {quotes === null ? (
-          <p className="mt-10 text-sm text-muted-foreground">Chargement…</p>
+          <p className="mt-10 text-sm text-muted-foreground">{t("common.loading")}</p>
         ) : !awaiting.length && !expiring.length && !expired.length ? (
           <EmptyState
             icon={<BellRing className="size-6" />}
-            title="Aucune relance à faire"
+            title={t("followups.emptyTitle")}
             action={
               <Link to="/dashboard" className="btn btn-ghost">
-                Voir mes devis
+                {t("invoices.seeQuotes")}
               </Link>
             }
           >
-            Les devis marqués « Envoyé » et ceux qui expirent dans les {SOON} prochains jours
-            apparaîtront ici.
+            {t("followups.emptyText", { days: SOON })}
           </EmptyState>
         ) : (
           <div className="mt-8 space-y-10">
             <section>
               <h2 className="font-semibold">
-                En attente de réponse{" "}
+                {t("followups.awaiting")}{" "}
                 <span className="num font-normal text-muted-foreground">({awaiting.length})</span>
               </h2>
               {rows(awaiting, (q) =>
                 q.sentAt
                   ? daysBetween(q.sentAt, now) === 0
-                    ? "envoyé aujourd'hui"
-                    : `envoyé il y a ${daysBetween(q.sentAt, now)} j`
-                  : `daté du ${fmtDate(q.issueDate)}`,
+                    ? t("followups.sentToday")
+                    : t("followups.sentDaysAgo", { count: daysBetween(q.sentAt, now) })
+                  : t("followups.datedOn", { date: fmt.date(q.issueDate) }),
               )}
             </section>
             <section>
               <h2 className="font-semibold">
-                Expirent dans les {SOON} jours{" "}
+                {t("followups.expiring", { days: SOON })}{" "}
                 <span className="num font-normal text-muted-foreground">({expiring.length})</span>
               </h2>
               {rows(expiring, (q) => {
                 const d = daysBetween(now, q.validUntil);
                 return d === 0
-                  ? "expire aujourd'hui"
-                  : `expire le ${fmtDate(q.validUntil)} (J-${d})`;
+                  ? t("followups.expiresToday")
+                  : t("followups.expiresOn", { date: fmt.date(q.validUntil), count: d });
               })}
             </section>
             {expired.length > 0 && (
               <section>
                 <h2 className="font-semibold">
-                  Expirés sans réponse{" "}
+                  {t("followups.expired")}{" "}
                   <span className="num font-normal text-muted-foreground">({expired.length})</span>
                 </h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Prolongez la validité dans le devis ou passez-le en « Refusé ».
-                </p>
-                {rows(expired, (q) => `expiré le ${fmtDate(q.validUntil)}`)}
+                <p className="mt-1 text-xs text-muted-foreground">{t("followups.expiredHint")}</p>
+                {rows(expired, (q) => t("followups.expiredOn", { date: fmt.date(q.validUntil) }))}
               </section>
             )}
           </div>

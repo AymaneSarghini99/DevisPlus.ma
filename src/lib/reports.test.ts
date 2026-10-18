@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { tFor } from "@/i18n/index";
 import { invoiceFromQuote, issueInvoice } from "./invoices";
 import { newLine, newQuote, withStatus, type Quote } from "./quotes";
 import { lastMonths, quotesCsv, report, toCsv } from "./reports";
@@ -25,7 +26,7 @@ describe("csv", () => {
     expect(csv).toContain('"say ""hi"""');
   });
   it("exports one row per quote with real totals", () => {
-    const rows = quotesCsv([quote("2026-10-01", "accepte", 100)]).split("\r\n");
+    const rows = quotesCsv([quote("2026-10-01", "accepte", 100)], tFor("fr")).split("\r\n");
     expect(rows).toHaveLength(2);
     expect(rows[1]).toContain(";100,00;20,00;120,00;");
   });

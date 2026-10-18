@@ -19,6 +19,8 @@ import {
   type Watermark,
 } from "./design";
 import { read, write } from "./storage";
+import type { Locale } from "@/i18n/config";
+import { tFor } from "@/i18n/index";
 
 export type Client = Party & { id: string; paymentTerms: string; createdAt: string };
 export type CatalogItem = {
@@ -43,6 +45,8 @@ export type Settings = {
   watermark: Watermark; // default for new quotes
   customTemplates: CustomTemplate[];
   defaultCustom: string; // id of the custom template used for new quotes, "" for none
+  /** Default language of generated documents — separate from the interface language. */
+  docLang: Locale;
 };
 
 // ---------- clients ----------
@@ -66,12 +70,18 @@ export function deleteClient(id: string) {
 export const partyOf = ({ id: _i, paymentTerms: _p, createdAt: _c, ...p }: Client): Party => p;
 
 /** Field errors for a party (client or company); empty object when valid. */
-export function partyErrors(p: Party, requireName = true): Partial<Record<keyof Party, string>> {
-  const e: Partial<Record<keyof Party, string>> = {};
-  if (requireName && !p.name.trim()) e.name = "Champ requis";
-  if (p.ice && !/^\d{15}$/.test(p.ice)) e.ice = "L'ICE comporte 15 chiffres";
-  if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) e.email = "Adresse e-mail invalide";
-  if (p.phone && p.phone.replace(/\D/g, "").length < 9) e.phone = "Numéro trop court";
+export type PartyErrorCode = "required" | "ice" | "email" | "phone";
+
+/** Field errors as codes (translated under "validation"); empty object when valid. */
+export function partyErrors(
+  p: Party,
+  requireName = true,
+): Partial<Record<keyof Party, PartyErrorCode>> {
+  const e: Partial<Record<keyof Party, PartyErrorCode>> = {};
+  if (requireName && !p.name.trim()) e.name = "required";
+  if (p.ice && !/^\d{15}$/.test(p.ice)) e.ice = "ice";
+  if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) e.email = "email";
+  if (p.phone && p.phone.replace(/\D/g, "").length < 9) e.phone = "phone";
   return e;
 }
 
@@ -125,6 +135,7 @@ export const defaultSettings = (): Settings => ({
   watermark: defaultWatermark(),
   customTemplates: [],
   defaultCustom: "",
+  docLang: "fr",
 });
 export function loadSettings(): Settings {
   const s = { ...defaultSettings(), ...read<Partial<Settings>>("devisplus.settings", {}) };
@@ -138,6 +149,11 @@ export const saveSettings = (s: Settings) => write("devisplus.settings", s);
 /** True once the user has saved a business profile (so it should prefill new documents). */
 export const hasProfile = (s: Settings) => !!s.company.name.trim();
 
+/** Payment terms for a new document: the untouched built-in default is translated into the
+ *  document language; terms the user wrote are kept exactly as written. */
+export const docTerms = (s: Pick<Settings, "terms">, lang: Locale) =>
+  s.terms === DEFAULT_TERMS ? tFor(lang)("defaults.terms") : s.terms;
+
 export function quoteDefaults(s: Settings): Defaults {
   const custom = s.customTemplates.find((c) => c.id === s.defaultCustom);
   return {
@@ -147,7 +163,8 @@ export function quoteDefaults(s: Settings): Defaults {
     ...(custom ? designFrom(custom) : {}),
     ...(s.watermark.enabled ? { watermark: s.watermark } : {}),
     validityDays: s.validityDays,
-    terms: s.terms,
+    terms: docTerms(s, s.docLang),
+    lang: s.docLang,
     deposit: s.deposit,
     vatRate: s.defaultVat,
   };

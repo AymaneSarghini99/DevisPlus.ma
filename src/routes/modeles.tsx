@@ -20,42 +20,45 @@ import {
 } from "@/lib/quotes";
 import {
   defaultSettings,
+  docTerms,
   hasProfile,
   loadSettings,
   saveSettings,
   type Settings,
 } from "@/lib/store";
-import { errorMessage } from "@/lib/storage";
+import { AppError, errorMessage } from "@/lib/storage";
+import { useTranslation } from "react-i18next";
+import { tFor } from "@/i18n/index";
+import { pageMeta } from "@/i18n/meta";
 
 export const Route = createFileRoute("/modeles")({
-  head: () => ({
-    meta: [
-      { title: "Modèles de devis — DevisPlus.ma" },
-      {
-        name: "description",
-        content: "Choisissez la mise en page de vos devis : Classique, Premium, BTP ou Services.",
-      },
-    ],
-  }),
+  head: ({ match }) => pageMeta(match, "templates"),
   component: Templates,
 });
 
 /** Example content, clearly labelled as such, used only when no quote has been saved yet. */
 function sample(s: Settings): DocData {
   const issue = today();
+  // Example content is written in the document language, like the document itself.
+  const t = tFor(s.docLang);
   return {
+    lang: s.docLang,
     kind: "devis",
-    number: "EXEMPLE",
+    number: t("templates.sample.number"),
     issueDate: issue,
     secondDate: addDays(issue, s.validityDays),
     company: hasProfile(s)
       ? s.company
-      : { ...emptyCompany(), name: "Votre entreprise", city: "Casablanca" },
-    client: { ...emptyCompany(), name: "Client exemple", city: "Rabat" },
+      : { ...emptyCompany(), name: t("doc.yourCompany"), city: t("templates.sample.companyCity") },
+    client: {
+      ...emptyCompany(),
+      name: t("templates.sample.client"),
+      city: t("templates.sample.clientCity"),
+    },
     lines: [
       {
         id: "ex1",
-        description: "Fourniture carrelage grès 60×60",
+        description: t("templates.sample.line1"),
         qty: 42,
         unit: "m²",
         unitPrice: 180,
@@ -65,7 +68,7 @@ function sample(s: Settings): DocData {
       },
       {
         id: "ex2",
-        description: "Pose et joints",
+        description: t("templates.sample.line2"),
         qty: 42,
         unit: "m²",
         unitPrice: 75,
@@ -75,7 +78,7 @@ function sample(s: Settings): DocData {
       },
       {
         id: "ex3",
-        description: "Étude et suivi de chantier",
+        description: t("templates.sample.line3"),
         qty: 1,
         unit: "forfait",
         unitPrice: 1500,
@@ -86,8 +89,8 @@ function sample(s: Settings): DocData {
     ],
     globalDiscount: 0,
     deposit: s.deposit,
-    terms: s.terms,
-    delivery: "2 semaines",
+    terms: docTerms(s, s.docLang),
+    delivery: t("templates.sample.delivery"),
     exemptionNote: "",
     template: s.template,
     accent: s.accent,
@@ -97,6 +100,7 @@ function sample(s: Settings): DocData {
 
 const fromQuote = (q: Quote, s: Settings): DocData => ({
   ...q,
+  lang: q.lang ?? s.docLang,
   kind: "devis",
   secondDate: q.validUntil,
   logo: s.logo,
@@ -106,8 +110,8 @@ const fromQuote = (q: Quote, s: Settings): DocData => ({
 function resizeLogo(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (!/^image\/(png|jpeg|webp|svg\+xml)$/.test(file.type))
-      return reject(new Error("Format accepté : PNG, JPG, WebP ou SVG."));
-    if (file.size > 5 * 1024 * 1024) return reject(new Error("Image trop lourde (5 Mo maximum)."));
+      return reject(new AppError("logoFormat"));
+    if (file.size > 5 * 1024 * 1024) return reject(new AppError("logoSize"));
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
@@ -121,13 +125,14 @@ function resizeLogo(file: File): Promise<string> {
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Image illisible."));
+      reject(new AppError("logoRead"));
     };
     img.src = url;
   });
 }
 
 function Templates() {
+  const { t } = useTranslation();
   const [saved, setSaved] = useState<Settings>(defaultSettings);
   const [draft, setDraft] = useState<Settings>(defaultSettings);
   const [last, setLast] = useState<Quote | null>(null);
@@ -172,9 +177,9 @@ function Templates() {
       const next = { ...loadSettings(), ...pick(draft) };
       saveSettings(next);
       setSaved(next);
-      toast.success("Préférences enregistrées pour vos prochains devis.");
+      toast.success(t("templates.savedDefaults"));
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
     }
   };
 
@@ -189,7 +194,7 @@ function Templates() {
       setDraft({ ...draft, customTemplates, defaultCustom });
       return true;
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
       return false;
     }
   };
@@ -199,7 +204,7 @@ function Templates() {
     try {
       setDraft({ ...draft, logo: await resizeLogo(f) });
     } catch (e) {
-      toast.error(errorMessage(e));
+      toast.error(errorMessage(e, t));
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -219,7 +224,7 @@ function Templates() {
       role="radio"
       aria-checked={active}
       onClick={onClick}
-      className={`group border bg-card text-left transition-colors ${active ? "border-foreground ring-1 ring-foreground" : "hover:border-foreground/40"}`}
+      className={`group border bg-card text-start transition-colors ${active ? "border-foreground ring-1 ring-foreground" : "hover:border-foreground/40"}`}
     >
       <div className="relative h-44 overflow-hidden border-b bg-muted" aria-hidden>
         <div className="pointer-events-none absolute left-1/2 top-3 w-[794px] origin-top -translate-x-1/2 scale-[0.24]">
@@ -231,7 +236,7 @@ function Templates() {
           <div className="text-sm font-semibold">
             {name}
             {isDefault && (
-              <span className="ml-2 text-xs font-normal text-muted-foreground">par défaut</span>
+              <span className="ms-2 text-xs font-normal text-muted-foreground">par défaut</span>
             )}
           </div>
           <div className="text-xs text-muted-foreground">{hint}</div>
@@ -258,20 +263,19 @@ function Templates() {
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <PageTitle title="Modèles">
+        <PageTitle title={t("templates.title")}>
           <button className="btn btn-ghost" onClick={startNew}>
-            <Plus className="size-4" /> Créer un modèle
+            <Plus className="size-4" /> {t("templates.create")}
           </button>
           <button className="btn btn-primary" disabled={!changed} onClick={persist}>
-            Définir par défaut
+            {t("templates.setDefault")}
           </button>
         </PageTitle>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Tous les modèles utilisent les mêmes données et le même calcul. Le modèle par défaut
-          s'applique aux nouveaux devis ; chaque devis peut ensuite en changer.
+          {t("templates.intro")}{" "}
           {last
-            ? ` Aperçu avec votre dernier devis (${last.number}).`
-            : " Aperçu avec un exemple, tant qu'aucun devis n'est enregistré."}
+            ? t("templates.previewLast", { number: last.number })
+            : t("templates.previewSample")}
         </p>
 
         {editing && (
@@ -281,14 +285,14 @@ function Templates() {
             isNew={editing.isNew}
             sample={base()}
             onCancel={() => setEditing(null)}
-            onSave={(t) => {
+            onSave={(tpl) => {
               const list = editing.isNew
-                ? [t, ...draft.customTemplates]
-                : draft.customTemplates.map((c) => (c.id === t.id ? t : c));
-              if (storeCustoms(list, editing.isNew ? t.id : draft.defaultCustom)) {
+                ? [tpl, ...draft.customTemplates]
+                : draft.customTemplates.map((c) => (c.id === tpl.id ? tpl : c));
+              if (storeCustoms(list, editing.isNew ? tpl.id : draft.defaultCustom)) {
                 setEditing(null);
-                toast.success(`Modèle « ${t.name} » enregistré.`, {
-                  description: "Choisissez-le dans l'éditeur de devis, ou « Définir par défaut ».",
+                toast.success(t("templates.savedTemplate", { name: tpl.name }), {
+                  description: t("templates.savedTemplateHint"),
                 });
               }
             }}
@@ -296,12 +300,7 @@ function Templates() {
               editing.isNew
                 ? undefined
                 : () => {
-                    if (
-                      !confirm(
-                        `Supprimer le modèle « ${editing.t.name} » ? Les devis existants gardent leur mise en page.`,
-                      )
-                    )
-                      return;
+                    if (!confirm(t("templates.confirmDelete", { name: editing.t.name }))) return;
                     const list = draft.customTemplates.filter((c) => c.id !== editing.t.id);
                     if (
                       storeCustoms(
@@ -315,10 +314,14 @@ function Templates() {
           />
         )}
 
-        <div role="radiogroup" aria-label="Modèle par défaut" className="mt-6 space-y-6">
+        <div
+          role="radiogroup"
+          aria-label={t("templates.defaultTemplate")}
+          className="mt-6 space-y-6"
+        >
           {draft.customTemplates.length > 0 && (
             <div>
-              <h2 className="mb-3 text-sm font-semibold">Mes modèles</h2>
+              <h2 className="mb-3 text-sm font-semibold">{t("templates.mine")}</h2>
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                 {draft.customTemplates.map((c) =>
                   card(
@@ -327,7 +330,7 @@ function Templates() {
                     saved.defaultCustom === c.id,
                     custom(c),
                     c.name,
-                    `Basé sur ${TEMPLATES.find((x) => x.id === c.base)?.name ?? c.base}`,
+                    t("templates.basedOn", { name: t(`templates.names.${c.base}.name`) }),
                     () => setDraft({ ...draft, defaultCustom: c.id }),
                   ),
                 )}
@@ -336,18 +339,18 @@ function Templates() {
           )}
           <div>
             {draft.customTemplates.length > 0 && (
-              <h2 className="mb-3 text-sm font-semibold">Modèles DevisPlus</h2>
+              <h2 className="mb-3 text-sm font-semibold">{t("templates.builtin")}</h2>
             )}
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {TEMPLATES.map((t) =>
+              {TEMPLATES.map((tp) =>
                 card(
-                  t.id,
-                  !selectedCustom && draft.template === t.id,
-                  !saved.defaultCustom && saved.template === t.id,
-                  builtIn(t.id),
-                  t.name,
-                  t.hint,
-                  () => setDraft({ ...draft, template: t.id, defaultCustom: "" }),
+                  tp.id,
+                  !selectedCustom && draft.template === tp.id,
+                  !saved.defaultCustom && saved.template === tp.id,
+                  builtIn(tp.id),
+                  t(`templates.names.${tp.id}.name`),
+                  t(`templates.names.${tp.id}.hint`),
+                  () => setDraft({ ...draft, template: tp.id, defaultCustom: "" }),
                 ),
               )}
             </div>
@@ -359,13 +362,14 @@ function Templates() {
             {selectedCustom ? (
               <div className="border bg-card p-4 text-sm">
                 <p>
-                  Modèle sélectionné : <span className="font-semibold">{selectedCustom.name}</span>
+                  {t("templates.selected")}{" "}
+                  <bdi className="font-semibold">{selectedCustom.name}</bdi>
                 </p>
                 <button
                   className="btn btn-ghost mt-3"
                   onClick={() => setEditing({ t: selectedCustom, isNew: false })}
                 >
-                  Modifier ce modèle
+                  {t("templates.editThis")}
                 </button>
               </div>
             ) : (
@@ -375,19 +379,19 @@ function Templates() {
               />
             )}
             <div>
-              <span className="label">Logo</span>
+              <span className="label">{t("templates.logo")}</span>
               {draft.logo ? (
                 <div className="flex items-center gap-3 border bg-card p-3">
                   <img
                     src={draft.logo}
-                    alt="Logo actuel"
+                    alt={t("templates.currentLogo")}
                     className="h-12 max-w-[160px] object-contain"
                   />
                   <button
-                    className="btn btn-ghost ml-auto"
+                    className="btn btn-ghost ms-auto"
                     onClick={() => setDraft({ ...draft, logo: "" })}
                   >
-                    <X className="size-4" /> Retirer
+                    <X className="size-4" /> {t("common.remove")}
                   </button>
                 </div>
               ) : null}
@@ -401,31 +405,27 @@ function Templates() {
               />
               <label htmlFor="logo" className="btn btn-ghost mt-2 cursor-pointer">
                 <ImagePlus className="size-4" />{" "}
-                {draft.logo ? "Remplacer le logo" : "Importer un logo"}
+                {draft.logo ? t("templates.replaceLogo") : t("templates.uploadLogo")}
               </label>
-              <p className="mt-1 text-xs text-muted-foreground">
-                PNG, JPG, WebP ou SVG. Réduit automatiquement ; conservé dans ce navigateur.
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("templates.logoHint")}</p>
             </div>
-            <Section title="Filigrane par défaut">
+            <Section title={t("templates.defaultWatermark")}>
               <WatermarkControls
                 idPrefix="wm-default"
                 value={draft.watermark}
                 onChange={(watermark) => setDraft({ ...draft, watermark })}
                 hasLogo={!!draft.logo}
               />
-              <p className="text-xs text-muted-foreground">
-                Repris sur les nouveaux devis ; chaque devis peut le modifier.
-              </p>
+              <p className="text-xs text-muted-foreground">{t("templates.watermarkHint")}</p>
             </Section>
             {changed && (
               <p className="text-sm text-muted-foreground" role="status">
-                Modifications non enregistrées : cliquez sur « Définir par défaut ».
+                {t("templates.unsavedHint")}
               </p>
             )}
           </div>
           <div className="min-w-0">
-            <p className="mb-2 text-xs text-muted-foreground">Aperçu A4</p>
+            <p className="mb-2 text-xs text-muted-foreground">{t("common.previewA4Short")}</p>
             <A4Preview
               d={current}
               onWatermarkChange={(watermark) => setDraft({ ...draft, watermark })}

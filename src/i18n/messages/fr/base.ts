@@ -1,0 +1,181 @@
+export const common = {
+  save: "Enregistrer",
+  cancel: "Annuler",
+  delete: "Supprimer",
+  edit: "Modifier",
+  duplicate: "Dupliquer",
+  search: "Rechercher",
+  loading: "Chargement…",
+  saved: "Enregistré",
+  unsaved: "Non enregistré",
+  close: "Fermer",
+  today: "Aujourd'hui",
+  add: "Ajouter",
+  remove: "Retirer",
+  copy: "Copier",
+  language: "Langue",
+  printPdf: "PDF / Imprimer",
+  printHint: "Choisissez « Enregistrer au format PDF » pour télécharger le fichier",
+  previewA4: "Aperçu A4 — ce qui sera imprimé ou enregistré en PDF",
+  previewA4Short: "Aperçu A4",
+  noClient: "Sans client",
+  pickDate: "Choisir une date",
+  required: "Champ requis",
+  example: "Ex. : {{value}}",
+  nothingToReport: "Rien à signaler.",
+  noMatch: "Aucun résultat pour « {{query}} ».",
+  noMatchFilters: "Aucun résultat ne correspond à ces filtres.",
+  fixFields: "Corrigez les champs signalés en rouge.",
+  unsavedLeave: "Des modifications ne sont pas enregistrées. Quitter quand même ?",
+  footer: "© 2026 DevisPlus.ma",
+};
+
+export const nav = {
+  home: "DevisPlus.ma — accueil",
+  main: "Navigation principale",
+  dashboard: "Devis",
+  invoices: "Factures",
+  followups: "Relances",
+  clients: "Clients",
+  catalogue: "Catalogue",
+  reports: "Rapports",
+  templates: "Modèles",
+  settings: "Paramètres",
+  myQuotes: "Mes devis",
+  chooseLanguage: "Choisir la langue de l'interface",
+};
+
+export const meta = {
+  landing: {
+    title: "DevisPlus.ma — Devis professionnels pour entreprises marocaines",
+    description: "Créez des devis clairs en dirhams, avec ICE et TVA, et exportez-les en PDF A4.",
+  },
+  dashboard: {
+    title: "Mes devis — DevisPlus.ma",
+    description: "Suivez vos devis, leurs montants et leurs statuts.",
+  },
+  editor: {
+    title: "Éditeur de devis — DevisPlus.ma",
+    description: "Saisissez client, lignes et conditions ; l'aperçu A4 se met à jour en direct.",
+  },
+  invoices: {
+    title: "Factures — DevisPlus.ma",
+    description: "Factures issues de vos devis acceptés, paiements reçus et restes à payer.",
+  },
+  invoice: {
+    title: "Facture — DevisPlus.ma",
+    description: "Brouillon de facture, émission et suivi des paiements.",
+  },
+  followups: {
+    title: "Relances — DevisPlus.ma",
+    description: "Devis en attente de réponse et devis proches de leur date d'expiration.",
+  },
+  clients: {
+    title: "Clients — DevisPlus.ma",
+    description:
+      "Fiches clients avec ICE, IF, RC, coordonnées, conditions de paiement et historique des devis.",
+  },
+  catalogue: {
+    title: "Catalogue — DevisPlus.ma",
+    description: "Vos produits et services fréquents, à insérer en un clic dans vos devis.",
+  },
+  reports: {
+    title: "Rapports — DevisPlus.ma",
+    description:
+      "Devis par mois, taux d'acceptation, factures émises, encaissements et exports CSV.",
+  },
+  templates: {
+    title: "Modèles de devis — DevisPlus.ma",
+    description: "Choisissez ou créez la mise en page de vos devis.",
+  },
+  pricing: {
+    title: "Tarifs — DevisPlus.ma",
+    description:
+      "Offre Business DevisPlus.ma à 2 500 MAD en paiement unique, et formulaire de demande.",
+  },
+  settings: {
+    title: "Paramètres — DevisPlus.ma",
+    description:
+      "Profil de l'entreprise, identifiants fiscaux, coordonnées bancaires et préférences des documents.",
+  },
+};
+
+export const status = {
+  quote: { brouillon: "Brouillon", envoye: "Envoyé", accepte: "Accepté", refuse: "Refusé" },
+  invoice: { brouillon: "Brouillon", emise: "Émise", paid: "Payée" },
+  all: "Tous les statuts",
+};
+
+export const units = {
+  pièce: "pièce",
+  heure: "heure",
+  jour: "jour",
+  "m²": "m²",
+  "m³": "m³",
+  ml: "ml",
+  kg: "kg",
+  forfait: "forfait",
+};
+
+export const kinds = {
+  materiel: "Matériaux",
+  main_oeuvre: "Main-d'œuvre",
+  service: "Prestations",
+  other: "Divers",
+  unspecified: "Non précisée",
+};
+
+export const methods = {
+  virement: "Virement",
+  cheque: "Chèque",
+  especes: "Espèces",
+  carte: "Carte",
+  effet: "Effet de commerce",
+  autre: "Autre",
+};
+
+export const validation = {
+  required: "Champ requis",
+  ice: "L'ICE comporte 15 chiffres",
+  email: "Adresse e-mail invalide",
+  phone: "Numéro trop court",
+  rib: "Le RIB marocain comporte 24 chiffres",
+  companyName: "Indiquez la raison sociale de votre entreprise",
+  clientName: "Indiquez le client",
+  lines: "Ajoutez au moins une ligne avec une désignation",
+  date: "Date requise",
+  validUntil: "Doit être postérieure à la date du devis",
+  dueDate: "Doit être postérieure à la date de facture",
+  exemption: "Une ligne est à 0 % : précisez le motif d'exonération",
+  rate: "Taux invalide (0 à 100).",
+  vatList: "Gardez au moins un taux",
+  vatDefault: "Le taux par défaut doit faire partie de la liste",
+  price: "Prix invalide",
+  templateName: "Donnez un nom à votre modèle",
+};
+
+export const errors = {
+  storage:
+    "Enregistrement impossible : le stockage du navigateur est plein ou bloqué (logo trop lourd ?).",
+  unexpected: "Une erreur inattendue est survenue.",
+  quoteNotAccepted: "Seul un devis accepté peut être converti en facture.",
+  alreadyIssued: "Cette facture est déjà émise.",
+  invoiceClient: "Le nom du client est requis.",
+  invoiceLines: "La facture ne contient aucune ligne.",
+  issuedLocked: "Une facture émise ne peut pas être supprimée.",
+  paymentDraft: "Les paiements s'enregistrent sur une facture émise.",
+  paymentDate: "Indiquez la date du paiement.",
+  paymentAmount: "Le montant doit être supérieur à zéro.",
+  paymentTooHigh: "Le montant dépasse le reste à payer.",
+  logoFormat: "Format accepté : PNG, JPG, WebP ou SVG.",
+  logoSize: "Image trop lourde (5 Mo maximum).",
+  logoRead: "Image illisible.",
+  exportFailed: "Export impossible dans ce navigateur.",
+  copyFailed: "Copie impossible dans ce navigateur.",
+  notFoundTitle: "Page introuvable",
+  notFoundText: "La page demandée n'existe pas ou a été déplacée.",
+  goHome: "Retour à l'accueil",
+  crashTitle: "Cette page n'a pas pu se charger",
+  crashText: "Une erreur s'est produite. Réessayez ou revenez à l'accueil.",
+  retry: "Réessayer",
+};

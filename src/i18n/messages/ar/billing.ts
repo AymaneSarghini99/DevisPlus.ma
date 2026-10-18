@@ -1,0 +1,63 @@
+import type { fr } from "../fr/index";
+type M = typeof fr;
+
+export const invoices: M["invoices"] = {
+  title: "الفواتير",
+  emptyTitle: "لا توجد فواتير",
+  seeQuotes: "عرض عروض أسعاري",
+  emptyText:
+    "تُنشأ الفاتورة انطلاقًا من عرض سعر مقبول: افتح عرض السعر واختر «تحويل إلى فاتورة». يبقى عرض السعر الأصلي دون تغيير.",
+  kpiIssued: "الفواتير الصادرة (شامل الضريبة)",
+  kpiReceived: "الدفعات المستلمة",
+  kpiOutstanding: "المبالغ المتبقية للتحصيل",
+  draftsNotCounted: "لا تُحتسب المسودات.",
+  searchLabel: "البحث عن فاتورة",
+  searchPlaceholder: "الرقم أو عرض السعر أو العميل…",
+  colQuote: "عرض السعر",
+  colDue: "تاريخ الاستحقاق",
+  colOutstanding: "المبلغ المتبقي",
+  late: "متأخرة",
+};
+
+export const invoice: M["invoice"] = {
+  notFound: "الفاتورة غير موجودة",
+  back: "العودة إلى الفواتير",
+  draftNotSaved: "لم يتم حفظ المسودة",
+  draftSaved: "تم حفظ المسودة.",
+  fixBeforeIssue: "صحّح المسودة قبل إصدارها.",
+  confirmIssue: "هل تريد إصدار الفاتورة؟ ستحصل على رقم نهائي ولن يمكن تعديلها أو حذفها بعد ذلك.",
+  missingMentions: "البيانات الناقصة:",
+  mentions: {
+    companyIce: "ICE شركتك",
+    companyIf: "التعريف الضريبي (IF)",
+    companyRc: "السجل التجاري (RC)",
+    companyTp: "الرسم المهني (TP)",
+    companyAddress: "عنوان شركتك",
+    clientIce: "ICE العميل (إلزامي إذا كان العميل شركة)",
+  },
+  issued: "تم إصدار الفاتورة {{number}}.",
+  confirmDeleteDraft: "هل تريد حذف مسودة الفاتورة هذه؟ لن يتغير عرض السعر الأصلي.",
+  issue: "إصدار",
+  label: "فاتورة",
+  fromQuote: "صادرة عن عرض السعر",
+  deleteDraft: "حذف المسودة",
+  draftNote:
+    "مسودة: لا تحمل رقمًا وليست لها قيمة محاسبية. يمنح «إصدار» الرقم النهائي ويقفل الفاتورة.",
+  saveChangesFirst: "احفظ تغييراتك أولًا.",
+  lockedNote: "صدرت بتاريخ {{date}}. لا يمكن تعديل فاتورة صادرة؛ يتم أي تصحيح عبر إشعار دائن.",
+  sectionDates: "التواريخ",
+  issueDate: "تاريخ الفاتورة",
+  sectionTerms: "التخفيض والضريبة والشروط",
+  sectionAmounts: "المبالغ",
+  received: "المبلغ المقبوض",
+  paymentSaved: "تم تسجيل الدفعة.",
+  confirmDeletePayment: "هل تريد حذف هذه الدفعة؟",
+  payments: "الدفعات المستلمة",
+  deletePayment: "حذف هذه الدفعة",
+  noPayments: "لا توجد دفعات مسجلة.",
+  amount: "المبلغ (درهم)",
+  method: "طريقة الأداء",
+  reference: "المرجع (رقم الشيك، التحويل…)",
+  savePayment: "تسجيل الدفعة",
+  fullyPaid: "تم أداء الفاتورة بالكامل.",
+};

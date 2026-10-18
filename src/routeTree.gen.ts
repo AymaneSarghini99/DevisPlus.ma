@@ -10,13 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AcceptableUseRouteImport } from './routes/acceptable-use'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DataProcessingRouteImport } from './routes/data-processing'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ModelesRouteImport } from './routes/modeles'
 import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RapportsRouteImport } from './routes/rapports'
+import { Route as RefundsRouteImport } from './routes/refunds'
 import { Route as RelancesRouteImport } from './routes/relances'
+import { Route as TarifsRouteImport } from './routes/tarifs'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DevisIdRouteImport } from './routes/devis.$id'
 import { Route as FacturesIndexRouteImport } from './routes/factures.index'
 import { Route as FacturesIdRouteImport } from './routes/factures.$id'
@@ -24,6 +32,11 @@ import { Route as FacturesIdRouteImport } from './routes/factures.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcceptableUseRoute = AcceptableUseRouteImport.update({
+  id: '/acceptable-use',
+  path: '/acceptable-use',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueRoute = CatalogueRouteImport.update({
@@ -36,9 +49,24 @@ const ClientsRoute = ClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataProcessingRoute = DataProcessingRouteImport.update({
+  id: '/data-processing',
+  path: '/data-processing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ModelesRoute = ModelesRouteImport.update({
@@ -51,14 +79,34 @@ const ParametresRoute = ParametresRouteImport.update({
   path: '/parametres',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RapportsRoute = RapportsRouteImport.update({
   id: '/rapports',
   path: '/rapports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RefundsRoute = RefundsRouteImport.update({
+  id: '/refunds',
+  path: '/refunds',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RelancesRoute = RelancesRouteImport.update({
   id: '/relances',
   path: '/relances',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TarifsRoute = TarifsRouteImport.update({
+  id: '/tarifs',
+  path: '/tarifs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevisIdRoute = DevisIdRouteImport.update({
@@ -79,26 +127,42 @@ const FacturesIdRoute = FacturesIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acceptable-use': typeof AcceptableUseRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
+  '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRoute
+  '/data-processing': typeof DataProcessingRoute
+  '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
   '/parametres': typeof ParametresRoute
+  '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
+  '/refunds': typeof RefundsRoute
   '/relances': typeof RelancesRoute
+  '/tarifs': typeof TarifsRoute
+  '/terms': typeof TermsRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
   '/factures/': typeof FacturesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acceptable-use': typeof AcceptableUseRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
+  '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRoute
+  '/data-processing': typeof DataProcessingRoute
+  '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
   '/parametres': typeof ParametresRoute
+  '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
+  '/refunds': typeof RefundsRoute
   '/relances': typeof RelancesRoute
+  '/tarifs': typeof TarifsRoute
+  '/terms': typeof TermsRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
   '/factures': typeof FacturesIndexRoute
@@ -106,13 +170,21 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acceptable-use': typeof AcceptableUseRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
+  '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRoute
+  '/data-processing': typeof DataProcessingRoute
+  '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
   '/parametres': typeof ParametresRoute
+  '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
+  '/refunds': typeof RefundsRoute
   '/relances': typeof RelancesRoute
+  '/tarifs': typeof TarifsRoute
+  '/terms': typeof TermsRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
   '/factures/': typeof FacturesIndexRoute
@@ -121,39 +193,63 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acceptable-use'
     | '/catalogue'
     | '/clients'
+    | '/cookies'
     | '/dashboard'
+    | '/data-processing'
+    | '/legal'
     | '/modeles'
     | '/parametres'
+    | '/privacy'
     | '/rapports'
+    | '/refunds'
     | '/relances'
+    | '/tarifs'
+    | '/terms'
     | '/devis/$id'
     | '/factures/$id'
     | '/factures/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acceptable-use'
     | '/catalogue'
     | '/clients'
+    | '/cookies'
     | '/dashboard'
+    | '/data-processing'
+    | '/legal'
     | '/modeles'
     | '/parametres'
+    | '/privacy'
     | '/rapports'
+    | '/refunds'
     | '/relances'
+    | '/tarifs'
+    | '/terms'
     | '/devis/$id'
     | '/factures/$id'
     | '/factures'
   id:
     | '__root__'
     | '/'
+    | '/acceptable-use'
     | '/catalogue'
     | '/clients'
+    | '/cookies'
     | '/dashboard'
+    | '/data-processing'
+    | '/legal'
     | '/modeles'
     | '/parametres'
+    | '/privacy'
     | '/rapports'
+    | '/refunds'
     | '/relances'
+    | '/tarifs'
+    | '/terms'
     | '/devis/$id'
     | '/factures/$id'
     | '/factures/'
@@ -161,13 +257,21 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcceptableUseRoute: typeof AcceptableUseRoute
   CatalogueRoute: typeof CatalogueRoute
   ClientsRoute: typeof ClientsRoute
+  CookiesRoute: typeof CookiesRoute
   DashboardRoute: typeof DashboardRoute
+  DataProcessingRoute: typeof DataProcessingRoute
+  LegalRoute: typeof LegalRoute
   ModelesRoute: typeof ModelesRoute
   ParametresRoute: typeof ParametresRoute
+  PrivacyRoute: typeof PrivacyRoute
   RapportsRoute: typeof RapportsRoute
+  RefundsRoute: typeof RefundsRoute
   RelancesRoute: typeof RelancesRoute
+  TarifsRoute: typeof TarifsRoute
+  TermsRoute: typeof TermsRoute
   DevisIdRoute: typeof DevisIdRoute
   FacturesIdRoute: typeof FacturesIdRoute
   FacturesIndexRoute: typeof FacturesIndexRoute
@@ -180,6 +284,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acceptable-use': {
+      id: '/acceptable-use'
+      path: '/acceptable-use'
+      fullPath: '/acceptable-use'
+      preLoaderRoute: typeof AcceptableUseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogue': {
@@ -196,11 +307,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-processing': {
+      id: '/data-processing'
+      path: '/data-processing'
+      fullPath: '/data-processing'
+      preLoaderRoute: typeof DataProcessingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/modeles': {
@@ -217,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rapports': {
       id: '/rapports'
       path: '/rapports'
@@ -224,11 +363,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RapportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/refunds': {
+      id: '/refunds'
+      path: '/refunds'
+      fullPath: '/refunds'
+      preLoaderRoute: typeof RefundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/relances': {
       id: '/relances'
       path: '/relances'
       fullPath: '/relances'
       preLoaderRoute: typeof RelancesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tarifs': {
+      id: '/tarifs'
+      path: '/tarifs'
+      fullPath: '/tarifs'
+      preLoaderRoute: typeof TarifsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/devis/$id': {
@@ -257,13 +417,21 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcceptableUseRoute: AcceptableUseRoute,
   CatalogueRoute: CatalogueRoute,
   ClientsRoute: ClientsRoute,
+  CookiesRoute: CookiesRoute,
   DashboardRoute: DashboardRoute,
+  DataProcessingRoute: DataProcessingRoute,
+  LegalRoute: LegalRoute,
   ModelesRoute: ModelesRoute,
   ParametresRoute: ParametresRoute,
+  PrivacyRoute: PrivacyRoute,
   RapportsRoute: RapportsRoute,
+  RefundsRoute: RefundsRoute,
   RelancesRoute: RelancesRoute,
+  TarifsRoute: TarifsRoute,
+  TermsRoute: TermsRoute,
   DevisIdRoute: DevisIdRoute,
   FacturesIdRoute: FacturesIdRoute,
   FacturesIndexRoute: FacturesIndexRoute,

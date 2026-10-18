@@ -4,32 +4,19 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader, PageTitle } from "@/components/Brand";
 import { loadInvoices, type Invoice } from "@/lib/invoices";
-import { loadQuotes, mad, today, type Quote } from "@/lib/quotes";
+import { loadQuotes, today, type Quote } from "@/lib/quotes";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/i18n/LocaleProvider";
+import { pageMeta } from "@/i18n/meta";
 import { clientsCsv, invoicesCsv, paymentsCsv, quotesCsv, report } from "@/lib/reports";
 import { loadClients, type Client } from "@/lib/store";
 
 export const Route = createFileRoute("/rapports")({
-  head: () => ({
-    meta: [
-      { title: "Rapports — DevisPlus.ma" },
-      {
-        name: "description",
-        content:
-          "Devis par mois, taux d'acceptation, factures émises, encaissements et exports CSV.",
-      },
-    ],
-  }),
+  head: ({ match }) => pageMeta(match, "reports"),
   component: Reports,
 });
 
-const MONTH = new Intl.DateTimeFormat("fr-FR", { month: "short" });
-const monthLabel = (m: string) => MONTH.format(new Date(m + "-15T12:00:00")).replace(".", "");
-const monthLong = (m: string) =>
-  new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(
-    new Date(m + "-15T12:00:00"),
-  );
-
-function download(name: string, csv: string) {
+function download(name: string, csv: string, onError: () => void) {
   try {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
@@ -38,11 +25,13 @@ function download(name: string, csv: string) {
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch {
-    toast.error("Export impossible dans ce navigateur.");
+    onError();
   }
 }
 
 function Reports() {
+  const { t } = useTranslation();
+  const { fmt, locale } = useLocale();
   const [data, setData] = useState<{
     quotes: Quote[];
     invoices: Invoice[];
@@ -54,19 +43,34 @@ function Reports() {
     [],
   );
 
-  if (!data) return <p className="p-8 text-sm text-muted-foreground">Chargement…</p>;
+  if (!data) return <p className="p-8 text-sm text-muted-foreground">{t("common.loading")}</p>;
   const now = today();
   const r = report(data.quotes, data.invoices, now);
   const max = Math.max(1, ...r.months.map((m) => m.count));
   const stamp = now.replaceAll("-", "");
   const exports: [string, string, () => string, number][] = [
-    ["Clients", `clients-${stamp}.csv`, () => clientsCsv(data.clients), data.clients.length],
-    ["Devis", `devis-${stamp}.csv`, () => quotesCsv(data.quotes), data.quotes.length],
-    ["Factures", `factures-${stamp}.csv`, () => invoicesCsv(data.invoices), data.invoices.length],
     [
-      "Paiements",
-      `paiements-${stamp}.csv`,
-      () => paymentsCsv(data.invoices),
+      t("reports.export.clients"),
+      `${t("reports.file.clients")}-${stamp}.csv`,
+      () => clientsCsv(data.clients, t, locale),
+      data.clients.length,
+    ],
+    [
+      t("reports.export.quotes"),
+      `${t("reports.file.quotes")}-${stamp}.csv`,
+      () => quotesCsv(data.quotes, t, locale),
+      data.quotes.length,
+    ],
+    [
+      t("reports.export.invoices"),
+      `${t("reports.file.invoices")}-${stamp}.csv`,
+      () => invoicesCsv(data.invoices, t, locale),
+      data.invoices.length,
+    ],
+    [
+      t("reports.export.payments"),
+      `${t("reports.file.payments")}-${stamp}.csv`,
+      () => paymentsCsv(data.invoices, t, locale),
       data.invoices.reduce((s, i) => s + i.payments.length, 0),
     ],
   ];
@@ -76,49 +80,49 @@ function Reports() {
       <AppHeader />
       <main className="mx-auto max-w-6xl space-y-10 px-4 py-8">
         <div>
-          <PageTitle title="Rapports" />
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Calculés uniquement à partir des devis et factures enregistrés dans ce navigateur. Un
-            montant devisé n'est pas un chiffre d'affaires : seules les factures émises et les
-            paiements enregistrés le sont.
-          </p>
+          <PageTitle title={t("reports.title")} />
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("reports.intro")}</p>
         </div>
 
         <section>
-          <h2 className="font-semibold">Devis</h2>
+          <h2 className="font-semibold">{t("reports.quotes")}</h2>
           <dl className="mt-3 grid grid-cols-2 divide-x divide-y border-y sm:grid-cols-4 sm:divide-y-0">
             <Tile
-              k="Devis créés"
-              v={String(r.quotes.count)}
-              sub={`${r.quotes.drafts} brouillon(s), ${r.quotes.pending} en attente`}
+              k={t("reports.created")}
+              v={fmt.number(r.quotes.count)}
+              sub={t("reports.createdSub", { drafts: r.quotes.drafts, pending: r.quotes.pending })}
             />
             <Tile
-              k="Montant total devisé (TTC)"
-              v={mad(r.quotes.quotedTtc)}
-              sub="Tous statuts confondus"
+              k={t("reports.quotedTotal")}
+              v={fmt.money(r.quotes.quotedTtc)}
+              sub={t("reports.allStatuses")}
             />
             <Tile
-              k="Acceptés"
-              v={String(r.quotes.accepted.count)}
-              sub={mad(r.quotes.accepted.ttc)}
+              k={t("reports.accepted")}
+              v={fmt.number(r.quotes.accepted.count)}
+              sub={fmt.money(r.quotes.accepted.ttc)}
             />
-            <Tile k="Refusés" v={String(r.quotes.refused.count)} sub={mad(r.quotes.refused.ttc)} />
+            <Tile
+              k={t("reports.refused")}
+              v={fmt.number(r.quotes.refused.count)}
+              sub={fmt.money(r.quotes.refused.ttc)}
+            />
           </dl>
           <p className="mt-2 text-sm text-muted-foreground">
             {r.quotes.acceptanceRate === null
-              ? "Taux d'acceptation : aucun devis accepté ou refusé pour l'instant."
-              : `Taux d'acceptation : ${Math.round(r.quotes.acceptanceRate * 100)} % des devis tranchés (acceptés ou refusés).`}
+              ? t("reports.rateNone")
+              : t("reports.rate", { pct: fmt.percent(Math.round(r.quotes.acceptanceRate * 100)) })}
           </p>
         </section>
 
         <section>
-          <h2 className="font-semibold">Devis créés par mois</h2>
-          <p className="text-xs text-muted-foreground">12 derniers mois, selon la date du devis</p>
+          <h2 className="font-semibold">{t("reports.perMonth")}</h2>
+          <p className="text-xs text-muted-foreground">{t("reports.perMonthHint")}</p>
           <div className="mt-4 border bg-card p-4">
             <div
               className="relative flex h-44 items-end gap-0.5 border-b"
               role="img"
-              aria-label={`Devis créés par mois : ${r.months.map((m) => `${monthLong(m.month)} ${m.count}`).join(", ")}`}
+              aria-label={`${t("reports.perMonth")}${t("doc.colon")}${r.months.map((m) => `${fmt.monthLong(m.month)} ${m.count}`).join(t("doc.listSep"))}`}
             >
               {r.months.map((m, i) => (
                 <div
@@ -135,9 +139,9 @@ function Reports() {
                   )}
                   {hover === i && (
                     <div className="pointer-events-none absolute bottom-full z-10 mb-1 whitespace-nowrap rounded-sm border bg-card px-2 py-1 text-xs shadow-sm">
-                      <div className="font-medium">{monthLong(m.month)}</div>
+                      <div className="font-medium">{fmt.monthLong(m.month)}</div>
                       <div className="num">
-                        {m.count} devis · {mad(m.ttc)}
+                        {t("reports.tooltip", { count: m.count, amount: fmt.money(m.ttc) })}
                       </div>
                     </div>
                   )}
@@ -147,28 +151,30 @@ function Reports() {
             <div className="mt-1 flex gap-0.5 text-[11px] text-muted-foreground">
               {r.months.map((m) => (
                 <span key={m.month} className="flex-1 text-center">
-                  {monthLabel(m.month)}
+                  {fmt.monthShort(m.month)}
                 </span>
               ))}
             </div>
             <details className="mt-3 text-sm">
               <summary className="cursor-pointer text-xs text-muted-foreground">
-                Voir le tableau
+                {t("reports.showTable")}
               </summary>
               <table className="mt-2 w-full">
-                <thead className="text-left text-xs text-muted-foreground">
+                <thead className="text-start text-xs text-muted-foreground">
                   <tr>
-                    <th className="py-1 font-medium">Mois</th>
-                    <th className="py-1 text-right font-medium">Devis</th>
-                    <th className="py-1 text-right font-medium">Montant TTC</th>
+                    <th className="py-1 font-medium">{t("reports.month")}</th>
+                    <th className="py-1 text-end font-medium">{t("reports.quotes")}</th>
+                    <th className="py-1 text-end font-medium">{t("reports.amountTtc")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {r.months.map((m) => (
                     <tr key={m.month}>
-                      <td className="py-1">{monthLong(m.month)}</td>
-                      <td className="num py-1 text-right">{m.count}</td>
-                      <td className="num py-1 text-right">{mad(m.ttc)}</td>
+                      <td className="py-1">{fmt.monthLong(m.month)}</td>
+                      <td className="num py-1 text-end">{m.count}</td>
+                      <td className="num py-1 text-end">
+                        <bdi>{fmt.money(m.ttc)}</bdi>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -178,31 +184,29 @@ function Reports() {
         </section>
 
         <section>
-          <h2 className="font-semibold">Factures et encaissements</h2>
+          <h2 className="font-semibold">{t("reports.invoicesTitle")}</h2>
           <dl className="mt-3 grid grid-cols-2 divide-x divide-y border-y sm:grid-cols-4 sm:divide-y-0">
             <Tile
-              k="Factures émises"
-              v={String(r.invoices.issued)}
-              sub={`${r.invoices.drafts} brouillon(s) non comptés`}
+              k={t("reports.issued")}
+              v={fmt.number(r.invoices.issued)}
+              sub={t("reports.draftsSub", { drafts: r.invoices.drafts })}
             />
-            <Tile k="Facturé (TTC)" v={mad(r.invoices.issuedTtc)} />
-            <Tile k="Paiements reçus" v={mad(r.invoices.received)} />
-            <Tile k="Reste à encaisser" v={mad(r.invoices.outstanding)} />
+            <Tile k={t("reports.invoiced")} v={fmt.money(r.invoices.issuedTtc)} />
+            <Tile k={t("invoices.kpiReceived")} v={fmt.money(r.invoices.received)} />
+            <Tile k={t("invoices.kpiOutstanding")} v={fmt.money(r.invoices.outstanding)} />
           </dl>
         </section>
 
         <section>
-          <h2 className="font-semibold">Exporter</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Fichiers CSV (séparateur « ; », virgule décimale) qui s'ouvrent directement dans Excel.
-          </p>
+          <h2 className="font-semibold">{t("reports.exportTitle")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("reports.exportHint")}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {exports.map(([label, file, make, n]) => (
               <button
                 key={label}
                 className="btn btn-ghost"
                 disabled={!n}
-                onClick={() => download(file, make())}
+                onClick={() => download(file, make(), () => toast.error(t("errors.exportFailed")))}
               >
                 <Download className="size-4" /> {label}{" "}
                 <span className="num text-xs text-muted-foreground">({n})</span>
@@ -219,7 +223,9 @@ function Tile({ k, v, sub }: { k: string; v: string; sub?: string }) {
   return (
     <div className="p-4">
       <dt className="text-xs text-muted-foreground">{k}</dt>
-      <dd className="num mt-1 text-xl font-semibold">{v}</dd>
+      <dd className="num mt-1 text-xl font-semibold">
+        <bdi>{v}</bdi>
+      </dd>
       {sub && <dd className="mt-0.5 text-xs text-muted-foreground">{sub}</dd>}
     </div>
   );

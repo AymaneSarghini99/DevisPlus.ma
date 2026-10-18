@@ -13,22 +13,59 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { createIsomorphicFn } from "@tanstack/react-start";
+import { getCookie } from "@tanstack/react-start/server";
+import { useTranslation } from "react-i18next";
+import {
+  DEFAULT_LOCALE,
+  dirOf,
+  isLocale,
+  LOCALE_COOKIE,
+  localeFromCookie,
+  type Locale,
+} from "../i18n/config";
+import { LocaleProvider, useLocale } from "../i18n/LocaleProvider";
+import { SiteFooter } from "../components/SiteFooter";
+import { WhatsAppWidget } from "../components/WhatsAppWidget";
+
+function LocalizedToaster() {
+  const { dir } = useLocale();
+  return (
+    <Toaster
+      position={dir === "rtl" ? "bottom-left" : "bottom-right"}
+      dir={dir}
+      closeButton
+      offset={{ bottom: 92 }}
+      mobileOffset={{ bottom: 88 }}
+    />
+  );
+}
+
+function LocalizedFallback({ children }: { children: ReactNode }) {
+  // Error and not-found screens can render outside RootComponent, so they get their own provider.
+  const { locale } = Route.useRouteContext();
+  return <LocaleProvider locale={locale}>{children}</LocaleProvider>;
+}
 
 function NotFoundComponent() {
+  return (
+    <LocalizedFallback>
+      <NotFoundContent />
+    </LocalizedFallback>
+  );
+}
+
+function NotFoundContent() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{t("errors.notFoundTitle")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("errors.notFoundText")}</p>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
+          <Link to="/" className="btn btn-primary">
+            {t("errors.goHome")}
           </Link>
         </div>
       </div>
@@ -36,8 +73,17 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent(props: ErrorComponentProps) {
+  return (
+    <LocalizedFallback>
+      <ErrorContent {...props} />
+    </LocalizedFallback>
+  );
+}
+
+function ErrorContent({ error, reset }: ErrorComponentProps) {
   console.error(error);
+  const { t } = useTranslation();
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
@@ -47,26 +93,21 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {t("errors.crashTitle")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("errors.crashText")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="btn btn-primary"
           >
-            Try again
+            {t("errors.retry")}
           </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
+          <a href="/" className="btn btn-ghost">
+            {t("errors.goHome")}
           </a>
         </div>
       </div>
@@ -74,7 +115,17 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+/** Interface language from the cookie: read from the request on the server, from document.cookie
+ *  in the browser. Both renders agree, so Arabic pages are RTL from the first paint. */
+const readLocale = createIsomorphicFn()
+  .server((): Locale => {
+    const v = getCookie(LOCALE_COOKIE);
+    return isLocale(v) ? v : DEFAULT_LOCALE;
+  })
+  .client((): Locale => localeFromCookie(document.cookie));
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: () => ({ locale: readLocale() }),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -88,7 +139,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=IBM+Plex+Serif:wght@400;600&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap",
+      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
@@ -101,8 +155,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const { locale } = Route.useRouteContext();
   return (
-    <html lang="fr">
+    <html lang={locale} dir={dirOf(locale)}>
       <head>
         <HeadContent />
       </head>
@@ -115,13 +170,17 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const { queryClient, locale } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster position="bottom-right" closeButton />
+      <LocaleProvider locale={locale}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <SiteFooter />
+        <WhatsAppWidget />
+        <LocalizedToaster />
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }

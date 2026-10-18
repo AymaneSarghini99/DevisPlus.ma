@@ -1,4 +1,8 @@
 import type { DocStyle, Watermark } from "./design";
+import type { TFunction } from "i18next";
+import type { Locale } from "@/i18n/config";
+import { makeFormat, type Format } from "@/i18n/format";
+import { amountInWordsAr, amountInWordsEn } from "./amountWords";
 import { read, write } from "./storage";
 
 export type Unit = "pièce" | "heure" | "jour" | "m²" | "m³" | "ml" | "kg" | "forfait";
@@ -6,11 +10,7 @@ export const UNITS: Unit[] = ["pièce", "heure", "jour", "m²", "m³", "ml", "kg
 export const VAT_RATES = [20, 14, 10, 7, 0];
 
 export type LineKind = "service" | "materiel" | "main_oeuvre";
-export const KIND_LABEL: Record<LineKind, string> = {
-  materiel: "Matériaux",
-  main_oeuvre: "Main-d'œuvre",
-  service: "Prestations",
-};
+export const KINDS: LineKind[] = ["materiel", "main_oeuvre", "service"];
 export type Line = {
   id: string;
   description: string;
@@ -22,26 +22,13 @@ export type Line = {
   kind?: LineKind;
 };
 export type Status = "brouillon" | "envoye" | "accepte" | "refuse";
+export const STATUSES: Status[] = ["brouillon", "envoye", "accepte", "refuse"];
 export type TemplateId =
   "classic" | "premium" | "btp" | "services" | "zellige" | "marche" | "bilingue" | "commercial";
-export const TEMPLATES: { id: TemplateId; name: string; hint: string }[] = [
-  { id: "classic", name: "Classique", hint: "Blanc et marine, sobre et professionnel." },
-  { id: "premium", name: "Premium", hint: "Typographie soignée, couleurs de votre marque." },
-  { id: "btp", name: "BTP", hint: "Matériaux, main-d'œuvre et quantités regroupés." },
-  { id: "services", name: "Services", hint: "Agences, freelances et consultants." },
-  { id: "zellige", name: "Traditionnel", hint: "Frise zellige, titre encadré, tableau quadrillé." },
-  {
-    id: "marche",
-    name: "Bordereau des prix",
-    hint: "Style marchés publics : détail estimatif quadrillé.",
-  },
-  { id: "bilingue", name: "Bilingue FR / AR", hint: "Intitulés en français et en arabe." },
-  {
-    id: "commercial",
-    name: "Commercial",
-    hint: "Encadrés émetteur / client, zones cachet et signature.",
-  },
-];
+/** Built-in layouts; their names and descriptions are translated under "templates.names". */
+export const TEMPLATES: { id: TemplateId }[] = (
+  ["classic", "premium", "btp", "services", "zellige", "marche", "bilingue", "commercial"] as const
+).map((id) => ({ id }));
 export type Party = {
   name: string;
   ice: string;
@@ -80,13 +67,8 @@ export type Quote = {
   watermark?: Watermark;
   style?: DocStyle;
   customTemplateId?: string; // set when the design came from one of the user's templates
-};
-
-export const STATUS_LABEL: Record<Status, string> = {
-  brouillon: "Brouillon",
-  envoye: "Envoyé",
-  accepte: "Accepté",
-  refuse: "Refusé",
+  /** Language of the printed document and WhatsApp messages; French when absent (older quotes). */
+  lang?: Locale;
 };
 
 export const emptyParty = (): Party => ({
@@ -169,15 +151,9 @@ export const quoteTotals = (q: Pick<Quote, "lines" | "globalDiscount" | "deposit
 /** True when some line is at 0 % VAT, so the document must state why (exemption mention). */
 export const needsExemptionNote = (lines: Line[]) => lines.some((l) => Number(l.vatRate) === 0);
 
-const madFmt = new Intl.NumberFormat("fr-FR", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-/** "1 200,00 DH" with non-breaking spaces (the fr-MA locale would print "1.200,00"). */
-export const mad = (n: number) => madFmt.format(n).replace(/[\s\u202f]/g, "\u00a0") + "\u00a0DH";
-
-export const fmtDate = (iso: string) =>
-  iso ? new Date(iso.length === 10 ? iso + "T12:00:00" : iso).toLocaleDateString("fr-FR") : "—";
+/** French display formatting, kept for exports and older callers; screens use useFormat(). */
+export const mad = (n: number) => makeFormat("fr").money(n);
+export const fmtDate = (iso: string) => makeFormat("fr").date(iso);
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 const localISO = (d: Date) =>
@@ -257,7 +233,14 @@ export function numberToFrench(n: number): string {
   if (n) parts.push(below1000(n));
   return parts.join(" ");
 }
-export function amountInWords(amount: number): string {
+/** Amount in words in the document language. */
+export function amountInWords(amount: number, locale: Locale = "fr"): string {
+  if (locale === "en") return amountInWordsEn(amount);
+  if (locale === "ar") return amountInWordsAr(amount);
+  return amountInWordsFr(amount);
+}
+
+function amountInWordsFr(amount: number): string {
   const cents = Math.round(amount * 100);
   const dh = Math.floor(cents / 100),
     ct = cents % 100;
@@ -349,6 +332,7 @@ export type Defaults = {
   watermark?: Watermark;
   style?: DocStyle;
   customTemplateId?: string;
+  lang?: Locale;
 };
 
 export const DEFAULT_TERMS =
@@ -378,6 +362,7 @@ export function newQuote(existing: Quote[], d: Defaults = {}): Quote {
     ...(d.watermark ? { watermark: { ...d.watermark } } : {}),
     ...(d.style ? { style: { ...d.style } } : {}),
     ...(d.customTemplateId ? { customTemplateId: d.customTemplateId } : {}),
+    ...(d.lang ? { lang: d.lang } : {}),
   };
 }
 
@@ -412,19 +397,30 @@ export function waPhone(phone: string) {
   else if (d.startsWith("0")) d = "212" + d.slice(1);
   return d;
 }
-const hello = (q: Quote) => {
+/** WhatsApp messages, written in the quote's document language (t and fmt of that language). */
+export function whatsappText(q: Quote, t: TFunction, fmt: Format) {
+  return t("whatsapp.send", {
+    greeting: greeting(q, t),
+    number: q.number,
+    amount: fmt.money(quoteTotals(q).ttc),
+    date: fmt.date(q.validUntil),
+    company: q.company.name,
+  });
+}
+export function reminderText(q: Quote, t: TFunction, fmt: Format) {
+  return t(q.sentAt ? "whatsapp.reminderSent" : "whatsapp.reminder", {
+    greeting: greeting(q, t),
+    number: q.number,
+    sent: q.sentAt ? fmt.date(q.sentAt) : "",
+    amount: fmt.money(quoteTotals(q).ttc),
+    date: fmt.date(q.validUntil),
+    company: q.company.name,
+  });
+}
+const greeting = (q: Quote, t: TFunction) => {
   const who = q.client.contact || q.client.name;
-  return `Bonjour${who ? " " + who : ""},`;
+  return who ? t("whatsapp.helloName", { name: who }) : t("whatsapp.hello");
 };
-export function whatsappText(q: Quote) {
-  const t = quoteTotals(q);
-  return `${hello(q)}\n\nVeuillez trouver ci-joint notre devis n° ${q.number} d'un montant de ${mad(t.ttc)} TTC, valable jusqu'au ${fmtDate(q.validUntil)}.\n\nNous restons à votre disposition pour toute question.\n\nCordialement,\n${q.company.name}`;
-}
-export function reminderText(q: Quote) {
-  const t = quoteTotals(q);
-  const sent = q.sentAt ? `, envoyé le ${fmtDate(q.sentAt)}` : "";
-  return `${hello(q)}\n\nJe me permets de revenir vers vous au sujet de notre devis n° ${q.number}${sent}, d'un montant de ${mad(t.ttc)} TTC, valable jusqu'au ${fmtDate(q.validUntil)}.\n\nAvez-vous pu en prendre connaissance ? Nous restons disponibles pour toute question ou ajustement.\n\nCordialement,\n${q.company.name}`;
-}
 /** wa.me link; with no phone WhatsApp asks the user to pick the contact. */
 export function whatsappUrl(phone: string, text: string) {
   return `https://wa.me/${waPhone(phone)}?text=${encodeURIComponent(text)}`;
