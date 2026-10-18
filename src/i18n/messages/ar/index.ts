@@ -1,5 +1,6 @@
 import * as admin from "./admin";
 import * as base from "./base";
+import * as drive from "./drive";
 import * as billing from "./billing";
 import * as design from "./design";
 import * as doc from "./doc";
@@ -22,4 +23,5 @@ export const ar = {
   ...pricing,
   ...onboarding,
   ...admin,
+  ...drive,
 };

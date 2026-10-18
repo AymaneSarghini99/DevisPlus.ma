@@ -58,6 +58,8 @@ export const site: M["site"] = {
   waEmoji: "Add an emoji",
   navPricing: "Pricing",
   navTemplates: "Templates",
+  navGuides: "Guides",
+  navCreateOnline: "Create a quote online (FR)",
   navContact: "Contact",
   menu: "Menu",
   tagline: "Quotes and invoices in dirhams for Moroccan businesses.",
@@ -71,5 +73,7 @@ export const site: M["site"] = {
   addressLabel: "Address",
   emailLabel: "Email",
   phoneLabel: "Phone",
+  whatsappLabel: "WhatsApp support",
+  whatsappOnly: "WhatsApp only",
   websiteLabel: "Website",
 };

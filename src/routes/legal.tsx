@@ -4,19 +4,22 @@ import { LegalLink, LegalShell } from "@/components/LegalPage";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { DEFAULT_LOCALE, isLocale } from "@/i18n/config";
 import { tFor } from "@/i18n/index";
+import { seoHead } from "@/lib/seo";
 import { LEGAL_CONTENT } from "@/legal/content";
 import { currentVersion, LEGAL_DOCS } from "@/legal/documents";
 
 export const Route = createFileRoute("/legal")({
   head: ({ match }) => {
     const l = (match.context as { locale?: unknown }).locale;
-    const t = tFor(isLocale(l) ? l : DEFAULT_LOCALE);
-    return {
-      meta: [
-        { title: `${t("legal.hubTitle")} — DevisPlus.ma` },
-        { name: "description", content: t("legal.hubIntro") },
-      ],
-    };
+    const locale = isLocale(l) ? l : DEFAULT_LOCALE;
+    const t = tFor(locale);
+    return seoHead({
+      path: "/legal",
+      title: `${t("legal.hubTitle")} — DevisPlus.ma`,
+      description: t("legal.hubIntro"),
+      locale,
+      index: true,
+    });
   },
   component: LegalHub,
 });

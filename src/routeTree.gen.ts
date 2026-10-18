@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as CreerDevisEnLigneRouteImport } from './routes/creer-devis-en-ligne'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DataProcessingRouteImport } from './routes/data-processing'
 import { Route as LegalRouteImport } from './routes/legal'
@@ -25,11 +26,21 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RapportsRouteImport } from './routes/rapports'
 import { Route as RefundsRouteImport } from './routes/refunds'
 import { Route as RelancesRouteImport } from './routes/relances'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DevisIdRouteImport } from './routes/devis.$id'
 import { Route as FacturesIndexRouteImport } from './routes/factures.index'
 import { Route as FacturesIdRouteImport } from './routes/factures.$id'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
+import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as ApiGoogleCallbackRouteImport } from './routes/api/google/callback'
+import { Route as ApiGoogleConnectRouteImport } from './routes/api/google/connect'
+import { Route as ApiGoogleDisconnectRouteImport } from './routes/api/google/disconnect'
+import { Route as ApiGoogleFoldersRouteImport } from './routes/api/google/folders'
+import { Route as ApiGoogleStatusRouteImport } from './routes/api/google/status'
+import { Route as ApiGoogleUploadRouteImport } from './routes/api/google/upload'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +70,11 @@ const ClientsRoute = ClientsRouteImport.update({
 const CookiesRoute = CookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreerDevisEnLigneRoute = CreerDevisEnLigneRouteImport.update({
+  id: '/creer-devis-en-ligne',
+  path: '/creer-devis-en-ligne',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -111,6 +127,16 @@ const RelancesRoute = RelancesRouteImport.update({
   path: '/relances',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TarifsRoute = TarifsRouteImport.update({
   id: '/tarifs',
   path: '/tarifs',
@@ -136,6 +162,46 @@ const FacturesIdRoute = FacturesIdRouteImport.update({
   path: '/factures/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/guides/$slug',
+  path: '/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleCallbackRoute = ApiGoogleCallbackRouteImport.update({
+  id: '/api/google/callback',
+  path: '/api/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleConnectRoute = ApiGoogleConnectRouteImport.update({
+  id: '/api/google/connect',
+  path: '/api/google/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleDisconnectRoute = ApiGoogleDisconnectRouteImport.update({
+  id: '/api/google/disconnect',
+  path: '/api/google/disconnect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleFoldersRoute = ApiGoogleFoldersRouteImport.update({
+  id: '/api/google/folders',
+  path: '/api/google/folders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleStatusRoute = ApiGoogleStatusRouteImport.update({
+  id: '/api/google/status',
+  path: '/api/google/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleUploadRoute = ApiGoogleUploadRouteImport.update({
+  id: '/api/google/upload',
+  path: '/api/google/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -144,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/cookies': typeof CookiesRoute
+  '/creer-devis-en-ligne': typeof CreerDevisEnLigneRoute
   '/dashboard': typeof DashboardRoute
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
@@ -154,11 +221,21 @@ export interface FileRoutesByFullPath {
   '/rapports': typeof RapportsRoute
   '/refunds': typeof RefundsRoute
   '/relances': typeof RelancesRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
+  '/guides/': typeof GuidesIndexRoute
+  '/api/google/callback': typeof ApiGoogleCallbackRoute
+  '/api/google/connect': typeof ApiGoogleConnectRoute
+  '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
+  '/api/google/folders': typeof ApiGoogleFoldersRoute
+  '/api/google/status': typeof ApiGoogleStatusRoute
+  '/api/google/upload': typeof ApiGoogleUploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -167,6 +244,7 @@ export interface FileRoutesByTo {
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/cookies': typeof CookiesRoute
+  '/creer-devis-en-ligne': typeof CreerDevisEnLigneRoute
   '/dashboard': typeof DashboardRoute
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
@@ -177,11 +255,21 @@ export interface FileRoutesByTo {
   '/rapports': typeof RapportsRoute
   '/refunds': typeof RefundsRoute
   '/relances': typeof RelancesRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/factures': typeof FacturesIndexRoute
+  '/guides': typeof GuidesIndexRoute
+  '/api/google/callback': typeof ApiGoogleCallbackRoute
+  '/api/google/connect': typeof ApiGoogleConnectRoute
+  '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
+  '/api/google/folders': typeof ApiGoogleFoldersRoute
+  '/api/google/status': typeof ApiGoogleStatusRoute
+  '/api/google/upload': typeof ApiGoogleUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -191,6 +279,7 @@ export interface FileRoutesById {
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/cookies': typeof CookiesRoute
+  '/creer-devis-en-ligne': typeof CreerDevisEnLigneRoute
   '/dashboard': typeof DashboardRoute
   '/data-processing': typeof DataProcessingRoute
   '/legal': typeof LegalRoute
@@ -201,11 +290,21 @@ export interface FileRoutesById {
   '/rapports': typeof RapportsRoute
   '/refunds': typeof RefundsRoute
   '/relances': typeof RelancesRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
+  '/guides/': typeof GuidesIndexRoute
+  '/api/google/callback': typeof ApiGoogleCallbackRoute
+  '/api/google/connect': typeof ApiGoogleConnectRoute
+  '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
+  '/api/google/folders': typeof ApiGoogleFoldersRoute
+  '/api/google/status': typeof ApiGoogleStatusRoute
+  '/api/google/upload': typeof ApiGoogleUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -216,6 +315,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/clients'
     | '/cookies'
+    | '/creer-devis-en-ligne'
     | '/dashboard'
     | '/data-processing'
     | '/legal'
@@ -226,11 +326,21 @@ export interface FileRouteTypes {
     | '/rapports'
     | '/refunds'
     | '/relances'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
     | '/devis/$id'
     | '/factures/$id'
+    | '/guides/$slug'
     | '/factures/'
+    | '/guides/'
+    | '/api/google/callback'
+    | '/api/google/connect'
+    | '/api/google/disconnect'
+    | '/api/google/folders'
+    | '/api/google/status'
+    | '/api/google/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -239,6 +349,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/clients'
     | '/cookies'
+    | '/creer-devis-en-ligne'
     | '/dashboard'
     | '/data-processing'
     | '/legal'
@@ -249,11 +360,21 @@ export interface FileRouteTypes {
     | '/rapports'
     | '/refunds'
     | '/relances'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
     | '/devis/$id'
     | '/factures/$id'
+    | '/guides/$slug'
     | '/factures'
+    | '/guides'
+    | '/api/google/callback'
+    | '/api/google/connect'
+    | '/api/google/disconnect'
+    | '/api/google/folders'
+    | '/api/google/status'
+    | '/api/google/upload'
   id:
     | '__root__'
     | '/'
@@ -262,6 +383,7 @@ export interface FileRouteTypes {
     | '/catalogue'
     | '/clients'
     | '/cookies'
+    | '/creer-devis-en-ligne'
     | '/dashboard'
     | '/data-processing'
     | '/legal'
@@ -272,11 +394,21 @@ export interface FileRouteTypes {
     | '/rapports'
     | '/refunds'
     | '/relances'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
     | '/devis/$id'
     | '/factures/$id'
+    | '/guides/$slug'
     | '/factures/'
+    | '/guides/'
+    | '/api/google/callback'
+    | '/api/google/connect'
+    | '/api/google/disconnect'
+    | '/api/google/folders'
+    | '/api/google/status'
+    | '/api/google/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -286,6 +418,7 @@ export interface RootRouteChildren {
   CatalogueRoute: typeof CatalogueRoute
   ClientsRoute: typeof ClientsRoute
   CookiesRoute: typeof CookiesRoute
+  CreerDevisEnLigneRoute: typeof CreerDevisEnLigneRoute
   DashboardRoute: typeof DashboardRoute
   DataProcessingRoute: typeof DataProcessingRoute
   LegalRoute: typeof LegalRoute
@@ -296,11 +429,21 @@ export interface RootRouteChildren {
   RapportsRoute: typeof RapportsRoute
   RefundsRoute: typeof RefundsRoute
   RelancesRoute: typeof RelancesRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TarifsRoute: typeof TarifsRoute
   TermsRoute: typeof TermsRoute
   DevisIdRoute: typeof DevisIdRoute
   FacturesIdRoute: typeof FacturesIdRoute
+  GuidesSlugRoute: typeof GuidesSlugRoute
   FacturesIndexRoute: typeof FacturesIndexRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
+  ApiGoogleCallbackRoute: typeof ApiGoogleCallbackRoute
+  ApiGoogleConnectRoute: typeof ApiGoogleConnectRoute
+  ApiGoogleDisconnectRoute: typeof ApiGoogleDisconnectRoute
+  ApiGoogleFoldersRoute: typeof ApiGoogleFoldersRoute
+  ApiGoogleStatusRoute: typeof ApiGoogleStatusRoute
+  ApiGoogleUploadRoute: typeof ApiGoogleUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -345,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/cookies'
       fullPath: '/cookies'
       preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creer-devis-en-ligne': {
+      id: '/creer-devis-en-ligne'
+      path: '/creer-devis-en-ligne'
+      fullPath: '/creer-devis-en-ligne'
+      preLoaderRoute: typeof CreerDevisEnLigneRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -417,6 +567,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RelancesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tarifs': {
       id: '/tarifs'
       path: '/tarifs'
@@ -452,6 +616,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FacturesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/guides'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/guides/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/callback': {
+      id: '/api/google/callback'
+      path: '/api/google/callback'
+      fullPath: '/api/google/callback'
+      preLoaderRoute: typeof ApiGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/connect': {
+      id: '/api/google/connect'
+      path: '/api/google/connect'
+      fullPath: '/api/google/connect'
+      preLoaderRoute: typeof ApiGoogleConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/disconnect': {
+      id: '/api/google/disconnect'
+      path: '/api/google/disconnect'
+      fullPath: '/api/google/disconnect'
+      preLoaderRoute: typeof ApiGoogleDisconnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/folders': {
+      id: '/api/google/folders'
+      path: '/api/google/folders'
+      fullPath: '/api/google/folders'
+      preLoaderRoute: typeof ApiGoogleFoldersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/status': {
+      id: '/api/google/status'
+      path: '/api/google/status'
+      fullPath: '/api/google/status'
+      preLoaderRoute: typeof ApiGoogleStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google/upload': {
+      id: '/api/google/upload'
+      path: '/api/google/upload'
+      fullPath: '/api/google/upload'
+      preLoaderRoute: typeof ApiGoogleUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -462,6 +682,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogueRoute: CatalogueRoute,
   ClientsRoute: ClientsRoute,
   CookiesRoute: CookiesRoute,
+  CreerDevisEnLigneRoute: CreerDevisEnLigneRoute,
   DashboardRoute: DashboardRoute,
   DataProcessingRoute: DataProcessingRoute,
   LegalRoute: LegalRoute,
@@ -472,11 +693,21 @@ const rootRouteChildren: RootRouteChildren = {
   RapportsRoute: RapportsRoute,
   RefundsRoute: RefundsRoute,
   RelancesRoute: RelancesRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TarifsRoute: TarifsRoute,
   TermsRoute: TermsRoute,
   DevisIdRoute: DevisIdRoute,
   FacturesIdRoute: FacturesIdRoute,
+  GuidesSlugRoute: GuidesSlugRoute,
   FacturesIndexRoute: FacturesIndexRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
+  ApiGoogleCallbackRoute: ApiGoogleCallbackRoute,
+  ApiGoogleConnectRoute: ApiGoogleConnectRoute,
+  ApiGoogleDisconnectRoute: ApiGoogleDisconnectRoute,
+  ApiGoogleFoldersRoute: ApiGoogleFoldersRoute,
+  ApiGoogleStatusRoute: ApiGoogleStatusRoute,
+  ApiGoogleUploadRoute: ApiGoogleUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

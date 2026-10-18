@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, isLocale } from "./config";
 import { tFor } from "./index";
+import { seoHead } from "@/lib/seo";
 
 type PageKey =
   | "landing"
@@ -15,20 +16,22 @@ type PageKey =
   | "settings"
   | "pricing"
   | "onboarding"
-  | "admin";
+  | "admin"
+  | "guides";
 
-/** Translated <title> and description for a route's head(), using the language in the router context. */
-export function pageMeta(match: { context?: unknown }, page: PageKey) {
+/** Pages search engines should index; every other app page is "noindex". */
+const INDEXABLE: PageKey[] = ["landing", "pricing", "guides"];
+
+/** Translated title, description and SEO tags for a route's head(), using the router locale. */
+export function pageMeta(match: { context?: unknown; pathname?: string }, page: PageKey) {
   const l = (match.context as { locale?: unknown } | undefined)?.locale;
-  const t = tFor(isLocale(l) ? l : DEFAULT_LOCALE);
-  const title = t(`meta.${page}.title`);
-  const description = t(`meta.${page}.description`);
-  return {
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
-  };
+  const locale = isLocale(l) ? l : DEFAULT_LOCALE;
+  const t = tFor(locale);
+  return seoHead({
+    path: match.pathname ?? "/",
+    title: t(`meta.${page}.title`),
+    description: t(`meta.${page}.description`),
+    locale,
+    index: INDEXABLE.includes(page),
+  });
 }

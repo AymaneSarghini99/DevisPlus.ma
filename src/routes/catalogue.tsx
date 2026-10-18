@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useState } from "react";
 import { Package, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -70,8 +71,12 @@ function Catalogue() {
       toast.error(errorMessage(e, t));
     }
   };
-  const remove = (i: CatalogItem) => {
-    if (!confirm(t("catalogue.confirmDelete", { name: i.name }))) return;
+  const remove = async (i: CatalogItem) => {
+    const ok = await askConfirm({
+      title: t("catalogue.confirmDelete", { name: i.name }),
+      tone: "danger",
+    });
+    if (!ok) return;
     try {
       deleteItem(i.id);
       setItems(loadCatalog());

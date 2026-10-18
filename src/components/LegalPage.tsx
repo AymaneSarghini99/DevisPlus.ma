@@ -4,6 +4,7 @@ import { Fragment, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { DEFAULT_LOCALE, isLocale } from "@/i18n/config";
+import { seoHead } from "@/lib/seo";
 import { LEGAL_CONTENT } from "@/legal/content";
 import type { Block } from "@/legal/content/types";
 import { currentVersion, LEGAL_DOCS, type LegalDocId } from "@/legal/documents";
@@ -15,9 +16,13 @@ export function legalMeta(match: { context?: unknown }, id: LegalDocId) {
   const l = (match.context as { locale?: unknown } | undefined)?.locale;
   const locale = isLocale(l) ? l : DEFAULT_LOCALE;
   const doc = LEGAL_CONTENT[locale][id];
-  return {
-    meta: [{ title: `${doc.title} — DevisPlus.ma` }, { name: "description", content: doc.summary }],
-  };
+  return seoHead({
+    path: `/${id}`,
+    title: `${doc.title} — DevisPlus.ma`,
+    description: doc.summary,
+    locale,
+    index: true,
+  });
 }
 
 /** Replaces {{field}} tokens with verified operator details, or a visible "to complete" marker. */

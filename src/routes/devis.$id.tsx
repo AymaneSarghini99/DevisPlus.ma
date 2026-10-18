@@ -1,8 +1,12 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Copy, Printer, Receipt, UserPlus } from "lucide-react";
+import { Copy, Printer, Receipt, UserPlus } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { DownloadPdfButton } from "@/components/DownloadPdfButton";
+import { SaveBar } from "@/components/SaveBar";
+import { DriveDocStatus } from "@/components/DriveDocStatus";
+import { driveFileName } from "@/lib/driveSync";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/Brand";
 import { LinesEditor } from "@/components/LinesEditor";
@@ -132,7 +136,9 @@ function Editor() {
   }, [id, preselect]);
 
   useBlocker({
-    shouldBlockFn: () => dirtyRef.current && !confirm(t("common.unsavedLeave")),
+    shouldBlockFn: async () =>
+      dirtyRef.current &&
+      !(await askConfirm({ title: t("common.unsavedLeave"), confirmLabel: t("common.leave") })),
     enableBeforeUnload: () => dirtyRef.current,
   });
 
@@ -223,8 +229,15 @@ function Editor() {
     }
   };
 
-  const duplicate = () => {
-    if (dirty && !confirm(t("editor.confirmDuplicateDirty"))) return;
+  const duplicate = async () => {
+    if (
+      dirty &&
+      !(await askConfirm({
+        title: t("editor.confirmDuplicateDirty"),
+        confirmLabel: t("common.duplicate"),
+      }))
+    )
+      return;
     try {
       const all = loadQuotes();
       const source = all.find((x) => x.id === q.id) ?? q;
@@ -291,24 +304,7 @@ function Editor() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader>
-        {saved && !dirty && (
-          <span
-            className="hidden items-center gap-1 text-sm text-muted-foreground sm:flex"
-            role="status"
-          >
-            <Check className="size-4" /> {t("common.saved")}
-          </span>
-        )}
-        {dirty && (
-          <span className="hidden text-sm text-muted-foreground sm:inline" role="status">
-            {t("common.unsaved")}
-          </span>
-        )}
-        <button className="btn btn-primary" onClick={save} disabled={!dirty && id !== "nouveau"}>
-          {t("common.save")}
-        </button>
-      </AppHeader>
+      <AppHeader />
 
       <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="no-print min-w-0 space-y-8">
@@ -361,6 +357,17 @@ function Editor() {
                     <Receipt className="size-4" /> {t("editor.convert")}
                   </button>
                 )
+              )}
+              {id !== "nouveau" && (
+                <DriveDocStatus
+                  kind="devis"
+                  id={q.id}
+                  doc={q}
+                  date={q.issueDate}
+                  fileName={driveFileName(q.number, q.client.name, tot.ttc)}
+                  auto={q.status !== "brouillon"}
+                  dirty={dirty}
+                />
               )}
             </div>
           </div>
@@ -628,6 +635,16 @@ function Editor() {
               hasLogo={!!settings.logo}
             />
           </Section>
+
+          <SaveBar dirty={dirty || id === "nouveau"} saved={saved}>
+            <button
+              className="btn btn-primary px-6"
+              onClick={save}
+              disabled={!dirty && id !== "nouveau"}
+            >
+              {t("common.save")}
+            </button>
+          </SaveBar>
         </div>
 
         <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">

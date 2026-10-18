@@ -11,6 +11,7 @@ export function MarketingHeader() {
   const links = [
     { href: "/#how", label: t("site.navHow") },
     { href: "/tarifs", label: t("site.navPricing") },
+    { href: "/guides", label: t("site.navGuides") },
     { href: "/modeles", label: t("site.navTemplates") },
     { href: "/tarifs#contact", label: t("site.navContact") },
   ];

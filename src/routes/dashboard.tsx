@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useState } from "react";
 import { Copy, FileText, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -64,8 +65,12 @@ function Dashboard() {
       toast.error(errorMessage(e, t));
     }
   };
-  const remove = (q: Quote) => {
-    if (!confirm(t("dashboard.confirmDelete", { number: q.number }))) return;
+  const remove = async (q: Quote) => {
+    const ok = await askConfirm({
+      title: t("dashboard.confirmDelete", { number: q.number }),
+      tone: "danger",
+    });
+    if (!ok) return;
     try {
       deleteQuote(q.id);
       setQuotes(loadQuotes());

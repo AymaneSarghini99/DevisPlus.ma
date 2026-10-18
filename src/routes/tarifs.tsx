@@ -9,11 +9,25 @@ import { MarketingHeader } from "@/components/MarketingHeader";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { useFormat } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
+import { tFor } from "@/i18n/index";
+import { jsonLd, offerLd } from "@/lib/seo";
 import { CONTACT } from "@/legal/operator";
 import { whatsappUrl } from "@/lib/quotes";
 
 export const Route = createFileRoute("/tarifs")({
-  head: ({ match }) => pageMeta(match, "pricing"),
+  head: ({ match }) => {
+    const h = pageMeta(match, "pricing");
+    // Same name, wording and price as the visible offer (French, the indexed language).
+    const t = tFor("fr");
+    return {
+      ...h,
+      scripts: [
+        jsonLd(
+          offerLd({ name: t("pricing.planName"), description: t("pricing.intro"), price: PRICE }),
+        ),
+      ],
+    };
+  },
   component: Pricing,
 });
 
@@ -95,7 +109,7 @@ function Pricing() {
     const url =
       channel === "email"
         ? `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-        : whatsappUrl(CONTACT.phone, `${subject}\n\n${body}`);
+        : whatsappUrl(CONTACT.whatsapp, `${subject}\n\n${body}`);
     if (channel === "email") window.location.href = url;
     else window.open(url, "_blank", "noopener");
     // Honest feedback: the request is prepared, not delivered.
@@ -281,6 +295,21 @@ function Pricing() {
                     className="num underline-offset-2 hover:underline"
                   >
                     {CONTACT.phone}
+                  </a>
+                </li>
+                <li className="flex items-center gap-2.5">
+                  <WhatsAppIcon className="size-4 shrink-0 text-[#25D366]" />
+                  <a
+                    href={whatsappUrl(CONTACT.whatsapp, t("site.waGreeting"))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-2 hover:underline"
+                    aria-label={t("site.whatsappLabel")}
+                  >
+                    <bdi dir="ltr" className="num">
+                      {CONTACT.whatsapp}
+                    </bdi>{" "}
+                    <span className="text-muted-foreground">({t("site.whatsappOnly")})</span>
                   </a>
                 </li>
                 <li className="flex items-center gap-2.5">

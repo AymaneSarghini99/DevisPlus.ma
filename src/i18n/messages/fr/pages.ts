@@ -108,13 +108,11 @@ export const reports = {
 
 export const settings = {
   title: "Paramètres",
+  onThisPage: "Sur cette page",
+  allSaved: "Tout est enregistré",
+  legalTitle: "Documents légaux",
   notSaved: "Paramètres non enregistrés",
   saved: "Paramètres enregistrés. Ils s'appliquent aux nouveaux documents.",
-  confirmExample: "Remplacer les informations de l'entreprise par l'exemple ?",
-  exampleLoaded: "Exemple chargé : données fictives",
-  exampleHint:
-    "Remplacez-les par vos vraies informations avant d'envoyer des devis, puis enregistrez.",
-  fillExample: "Remplir avec un exemple",
   companyHint:
     "Repris automatiquement sur chaque nouveau devis. Les devis et factures déjà créés gardent les informations de leur date.",
   icePlaceholder: "15 chiffres, ex. 002345678000091",
@@ -141,7 +139,7 @@ export const settings = {
   vatRates: "Taux de TVA proposés",
   removeRate: "Retirer le taux {{rate}}",
   newRate: "Nouveau taux",
-  restoreRates: "Rétablir 20 / 14 / 10 / 7 / 0 %",
+  restoreRates: "Rétablir 20 / 10 / 0 %",
   ratesHint:
     "Retirer un taux ne modifie aucun devis ni aucune facture existants : chaque ligne garde le taux saisi.",
   templatesLink: "Modèle, couleur et logo :",

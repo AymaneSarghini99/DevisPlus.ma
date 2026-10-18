@@ -7,7 +7,14 @@ import { read, write } from "./storage";
 
 export type Unit = "pièce" | "heure" | "jour" | "m²" | "m³" | "ml" | "kg" | "forfait";
 export const UNITS: Unit[] = ["pièce", "heure", "jour", "m²", "m³", "ml", "kg", "forfait"];
-export const VAT_RATES = [20, 14, 10, 7, 0];
+/**
+ * VAT rates offered by default. Since 1 January 2026 Morocco applies two rates, 20 % and 10 %
+ * (reform of the 2024–2026 finance laws; DGI note circulaire n° 737), plus 0 % for exempt lines.
+ * Users can still add another rate in Settings; saved lines always keep their own rate.
+ */
+export const VAT_RATES = [20, 10, 0];
+/** The default list before the 2026 reform, replaced when a user never changed it. */
+export const LEGACY_VAT_RATES = [20, 14, 10, 7, 0];
 
 export type LineKind = "service" | "materiel" | "main_oeuvre";
 export const KINDS: LineKind[] = ["materiel", "main_oeuvre", "service"];

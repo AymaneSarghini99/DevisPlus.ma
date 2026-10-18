@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useRef, useState } from "react";
 import { Check, ImagePlus, Plus, X } from "lucide-react";
 import { toast } from "sonner";
@@ -214,8 +215,12 @@ function Templates() {
             onDelete={
               editing.isNew
                 ? undefined
-                : () => {
-                    if (!confirm(t("templates.confirmDelete", { name: editing.t.name }))) return;
+                : async () => {
+                    const ok = await askConfirm({
+                      title: t("templates.confirmDelete", { name: editing.t.name }),
+                      tone: "danger",
+                    });
+                    if (!ok) return;
                     const list = draft.customTemplates.filter((c) => c.id !== editing.t.id);
                     if (
                       storeCustoms(

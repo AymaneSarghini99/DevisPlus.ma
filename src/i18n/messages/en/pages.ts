@@ -109,12 +109,11 @@ export const reports: M["reports"] = {
 
 export const settings: M["settings"] = {
   title: "Settings",
+  onThisPage: "On this page",
+  allSaved: "Everything is saved",
+  legalTitle: "Legal documents",
   notSaved: "Settings not saved",
   saved: "Settings saved. They apply to new documents.",
-  confirmExample: "Replace the company details with the example?",
-  exampleLoaded: "Example loaded: fictional data",
-  exampleHint: "Replace it with your real details before sending quotes, then save.",
-  fillExample: "Fill in an example",
   companyHint:
     "Reused automatically on every new quote. Existing quotes and invoices keep the details from their date.",
   icePlaceholder: "15 digits, e.g. 002345678000091",
@@ -140,7 +139,7 @@ export const settings: M["settings"] = {
   vatRates: "VAT rates offered",
   removeRate: "Remove the {{rate}} rate",
   newRate: "New rate",
-  restoreRates: "Restore 20 / 14 / 10 / 7 / 0%",
+  restoreRates: "Restore 20 / 10 / 0%",
   ratesHint:
     "Removing a rate does not change any existing quote or invoice: each line keeps its rate.",
   templatesLink: "Template, colour and logo:",

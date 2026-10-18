@@ -1,4 +1,6 @@
 export const common = {
+  confirm: "Confirmer",
+  leave: "Quitter sans enregistrer",
   save: "Enregistrer",
   cancel: "Annuler",
   delete: "Supprimer",
@@ -50,8 +52,9 @@ export const nav = {
 
 export const meta = {
   landing: {
-    title: "DevisPlus.ma — Devis professionnels pour entreprises marocaines",
-    description: "Créez des devis clairs en dirhams, avec ICE et TVA, et exportez-les en PDF A4.",
+    title: "Logiciel de devis et factures pour entreprises au Maroc | DevisPlus.ma",
+    description:
+      "Créez des devis et factures professionnels en dirhams, avec ICE, IF et TVA, puis envoyez-les en PDF ou sur WhatsApp. DevisPlus.ma, Casablanca.",
   },
   dashboard: {
     title: "Mes devis — DevisPlus.ma",
@@ -92,9 +95,14 @@ export const meta = {
     description: "Choisissez ou créez la mise en page de vos devis.",
   },
   pricing: {
-    title: "Tarifs — DevisPlus.ma",
+    title: "Tarif : logiciel de devis personnalisé à 2 500 MAD | DevisPlus.ma",
     description:
-      "Offre Business DevisPlus.ma à 2 500 MAD en paiement unique, et formulaire de demande.",
+      "Offre Business : un espace de devis aux couleurs de votre entreprise, configuré pour vous. 2 500 MAD en paiement unique. Demandez votre installation.",
+  },
+  guides: {
+    title: "Guides devis et factures au Maroc : mentions, TVA | DevisPlus.ma",
+    description:
+      "Guides pratiques pour les entreprises marocaines : mentions obligatoires sur une facture, TVA à 20 % et 10 % en 2026, différences entre devis et facture.",
   },
   admin: {
     title: "Administration — DevisPlus.ma",

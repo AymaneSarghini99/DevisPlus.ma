@@ -3,6 +3,7 @@ import {
   emptyCompany,
   emptyParty,
   uid,
+  LEGACY_VAT_RATES,
   VAT_RATES,
   type Company,
   type Defaults,
@@ -139,6 +140,11 @@ export const defaultSettings = (): Settings => ({
 });
 export function loadSettings(): Settings {
   const s = { ...defaultSettings(), ...read<Partial<Settings>>("devisplus.settings", {}) };
+  // Untouched pre-2026 default list (20/14/10/7/0): replace it with the current rates.
+  if (JSON.stringify(s.vatRates) === JSON.stringify(LEGACY_VAT_RATES)) {
+    s.vatRates = VAT_RATES;
+    if (!VAT_RATES.includes(s.defaultVat)) s.defaultVat = 20;
+  }
   return {
     ...s,
     company: { ...emptyCompany(), ...s.company },

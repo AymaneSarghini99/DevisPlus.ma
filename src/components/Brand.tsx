@@ -57,7 +57,14 @@ const NAV = [
   { to: "/parametres", key: "settings" },
 ] as const;
 
-export function AppHeader({ children }: { children?: ReactNode }) {
+/** Header of the app pages. The language flags only appear where asked (the settings page). */
+export function AppHeader({
+  children,
+  languages = false,
+}: {
+  children?: ReactNode;
+  languages?: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <header className="no-print border-b bg-card">
@@ -85,7 +92,7 @@ export function AppHeader({ children }: { children?: ReactNode }) {
         </div>
         <div className="flex h-14 items-center gap-2 md:h-auto">
           {children}
-          <LanguageSwitcher />
+          {languages && <LanguageSwitcher />}
           <LogoutButton />
         </div>
       </div>

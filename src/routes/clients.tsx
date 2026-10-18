@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -73,8 +74,14 @@ function Clients() {
       toast.error(errorMessage(e, t));
     }
   };
-  const remove = () => {
-    if (!edit || !confirm(t("clients.confirmDelete", { name: edit.name || t("clients.noName") })))
+  const remove = async () => {
+    if (
+      !edit ||
+      !(await askConfirm({
+        title: t("clients.confirmDelete", { name: edit.name || t("clients.noName") }),
+        tone: "danger",
+      }))
+    )
       return;
     try {
       deleteClient(edit.id);

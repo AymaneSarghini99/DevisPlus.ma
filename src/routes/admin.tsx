@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, FileJson, LogOut, Plus, Search, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -29,8 +30,14 @@ import type { AdminAccount } from "@/lib/tenant";
 
 export const Route = createFileRoute("/admin")({
   head: ({ match }) => {
+    // Owner page: never indexed, and its links are not followed.
     const m = pageMeta(match, "admin");
-    return { meta: [...m.meta, { name: "robots", content: "noindex, nofollow" }] };
+    return {
+      meta: [
+        ...m.meta.filter((x) => x["name"] !== "robots"),
+        { name: "robots", content: "noindex, nofollow" },
+      ],
+    };
   },
   component: AdminPage,
 });
@@ -133,7 +140,12 @@ function Register({ onSignOut }: { onSignOut: () => void }) {
       toast.error(t("admin.restoreInvalid"));
       return;
     }
-    if (!confirm(t("admin.restoreConfirm", { n: data.length }))) return;
+    const ok = await askConfirm({
+      title: t("admin.restoreConfirm", { n: data.length }),
+      confirmLabel: t("admin.restore"),
+      tone: "danger",
+    });
+    if (!ok) return;
     persist(() => saveCustomers(data), t("admin.restored", { n: data.length }));
   };
 
@@ -380,8 +392,12 @@ function Register({ onSignOut }: { onSignOut: () => void }) {
           onSave={(c) => {
             if (persist(() => saveCustomer(c), t("admin.form.saved"))) setEditing(null);
           }}
-          onDelete={(c) => {
-            if (!confirm(t("admin.form.deleteConfirm", { name: c.company }))) return;
+          onDelete={async (c) => {
+            const ok = await askConfirm({
+              title: t("admin.form.deleteConfirm", { name: c.company }),
+              tone: "danger",
+            });
+            if (!ok) return;
             if (persist(() => deleteCustomer(c.id), t("admin.form.deleted"))) setEditing(null);
           }}
         />

@@ -32,7 +32,7 @@ export function DomainStep({ tenant, update, err }: StepProps) {
     });
     if (channel === "email")
       window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    else window.open(whatsappUrl(CONTACT.phone, `${subject}\n\n${body}`), "_blank", "noopener");
+    else window.open(whatsappUrl(CONTACT.whatsapp, `${subject}\n\n${body}`), "_blank", "noopener");
     set({ requestedAt: new Date().toISOString() });
     toast(t("onboarding.domain.prepared"), {
       description: t("onboarding.domain.preparedText"),

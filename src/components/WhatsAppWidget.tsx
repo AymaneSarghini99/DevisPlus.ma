@@ -49,7 +49,7 @@ export function WhatsAppWidget() {
 
   const send = () => {
     const message = text.trim() || t("site.waGreeting");
-    window.open(whatsappUrl(CONTACT.phone, message), "_blank", "noopener,noreferrer");
+    window.open(whatsappUrl(CONTACT.whatsapp, message), "_blank", "noopener,noreferrer");
     setText("");
     setEmojis(false);
     setOpen(false);

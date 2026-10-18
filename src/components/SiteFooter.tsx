@@ -30,6 +30,8 @@ function FullFooter() {
 
           <FooterCol title={t("site.product")}>
             <FooterLink to="/tarifs" label={t("site.navPricing")} />
+            <FooterLink to="/creer-devis-en-ligne" label={t("site.navCreateOnline")} />
+            <FooterLink to="/guides" label={t("site.navGuides")} />
             <FooterLink to="/devis/$id" label={t("landing.cta")} />
             <FooterLink to="/dashboard" label={t("nav.myQuotes")} />
             <FooterLink to="/factures" label={t("nav.invoices")} />
@@ -148,7 +150,15 @@ function FooterLink({
   to,
   label,
 }: {
-  to: "/dashboard" | "/factures" | "/clients" | "/modeles" | "/tarifs" | "/devis/$id";
+  to:
+    | "/dashboard"
+    | "/factures"
+    | "/clients"
+    | "/modeles"
+    | "/tarifs"
+    | "/guides"
+    | "/creer-devis-en-ligne"
+    | "/devis/$id";
   label: string;
 }) {
   return (

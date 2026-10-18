@@ -1,0 +1,73 @@
+import type { fr } from "../fr/index";
+type M = typeof fr;
+
+export const drive: M["drive"] = {
+  title: "Google Drive",
+  intro: "Connect your Google account to save your quotation PDFs in a folder of your Drive.",
+  checking: "Checking the connection…",
+  loadError: "The Google Drive connection could not be checked.",
+  retry: "Try again",
+  notConnected: "No Google account connected.",
+  connect: "Connect Google Drive",
+  connectedAs: "Connected with the Google account",
+  disconnect: "Disconnect",
+  disconnectConfirm:
+    "Disconnect Google Drive? DevisPlus's access to your Drive will be revoked. Files already saved stay in your Drive.",
+  disconnected: "Google Drive disconnected",
+  folder: "Quotations folder",
+  changeFolder: "Change folder",
+  useFolder: "Use this folder",
+  newFolder: "Or create a new folder",
+  createFolder: "Create the folder",
+  defaultFolder: "DevisPlus – Quotes & Invoices",
+  folderSuffix: "Quotes & Invoices",
+  loadingFolders: "Loading folders…",
+  folderSaved: "Folder saved: {{name}}",
+  cancel: "Cancel",
+  scopeNote:
+    "For security, DevisPlus can only access the folders and files it creates in your Drive, not the rest of your documents.",
+  uploadsNext:
+    "Quotes set to “Sent” and issued invoices are saved there automatically, sorted into Devis or Factures, then by year and month (e.g. Devis/2026/10 - Octobre). An edit updates the same file.",
+  doc: {
+    uploading: "Sending to Google Drive…",
+    saved: "Saved to Google Drive on {{date}}: click to open",
+    savedToast: "Saved to Google Drive",
+    clickRetry: "Click to try again.",
+    open: "Open",
+    update: "Update",
+    saveNow: "Save now",
+    error: {
+      revoked: "Failed: Google access expired. Reconnect Google Drive in Settings.",
+      scope: "Failed: Google Drive permission missing.",
+      folder_missing: "Failed: the Google Drive folder cannot be found. Choose one in Settings.",
+      no_folder: "Failed: no folder chosen in Settings.",
+      rate_limited: "Failed: Google is limiting uploads. Try again in a moment.",
+      google_unavailable: "Failed: Google Drive is not responding.",
+      not_connected: "Failed: Google Drive is no longer connected.",
+      too_large: "Failed: the PDF is too large.",
+      network: "Failed: no internet connection.",
+      error: "Upload to Google Drive failed.",
+    },
+  },
+  result: {
+    connected: "Google Drive connected",
+    denied: "Connection cancelled: access was not allowed.",
+    state: "The connection expired or is not valid. Please try again.",
+    scope: "Access to Google Drive was not granted. Tick the Drive permission and try again.",
+    not_configured: "Google Drive is not configured on this installation.",
+    revoked: "Google access was revoked. Please reconnect your account.",
+    error: "Connecting to Google failed. Please try again.",
+  },
+  error: {
+    revoked: "Google access was revoked or expired. Please reconnect your account.",
+    scope: "DevisPlus does not have the required permission on this folder.",
+    folder_missing:
+      "The chosen folder cannot be found (deleted or in the trash). Choose another one.",
+    rate_limited: "Google is temporarily limiting requests. Try again in a moment.",
+    google_unavailable: "Google Drive is not responding right now. Try again later.",
+    bad_request: "Request refused by Google.",
+    not_connected: "No Google account connected.",
+    forbidden: "Action refused.",
+    error: "Something went wrong with Google Drive.",
+  },
+};

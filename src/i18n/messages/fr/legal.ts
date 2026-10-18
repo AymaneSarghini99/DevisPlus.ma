@@ -56,6 +56,8 @@ export const site = {
   waEmoji: "Ajouter un emoji",
   navPricing: "Tarifs",
   navTemplates: "Modèles",
+  navGuides: "Guides",
+  navCreateOnline: "Créer un devis en ligne",
   navContact: "Contact",
   menu: "Menu",
   tagline: "Devis et factures en dirhams pour les entreprises marocaines.",
@@ -69,5 +71,7 @@ export const site = {
   addressLabel: "Adresse",
   emailLabel: "E-mail",
   phoneLabel: "Téléphone",
+  whatsappLabel: "WhatsApp support",
+  whatsappOnly: "WhatsApp uniquement",
   websiteLabel: "Site web",
 };

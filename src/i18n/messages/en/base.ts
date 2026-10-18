@@ -2,6 +2,8 @@ import type { fr } from "../fr/index";
 type M = typeof fr;
 
 export const common: M["common"] = {
+  confirm: "Confirm",
+  leave: "Leave without saving",
   save: "Save",
   cancel: "Cancel",
   delete: "Delete",
@@ -53,8 +55,9 @@ export const nav: M["nav"] = {
 
 export const meta: M["meta"] = {
   landing: {
-    title: "DevisPlus.ma — Professional quotes for Moroccan businesses",
-    description: "Create clear quotes in dirhams, with ICE and VAT, and export them as A4 PDFs.",
+    title: "Quote and invoice software for businesses in Morocco | DevisPlus.ma",
+    description:
+      "Create professional quotes and invoices in dirhams, with ICE, IF and VAT, and send them as PDFs or on WhatsApp. DevisPlus.ma, Casablanca.",
   },
   dashboard: {
     title: "My quotes — DevisPlus.ma",
@@ -94,8 +97,14 @@ export const meta: M["meta"] = {
     description: "Choose or create the layout of your quotes.",
   },
   pricing: {
-    title: "Pricing — DevisPlus.ma",
-    description: "DevisPlus.ma Business offer at MAD 2,500, one-time payment, and request form.",
+    title: "Pricing: custom quote software for 2,500 MAD | DevisPlus.ma",
+    description:
+      "Business offer: a quote workspace in your company colours, set up for you. 2,500 MAD one-time payment. Request your setup.",
+  },
+  guides: {
+    title: "Quote and invoice guides for Morocco: mentions, VAT | DevisPlus.ma",
+    description:
+      "Practical guides for Moroccan businesses (in French): mandatory invoice mentions, 20% and 10% VAT in 2026, quotes versus invoices.",
   },
   admin: {
     title: "Administration — DevisPlus.ma",

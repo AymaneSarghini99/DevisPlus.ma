@@ -123,12 +123,11 @@ export const reports: M["reports"] = {
 
 export const settings: M["settings"] = {
   title: "الإعدادات",
+  onThisPage: "في هذه الصفحة",
+  allSaved: "كل شيء محفوظ",
+  legalTitle: "الوثائق القانونية",
   notSaved: "لم يتم حفظ الإعدادات",
   saved: "تم حفظ الإعدادات. تُطبَّق على الوثائق الجديدة.",
-  confirmExample: "هل تريد استبدال معلومات الشركة بالمثال؟",
-  exampleLoaded: "تم تحميل المثال: بيانات وهمية",
-  exampleHint: "استبدلها بمعلوماتك الحقيقية قبل إرسال عروض الأسعار، ثم احفظ.",
-  fillExample: "ملء بمثال",
   companyHint:
     "تُستعاد تلقائيًا في كل عرض سعر جديد. تحتفظ عروض الأسعار والفواتير الحالية بالمعلومات المسجلة في تاريخها.",
   icePlaceholder: "15 رقمًا، مثال: 002345678000091",
@@ -152,7 +151,7 @@ export const settings: M["settings"] = {
   vatRates: "نسب الضريبة المقترحة",
   removeRate: "إزالة النسبة {{rate}}",
   newRate: "نسبة جديدة",
-  restoreRates: "استعادة 20 / 14 / 10 / 7 / 0%",
+  restoreRates: "استعادة 20 / 10 / 0%",
   ratesHint: "إزالة نسبة لا تغيّر أي عرض سعر أو فاتورة حالية: يحتفظ كل بند بنسبته.",
   templatesLink: "القالب واللون والشعار:",
   templatesPage: "صفحة القوالب",

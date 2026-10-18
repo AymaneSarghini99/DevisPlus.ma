@@ -10,7 +10,8 @@ const A4_W = 210;
 const A4_H = 297;
 let fontCss: Promise<string> | null = null;
 
-export async function downloadPdf(node: HTMLElement, fileName: string) {
+/** The PDF of the A4 sheet, as a Blob (used by the download and by Google Drive uploads). */
+export async function renderPdf(node: HTMLElement, title: string): Promise<Blob> {
   const [{ toCanvas, getFontEmbedCSS }, { jsPDF }] = await Promise.all([
     import("html-to-image"),
     import("jspdf"),
@@ -39,6 +40,16 @@ export async function downloadPdf(node: HTMLElement, fileName: string) {
     if (page > 0) pdf.addPage();
     pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, A4_W, h / pxPerMm);
   }
-  pdf.setProperties({ title: fileName });
-  pdf.save(`${fileName.replace(/[\\/:*?"<>|]+/g, "-")}.pdf`);
+  pdf.setProperties({ title });
+  return pdf.output("blob");
+}
+
+export async function downloadPdf(node: HTMLElement, fileName: string) {
+  const blob = await renderPdf(node, fileName);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${fileName.replace(/[\\/:*?"<>|]+/g, "-")}.pdf`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

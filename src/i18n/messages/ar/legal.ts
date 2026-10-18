@@ -58,6 +58,8 @@ export const site: M["site"] = {
   waEmoji: "إضافة رمز تعبيري",
   navPricing: "الأسعار",
   navTemplates: "القوالب",
+  navGuides: "الأدلة",
+  navCreateOnline: "إنشاء عرض سعر عبر الإنترنت (FR)",
   navContact: "اتصل بنا",
   menu: "القائمة",
   tagline: "عروض أسعار وفواتير بالدرهم للشركات المغربية.",
@@ -71,5 +73,7 @@ export const site: M["site"] = {
   addressLabel: "العنوان",
   emailLabel: "البريد الإلكتروني",
   phoneLabel: "الهاتف",
+  whatsappLabel: "دعم واتساب",
+  whatsappOnly: "واتساب فقط",
   websiteLabel: "الموقع الإلكتروني",
 };

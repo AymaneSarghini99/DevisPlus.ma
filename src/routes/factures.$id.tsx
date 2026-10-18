@@ -1,7 +1,11 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Lock, Printer, Trash2 } from "lucide-react";
 import { DownloadPdfButton } from "@/components/DownloadPdfButton";
+import { SaveBar } from "@/components/SaveBar";
+import { DriveDocStatus } from "@/components/DriveDocStatus";
+import { driveFileName } from "@/lib/driveSync";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/Brand";
 import { F, Section, TotalRow } from "@/components/Form";
@@ -78,7 +82,9 @@ function InvoicePage() {
   }, [id]);
 
   useBlocker({
-    shouldBlockFn: () => dirtyRef.current && !confirm(t("common.unsavedLeave")),
+    shouldBlockFn: async () =>
+      dirtyRef.current &&
+      !(await askConfirm({ title: t("common.unsavedLeave"), confirmLabel: t("common.leave") })),
     enableBeforeUnload: () => dirtyRef.current,
   });
 
@@ -129,19 +135,23 @@ function InvoicePage() {
     if (save()) toast.success(t("invoice.draftSaved"));
   };
 
-  const issue = () => {
+  const issue = async () => {
     setTried(true);
     if (Object.keys(errors).length) {
       toast.error(t("invoice.fixBeforeIssue"));
       return;
     }
     const gaps = missingInvoiceMentions(inv);
-    const msg =
-      t("invoice.confirmIssue") +
-      (gaps.length
-        ? `\n\n${t("invoice.missingMentions")}\n• ${gaps.map((g) => t(`invoice.mentions.${g}`)).join("\n• ")}`
-        : "");
-    if (!confirm(msg)) return;
+    const ok = await askConfirm({
+      title: t("invoice.confirmIssue"),
+      ...(gaps.length
+        ? {
+            description: `${t("invoice.missingMentions")}\n• ${gaps.map((g) => t(`invoice.mentions.${g}`)).join("\n• ")}`,
+          }
+        : {}),
+      confirmLabel: t("invoice.issue"),
+    });
+    if (!ok) return;
     try {
       const issued = issueInvoice(inv, loadInvoices());
       if (save(issued)) toast.success(t("invoice.issued", { number: issued.number }));
@@ -150,8 +160,9 @@ function InvoicePage() {
     }
   };
 
-  const remove = () => {
-    if (!confirm(t("invoice.confirmDeleteDraft"))) return;
+  const remove = async () => {
+    const ok = await askConfirm({ title: t("invoice.confirmDeleteDraft"), tone: "danger" });
+    if (!ok) return;
     try {
       deleteDraftInvoice(inv.id);
       setDirty(false);
@@ -163,23 +174,7 @@ function InvoicePage() {
 
   return (
     <div className="min-h-screen">
-      <AppHeader>
-        {draft && dirty && (
-          <span className="hidden text-sm text-muted-foreground sm:inline" role="status">
-            {t("common.unsaved")}
-          </span>
-        )}
-        {draft && (
-          <button className="btn btn-ghost" onClick={saveDraft} disabled={!dirty}>
-            {t("common.save")}
-          </button>
-        )}
-        {draft && (
-          <button className="btn btn-primary" onClick={issue} disabled={dirty}>
-            {t("invoice.issue")}
-          </button>
-        )}
-      </AppHeader>
+      <AppHeader />
 
       <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="no-print min-w-0 space-y-8">
@@ -225,6 +220,17 @@ function InvoicePage() {
                 >
                   <Trash2 className="size-4" />
                 </button>
+              )}
+              {!draft && (
+                <DriveDocStatus
+                  kind="facture"
+                  id={inv.id}
+                  doc={inv}
+                  date={inv.issueDate}
+                  fileName={driveFileName(inv.number, inv.client.name, tot.ttc)}
+                  auto
+                  dirty={dirty}
+                />
               )}
             </div>
           </div>
@@ -345,6 +351,17 @@ function InvoicePage() {
           </Section>
 
           {!draft && <Payments inv={inv} onSave={(next) => save(next)} />}
+
+          {draft && (
+            <SaveBar dirty={dirty} saved={false}>
+              <button className="btn btn-ghost" onClick={saveDraft} disabled={!dirty}>
+                {t("common.save")}
+              </button>
+              <button className="btn btn-primary" onClick={issue} disabled={dirty}>
+                {t("invoice.issue")}
+              </button>
+            </SaveBar>
+          )}
         </div>
 
         <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
@@ -395,8 +412,8 @@ function Payments({ inv, onSave }: { inv: Invoice; onSave: (inv: Invoice) => boo
       });
     }
   };
-  const removePayment = (pid: string) => {
-    if (confirm(t("invoice.confirmDeletePayment")))
+  const removePayment = async (pid: string) => {
+    if (await askConfirm({ title: t("invoice.confirmDeletePayment"), tone: "danger" }))
       onSave({ ...inv, payments: inv.payments.filter((x) => x.id !== pid) });
   };
   const outstanding = invoiceTotals(inv).outstanding;

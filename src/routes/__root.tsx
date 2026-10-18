@@ -26,6 +26,7 @@ import {
 } from "../i18n/config";
 import { LocaleProvider, useLocale } from "../i18n/LocaleProvider";
 import { AdminGate } from "../components/AdminGate";
+import { ConfirmHost } from "../components/ConfirmHost";
 import { SiteFooter } from "../components/SiteFooter";
 import { WhatsAppWidget } from "../components/WhatsAppWidget";
 
@@ -185,6 +186,7 @@ function RootComponent() {
         <SiteFooter />
         <WhatsAppWidget />
         <LocalizedToaster />
+        <ConfirmHost />
       </LocaleProvider>
     </QueryClientProvider>
   );

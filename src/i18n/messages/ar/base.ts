@@ -2,6 +2,8 @@ import type { fr } from "../fr/index";
 type M = typeof fr;
 
 export const common: M["common"] = {
+  confirm: "تأكيد",
+  leave: "المغادرة دون حفظ",
   save: "حفظ",
   cancel: "إلغاء",
   delete: "حذف",
@@ -53,9 +55,9 @@ export const nav: M["nav"] = {
 
 export const meta: M["meta"] = {
   landing: {
-    title: "DevisPlus.ma — عروض أسعار احترافية للشركات المغربية",
+    title: "برنامج عروض الأسعار والفواتير للشركات في المغرب | DevisPlus.ma",
     description:
-      "أنشئ عروض أسعار واضحة بالدرهم مع ICE وضريبة القيمة المضافة، وصدّرها بصيغة PDF A4.",
+      "أنشئ عروض أسعار وفواتير احترافية بالدرهم مع ICE وIF والضريبة على القيمة المضافة، وأرسلها PDF أو عبر واتساب. DevisPlus.ma، الدار البيضاء.",
   },
   dashboard: {
     title: "عروض أسعاري — DevisPlus.ma",
@@ -94,8 +96,14 @@ export const meta: M["meta"] = {
     description: "اختر أو أنشئ تصميم عروض أسعارك.",
   },
   pricing: {
-    title: "الأسعار — DevisPlus.ma",
-    description: "عرض الأعمال من DevisPlus.ma بسعر 2.500 درهم يُؤدّى مرة واحدة، واستمارة الطلب.",
+    title: "الأسعار: برنامج عروض أسعار مخصص بـ 2500 درهم | DevisPlus.ma",
+    description:
+      "العرض الاحترافي: فضاء لعروض الأسعار بألوان شركتك، نُعدّه لك. 2500 درهم دفعة واحدة. اطلب التثبيت.",
+  },
+  guides: {
+    title: "أدلة عروض الأسعار والفواتير في المغرب: البيانات والضريبة | DevisPlus.ma",
+    description:
+      "أدلة عملية للشركات المغربية (بالفرنسية): البيانات الإلزامية في الفاتورة، والضريبة 20% و10% في 2026، والفرق بين عرض السعر والفاتورة.",
   },
   admin: {
     title: "الإدارة — DevisPlus.ma",

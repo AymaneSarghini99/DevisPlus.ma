@@ -334,3 +334,24 @@
 .ob-slide {
   animation: ob-slide 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+
+/* "Saved to Google Drive" message: pops in the middle of the page, then fades out. */
+@keyframes drive-done {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  12%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.97);
+  }
+}
+.drive-done {
+  transform: translate(-50%, -50%);
+  animation: drive-done 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
