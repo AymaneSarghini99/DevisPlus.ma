@@ -48,7 +48,7 @@ const CONTENT = [
 const FAQ = [
   {
     q: "Comment créer un devis en ligne gratuitement ?",
-    a: "Cliquez sur « Créer un devis gratuitement », renseignez votre entreprise et votre client, puis ajoutez vos lignes de prestation. Le devis se crée directement dans votre navigateur, sans inscription.",
+    a: "Cliquez sur « Créer un devis gratuitement » : un assistant crée d'abord votre compte (e-mail et mot de passe) et configure votre espace en quelques minutes. Ensuite, renseignez votre client et ajoutez vos lignes de prestation.",
   },
   {
     q: "Peut-on modifier un devis après l'avoir créé ?",
@@ -143,7 +143,7 @@ function CreateQuoteOnline() {
               </a>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
-              Sans inscription : le devis se crée dans votre navigateur.
+              Créez votre compte en quelques minutes, puis votre premier devis.
             </p>
           </div>
           <div aria-hidden className="pointer-events-none min-w-0 select-none">

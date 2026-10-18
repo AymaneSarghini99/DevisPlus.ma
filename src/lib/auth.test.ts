@@ -50,3 +50,28 @@ describe("owner access", () => {
     expect(isOwnerSignedIn(a)).toBe(false);
   });
 });
+
+describe("access to the app pages", () => {
+  it("sends visitors without an account to the setup wizard, then asks known accounts to sign in", async () => {
+    const { accessDecision } = await import("./auth");
+    const none = newTenant();
+    const admin = await createAdmin("a@b.ma", "motdepasse1");
+    const started = { ...newTenant(), admin };
+    const finished = {
+      ...started,
+      onboarding: { ...started.onboarding, finishedAt: "2026-10-18T10:00:00Z" },
+    };
+    // No account: every app page goes to the wizard, the wizard itself is open.
+    expect(accessDecision("/devis/nouveau", null, false)).toBe("setup");
+    expect(accessDecision("/dashboard", none, false)).toBe("setup");
+    expect(accessDecision("/onboarding", null, false)).toBe("open");
+    // Account created but setup not finished: back to the wizard.
+    expect(accessDecision("/devis/nouveau", started, true)).toBe("setup");
+    // Known account, not signed in: sign-in first (wizard included).
+    expect(accessDecision("/devis/nouveau", finished, false)).toBe("login");
+    expect(accessDecision("/onboarding", started, false)).toBe("login");
+    // Signed in with a finished setup: the app.
+    expect(accessDecision("/devis/nouveau", finished, true)).toBe("open");
+    expect(accessDecision("/parametres/", finished, true)).toBe("open");
+  });
+});

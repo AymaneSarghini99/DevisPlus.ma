@@ -120,3 +120,25 @@ export function signOutOwner() {
     // ignore
   }
 }
+
+// ---------- access to the app pages ----------
+
+/**
+ * What an app page shows: "setup" sends visitors without an account (or with an unfinished
+ * setup) to the setup wizard, whose first step creates the account; "login" asks a known
+ * account to sign in; "open" shows the page. The wizard itself only needs sign-in once an
+ * account exists. Public pages and the owner's /admin page are not concerned.
+ */
+export type AccessDecision = "open" | "login" | "setup";
+export function accessDecision(
+  path: string,
+  tenant: Tenant | null,
+  unlocked: boolean,
+): AccessDecision {
+  const p = path.replace(/\/$/, "") || "/";
+  const account = hasLock(tenant);
+  if (account && !unlocked) return "login";
+  if (p === "/onboarding") return "open";
+  if (!account || !tenant?.onboarding.finishedAt) return "setup";
+  return "open";
+}

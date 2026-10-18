@@ -1,44 +1,65 @@
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { Eye, EyeOff, Loader2, Lock, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { hasLock, isUnlocked, lock, unlock, verifyAdmin } from "@/lib/auth";
+import { accessDecision, hasLock, isUnlocked, lock, unlock, verifyAdmin } from "@/lib/auth";
 import { isPublicPath } from "@/lib/paths";
 import { loadTenant, type Tenant } from "@/lib/tenant";
 import { LanguageSwitcher, Logo } from "./Brand";
 
-type State = { status: "checking" } | { status: "open" } | { status: "locked"; tenant: Tenant };
+type State =
+  | { status: "checking" }
+  | { status: "open" }
+  | { status: "setup" }
+  | { status: "locked"; tenant: Tenant };
 
 /**
- * Shows the sign-in screen instead of the app pages once an admin password has been set and
- * nobody has signed in during this browser session. Public pages are never locked.
+ * Access to the app pages (everything except the public pages and the owner's /admin page):
+ * - no account yet, or setup not finished: the visitor is sent to the setup wizard, whose
+ *   first step creates the account (admin email and password);
+ * - account but not signed in during this browser session: the sign-in screen;
+ * - otherwise the page.
  * Until the browser check has run, app pages render nothing (their data is local anyway).
  */
 export function AdminGate({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const isPublic = isPublicPath(path);
+  const navigate = useNavigate();
+  const isPublic = isPublicPath(path) || path.startsWith("/admin");
   const [state, setState] = useState<State>({ status: "checking" });
 
   useEffect(() => {
+    if (isPublic) return;
     let tenant: Tenant | null = null;
     try {
       tenant = loadTenant();
     } catch {
       tenant = null;
     }
-    setState(
-      tenant && hasLock(tenant) && !isUnlocked(tenant)
-        ? { status: "locked", tenant }
-        : { status: "open" },
-    );
-  }, [path]);
+    const decision = accessDecision(path, tenant, !!tenant && isUnlocked(tenant));
+    if (decision === "login" && tenant) setState({ status: "locked", tenant });
+    else if (decision === "setup") {
+      setState({ status: "setup" });
+      navigate({ to: "/onboarding", replace: true });
+    } else setState({ status: "open" });
+  }, [path, isPublic, navigate]);
 
-  // The owner's /admin page has its own sign-in.
-  if (isPublic || path.startsWith("/admin")) return <>{children}</>;
-  if (state.status === "checking") return <div className="min-h-screen" aria-busy="true" />;
+  if (isPublic) return <>{children}</>;
+  if (state.status === "checking" || state.status === "setup")
+    return <div className="min-h-screen" aria-busy="true" />;
   if (state.status === "locked")
-    return <SignIn tenant={state.tenant} onDone={() => setState({ status: "open" })} />;
+    return (
+      <SignIn
+        tenant={state.tenant}
+        onDone={() => {
+          // Signed in: continue the setup if it is not finished yet.
+          if (accessDecision(path, state.tenant, true) === "setup") {
+            setState({ status: "setup" });
+            navigate({ to: "/onboarding", replace: true });
+          } else setState({ status: "open" });
+        }}
+      />
+    );
   return <>{children}</>;
 }
 
