@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BookOpen, Check, MapPin, Plus } from "lucide-react";
+import { ArrowRight, BookOpen, MapPin, Plus } from "lucide-react";
+import { FeatureShowcase } from "@/components/FeatureShowcase";
 import { MarketingHeader } from "@/components/MarketingHeader";
 import { useTranslation } from "react-i18next";
 import { useFormat } from "@/i18n/LocaleProvider";
@@ -18,7 +19,6 @@ export const Route = createFileRoute("/")({
 
 const STEPS = ["s1", "s2", "s3"] as const;
 const AUDIENCES = ["a1", "a2", "a3", "a4"] as const;
-const FEATURES = ["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"] as const;
 const FAQ = ["q1", "q2", "q3", "q4", "q5", "q6", "q7"] as const;
 
 function Landing() {
@@ -110,28 +110,7 @@ function Landing() {
         </ul>
       </section>
 
-      <section className="border-y bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-          <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
-            {t("landing.features.title")}
-          </h2>
-          <ul className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
-            {FEATURES.map((f) => (
-              <li key={f}>
-                <h3 className="flex items-center gap-2 font-semibold">
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-accent">
-                    <Check className="size-3" strokeWidth={3} />
-                  </span>
-                  {t(`landing.features.${f}.title`)}
-                </h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  {t(`landing.features.${f}.text`)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      <FeatureShowcase />
 
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid gap-8 rounded-[var(--radius)] bg-[#14213D] p-8 text-white md:grid-cols-[1.4fr_1fr] md:p-10">

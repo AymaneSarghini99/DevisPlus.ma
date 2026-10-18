@@ -42,6 +42,8 @@ export const landing = {
     },
   },
   features: {
+    illustration:
+      "Illustration : survolez ou touchez une fonctionnalité pour voir où elle apparaît sur le devis.",
     title: "Tout ce qu'il faut pour un devis marocain",
     f1: {
       title: "Devis et factures en dirhams",

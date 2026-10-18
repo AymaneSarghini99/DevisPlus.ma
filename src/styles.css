@@ -355,3 +355,16 @@
   transform: translate(-50%, -50%);
   animation: drive-done 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
+
+/* Features section: progress line of the automatic tour. */
+@keyframes feature-progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+.feature-progress {
+  animation: feature-progress linear both;
+}

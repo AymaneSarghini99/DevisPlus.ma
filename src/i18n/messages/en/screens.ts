@@ -45,6 +45,7 @@ export const landing: M["landing"] = {
     },
   },
   features: {
+    illustration: "Illustration: hover over or tap a feature to see where it appears on the quote.",
     title: "Everything a Moroccan quote needs",
     f1: {
       title: "Quotes and invoices in dirhams",
