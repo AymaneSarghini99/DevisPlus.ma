@@ -29,6 +29,8 @@ import {
   type Settings,
 } from "@/lib/store";
 import { errorMessage } from "@/lib/storage";
+import { Dropdown } from "@/components/Dropdown";
+import { DatePicker } from "@/components/DatePicker";
 
 export const Route = createFileRoute("/factures/$id")({
   head: () => ({
@@ -238,22 +240,20 @@ function InvoicePage() {
               <Section title="Dates">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <F label="Date de facture" id="idate" error={err("issueDate")}>
-                    <input
+                    <DatePicker
                       id="idate"
-                      type="date"
-                      className="field"
                       value={inv.issueDate}
-                      onChange={(e) => update({ issueDate: e.target.value })}
+                      invalid={!!err("issueDate")}
+                      onChange={(v) => update({ issueDate: v })}
                     />
                   </F>
                   <F label="Échéance" id="due" error={err("dueDate")}>
-                    <input
+                    <DatePicker
                       id="due"
-                      type="date"
-                      className="field"
-                      aria-invalid={!!err("dueDate")}
                       value={inv.dueDate}
-                      onChange={(e) => update({ dueDate: e.target.value })}
+                      min={inv.issueDate}
+                      invalid={!!err("dueDate")}
+                      onChange={(v) => update({ dueDate: v })}
                     />
                   </F>
                 </div>
@@ -413,13 +413,7 @@ function Payments({ inv, onSave }: { inv: Invoice; onSave: (inv: Invoice) => boo
       {outstanding > 0 ? (
         <div className="grid gap-3 border bg-card p-3 sm:grid-cols-2">
           <F label="Date" id="pdate">
-            <input
-              id="pdate"
-              type="date"
-              className="field"
-              value={p.date}
-              onChange={(e) => setP({ ...p, date: e.target.value })}
-            />
+            <DatePicker id="pdate" value={p.date} onChange={(v) => setP({ ...p, date: v })} />
           </F>
           <F label="Montant (DH)" id="pamount">
             <input
@@ -433,18 +427,15 @@ function Payments({ inv, onSave }: { inv: Invoice; onSave: (inv: Invoice) => boo
             />
           </F>
           <F label="Mode" id="pmethod">
-            <select
+            <Dropdown
               id="pmethod"
-              className="field"
               value={p.method}
-              onChange={(e) => setP({ ...p, method: e.target.value as PaymentMethod })}
-            >
-              {(Object.keys(METHOD_LABEL) as PaymentMethod[]).map((m) => (
-                <option key={m} value={m}>
-                  {METHOD_LABEL[m]}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setP({ ...p, method: v as PaymentMethod })}
+              options={(Object.keys(METHOD_LABEL) as PaymentMethod[]).map((m) => ({
+                value: m,
+                label: METHOD_LABEL[m],
+              }))}
+            />
           </F>
           <F label="Référence (n° de chèque, virement…)" id="pref">
             <input

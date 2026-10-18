@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import logo from "@/assets/devisplus-logo.png";
 
 export function Logo() {
   return (
-    <Link to="/" className="shrink-0 text-lg font-semibold tracking-tight">
-      Devis<span className="rounded-sm bg-primary px-1 text-accent">+</span>
-      <span className="text-muted-foreground">.ma</span>
+    <Link to="/" className="shrink-0" aria-label="DevisPlus.ma — accueil">
+      <img src={logo} alt="DevisPlus.ma" width={480} height={92} className="h-7 w-auto" />
     </Link>
   );
 }

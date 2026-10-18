@@ -16,6 +16,7 @@ import {
   type Status,
 } from "@/lib/quotes";
 import { errorMessage } from "@/lib/storage";
+import { Dropdown } from "@/components/Dropdown";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -132,19 +133,17 @@ function Dashboard() {
               <label htmlFor="q-status" className="sr-only">
                 Filtrer par statut
               </label>
-              <select
+              <Dropdown
                 id="q-status"
-                className="field w-auto"
+                className="w-48"
+                ariaLabel="Filtrer par statut"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as Status | "")}
-              >
-                <option value="">Tous les statuts</option>
-                {Object.entries(STATUS_LABEL).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setStatus(v as Status | "")}
+                options={[
+                  { value: "", label: "Tous les statuts" },
+                  ...Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v })),
+                ]}
+              />
             </div>
             <div className="mt-3 overflow-x-auto border bg-card">
               <table className="w-full text-sm">

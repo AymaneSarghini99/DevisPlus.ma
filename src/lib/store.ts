@@ -86,6 +86,22 @@ export function deleteItem(id: string) {
 }
 
 // ---------- settings ----------
+/** Fictional Moroccan company used by "Remplir avec un exemple" on the settings page. */
+export const EXAMPLE_COMPANY: Company = {
+  name: "Atlas Rénovation SARL",
+  ice: "002345678000091",
+  if_: "45678912",
+  rc: "512345 — Casablanca",
+  tp: "34512678",
+  address: "45, boulevard Zerktouni, 3ᵉ étage",
+  city: "Casablanca",
+  phone: "05 22 47 12 30",
+  email: "contact@atlas-renovation.ma",
+  contact: "Youssef El Amrani",
+  bank: "Attijariwafa bank — agence Maârif",
+  rib: "007 780 0001234567890123 45",
+};
+
 export const defaultSettings = (): Settings => ({
   company: emptyCompany(),
   template: "classic",

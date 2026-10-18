@@ -51,12 +51,14 @@ export function PartyFields({
   set,
   err,
   compact,
+  placeholders = {},
 }: {
   who: "company" | "client";
   p: Party;
   set: (p: Partial<Party>) => void;
   err: (k: string) => string | undefined;
   compact?: boolean;
+  placeholders?: Partial<Record<keyof Party, string>>;
 }) {
   const f = (
     k: keyof Party,
@@ -70,6 +72,7 @@ export function PartyFields({
         className="field"
         aria-invalid={!!err(`${who}.${k}`)}
         value={p[k]}
+        placeholder={placeholders[k]}
         {...extra}
         onChange={(e) =>
           set({ [k]: k === "ice" ? e.target.value.replace(/\D/g, "") : e.target.value })

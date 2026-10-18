@@ -13,6 +13,7 @@ import {
   type Party,
   type TemplateId,
 } from "@/lib/quotes";
+import { MOROCCAN_TEMPLATES, MoroccanDocument } from "./MoroccanTemplates";
 
 export type DocData = {
   kind: "devis" | "facture";
@@ -66,129 +67,139 @@ export function QuoteDocument({ d, className = "" }: { d: DocData; className?: s
         </div>
       )}
 
-      <DocHeader d={d} title={title} />
-
-      <div className="mt-6 grid grid-cols-2 gap-6">
-        <div>
-          <SmallLabel template={d.template} accent={d.accent}>
-            {d.kind === "devis" ? "Adressé à" : "Facturé à"}
-          </SmallLabel>
-          <div className="font-semibold">{d.client.name || "—"}</div>
-          {d.client.contact && <div>À l'attention de {d.client.contact}</div>}
-          <div>{d.client.address}</div>
-          <div>{d.client.city}</div>
-          <Ids p={d.client} />
-          {(d.client.phone || d.client.email) && (
-            <div className="text-[#5b6478]">
-              {[d.client.phone, d.client.email].filter(Boolean).join(" · ")}
-            </div>
-          )}
-        </div>
-        <dl className="space-y-0.5 self-start text-right">
-          <Meta k="Date" v={fmtDate(d.issueDate)} />
-          <Meta
-            k={d.kind === "devis" ? "Valable jusqu'au" : "Échéance"}
-            v={fmtDate(d.secondDate)}
-          />
-          {d.quoteRef && <Meta k="Devis d'origine" v={d.quoteRef} />}
-          {d.delivery && (
-            <Meta
-              k={
-                d.template === "btp"
-                  ? "Délai d'exécution"
-                  : d.template === "services"
-                    ? "Délai de réalisation"
-                    : "Délai de livraison"
-              }
-              v={d.delivery}
-            />
-          )}
-        </dl>
-      </div>
-
-      {d.template === "btp" ? (
-        <BtpTable lines={d.lines} showDiscount={showDiscount} />
+      {(MOROCCAN_TEMPLATES as readonly string[]).includes(d.template) ? (
+        <MoroccanDocument d={d} />
       ) : (
-        <LinesTable lines={d.lines} showDiscount={showDiscount} template={d.template} />
-      )}
+        <>
+          <DocHeader d={d} title={title} />
 
-      <div className="mt-5 flex items-start justify-between gap-6">
-        <div className="max-w-sm text-[11.5px]">
-          <SmallLabel template={d.template} accent={d.accent}>
-            {d.kind === "facture" ? "Arrêtée la présente facture" : "Arrêté le présent devis"} à la
-            somme de
-          </SmallLabel>
-          <p className="font-medium">{amountInWords(t.ttc)} TTC</p>
-        </div>
-        <dl className="w-72 shrink-0 space-y-1">
-          {t.discount > 0 && (
-            <>
-              <Row k="Total HT brut" v={mad(t.gross)} />
-              <Row
-                k={`Remises${d.globalDiscount ? ` (dont globale ${pct(d.globalDiscount)})` : ""}`}
-                v={"− " + mad(t.discount)}
-              />
-            </>
-          )}
-          <Row k="Total HT" v={mad(t.ht)} />
-          {t.byRate.map((r) => (
-            <Row
-              key={r.rate}
-              k={`TVA ${pct(r.rate)}${t.byRate.length > 1 ? ` sur ${mad(r.base)}` : ""}`}
-              v={mad(r.tva)}
-            />
-          ))}
-          <div
-            className="flex justify-between px-2 py-1.5 font-semibold"
-            style={{ background: "var(--doc-accent)", color: "var(--doc-on-accent)" }}
-          >
-            <dt>Total TTC</dt>
-            <dd className="num">{mad(t.ttc)}</dd>
-          </div>
-          {d.kind === "devis" && d.deposit > 0 && (
-            <>
-              <Row k={`Acompte à la commande (${pct(d.deposit)})`} v={mad(t.deposit)} />
-              <Row k="Solde" v={mad(t.balance)} />
-            </>
-          )}
-          {d.kind === "facture" && d.paid !== undefined && d.paid > 0 && (
-            <>
-              <Row k="Déjà réglé" v={"− " + mad(d.paid)} />
-              <Row k="Reste à payer" v={mad(Math.round((t.ttc - d.paid) * 100) / 100)} />
-            </>
-          )}
-        </dl>
-      </div>
-
-      <footer className="mt-8 space-y-3 border-t pt-4 text-[11px] text-[#5b6478]">
-        {exemption && (
-          <p>
-            <span className="font-semibold text-[#14213D]">Exonération de TVA : </span>
-            {d.exemptionNote || "motif à préciser"}
-          </p>
-        )}
-        {d.terms && (
-          <p>
-            <span className="font-semibold text-[#14213D]">Conditions de paiement : </span>
-            {d.terms}
-          </p>
-        )}
-        {(d.company.bank || d.company.rib) && (
-          <p className="num">
-            <span className="font-sans font-semibold text-[#14213D]">Coordonnées bancaires : </span>
-            {[d.company.bank, d.company.rib && `RIB ${d.company.rib}`].filter(Boolean).join(" — ")}
-          </p>
-        )}
-        {d.kind === "devis" && (
-          <div className="grid grid-cols-2 gap-6 pt-2">
-            <p>Devis valable jusqu'au {fmtDate(d.secondDate)}.</p>
-            <div className="h-20 border border-dashed p-2">
-              Bon pour accord — date, cachet et signature du client
+          <div className="mt-6 grid grid-cols-2 gap-6">
+            <div>
+              <SmallLabel template={d.template} accent={d.accent}>
+                {d.kind === "devis" ? "Adressé à" : "Facturé à"}
+              </SmallLabel>
+              <div className="font-semibold">{d.client.name || "—"}</div>
+              {d.client.contact && <div>À l'attention de {d.client.contact}</div>}
+              <div>{d.client.address}</div>
+              <div>{d.client.city}</div>
+              <Ids p={d.client} />
+              {(d.client.phone || d.client.email) && (
+                <div className="text-[#5b6478]">
+                  {[d.client.phone, d.client.email].filter(Boolean).join(" · ")}
+                </div>
+              )}
             </div>
+            <dl className="space-y-0.5 self-start text-right">
+              <Meta k="Date" v={fmtDate(d.issueDate)} />
+              <Meta
+                k={d.kind === "devis" ? "Valable jusqu'au" : "Échéance"}
+                v={fmtDate(d.secondDate)}
+              />
+              {d.quoteRef && <Meta k="Devis d'origine" v={d.quoteRef} />}
+              {d.delivery && (
+                <Meta
+                  k={
+                    d.template === "btp"
+                      ? "Délai d'exécution"
+                      : d.template === "services"
+                        ? "Délai de réalisation"
+                        : "Délai de livraison"
+                  }
+                  v={d.delivery}
+                />
+              )}
+            </dl>
           </div>
-        )}
-        <LegalLine c={d.company} />
-      </footer>
+
+          {d.template === "btp" ? (
+            <BtpTable lines={d.lines} showDiscount={showDiscount} />
+          ) : (
+            <LinesTable lines={d.lines} showDiscount={showDiscount} template={d.template} />
+          )}
+
+          <div className="mt-5 flex items-start justify-between gap-6">
+            <div className="max-w-sm text-[11.5px]">
+              <SmallLabel template={d.template} accent={d.accent}>
+                {d.kind === "facture" ? "Arrêtée la présente facture" : "Arrêté le présent devis"} à
+                la somme de
+              </SmallLabel>
+              <p className="font-medium">{amountInWords(t.ttc)} TTC</p>
+            </div>
+            <dl className="w-72 shrink-0 space-y-1">
+              {t.discount > 0 && (
+                <>
+                  <Row k="Total HT brut" v={mad(t.gross)} />
+                  <Row
+                    k={`Remises${d.globalDiscount ? ` (dont globale ${pct(d.globalDiscount)})` : ""}`}
+                    v={"− " + mad(t.discount)}
+                  />
+                </>
+              )}
+              <Row k="Total HT" v={mad(t.ht)} />
+              {t.byRate.map((r) => (
+                <Row
+                  key={r.rate}
+                  k={`TVA ${pct(r.rate)}${t.byRate.length > 1 ? ` sur ${mad(r.base)}` : ""}`}
+                  v={mad(r.tva)}
+                />
+              ))}
+              <div
+                className="flex justify-between px-2 py-1.5 font-semibold"
+                style={{ background: "var(--doc-accent)", color: "var(--doc-on-accent)" }}
+              >
+                <dt>Total TTC</dt>
+                <dd className="num">{mad(t.ttc)}</dd>
+              </div>
+              {d.kind === "devis" && d.deposit > 0 && (
+                <>
+                  <Row k={`Acompte à la commande (${pct(d.deposit)})`} v={mad(t.deposit)} />
+                  <Row k="Solde" v={mad(t.balance)} />
+                </>
+              )}
+              {d.kind === "facture" && d.paid !== undefined && d.paid > 0 && (
+                <>
+                  <Row k="Déjà réglé" v={"− " + mad(d.paid)} />
+                  <Row k="Reste à payer" v={mad(Math.round((t.ttc - d.paid) * 100) / 100)} />
+                </>
+              )}
+            </dl>
+          </div>
+
+          <footer className="mt-8 space-y-3 border-t pt-4 text-[11px] text-[#5b6478]">
+            {exemption && (
+              <p>
+                <span className="font-semibold text-[#14213D]">Exonération de TVA : </span>
+                {d.exemptionNote || "motif à préciser"}
+              </p>
+            )}
+            {d.terms && (
+              <p>
+                <span className="font-semibold text-[#14213D]">Conditions de paiement : </span>
+                {d.terms}
+              </p>
+            )}
+            {(d.company.bank || d.company.rib) && (
+              <p className="num">
+                <span className="font-sans font-semibold text-[#14213D]">
+                  Coordonnées bancaires :{" "}
+                </span>
+                {[d.company.bank, d.company.rib && `RIB ${d.company.rib}`]
+                  .filter(Boolean)
+                  .join(" — ")}
+              </p>
+            )}
+            {d.kind === "devis" && (
+              <div className="grid grid-cols-2 gap-6 pt-2">
+                <p>Devis valable jusqu'au {fmtDate(d.secondDate)}.</p>
+                <div className="h-20 border border-dashed p-2">
+                  Bon pour accord — date, cachet et signature du client
+                </div>
+              </div>
+            )}
+            <LegalLine c={d.company} />
+          </footer>
+        </>
+      )}
     </article>
   );
 }

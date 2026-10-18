@@ -14,6 +14,7 @@ import {
   type CatalogItem,
 } from "@/lib/store";
 import { errorMessage } from "@/lib/storage";
+import { Dropdown } from "@/components/Dropdown";
 
 export const Route = createFileRoute("/catalogue")({
   head: () => ({
@@ -120,16 +121,12 @@ function Catalogue() {
                 />
               </F>
               <F label="Unité" id="i-unit">
-                <select
+                <Dropdown
                   id="i-unit"
-                  className="field"
                   value={edit.unit}
-                  onChange={(e) => setEdit({ ...edit, unit: e.target.value as Unit })}
-                >
-                  {UNITS.map((u) => (
-                    <option key={u}>{u}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setEdit({ ...edit, unit: v as Unit })}
+                  options={UNITS.map((u) => ({ value: u, label: u }))}
+                />
               </F>
               <F
                 label="Prix unitaire HT (DH)"
@@ -157,36 +154,29 @@ function Catalogue() {
                 />
               </F>
               <F label="TVA" id="i-vat">
-                <select
+                <Dropdown
                   id="i-vat"
-                  className="field"
-                  value={edit.vatRate}
-                  onChange={(e) => setEdit({ ...edit, vatRate: Number(e.target.value) })}
-                >
-                  {itemRates.map((r) => (
-                    <option key={r} value={r}>
-                      {r} %
-                    </option>
-                  ))}
-                </select>
+                  value={String(edit.vatRate)}
+                  onChange={(v) => setEdit({ ...edit, vatRate: Number(v) })}
+                  options={itemRates.map((r) => ({ value: String(r), label: `${r} %` }))}
+                />
               </F>
               <F label="Nature (modèle BTP)" id="i-kind">
-                <select
+                <Dropdown
                   id="i-kind"
-                  className="field"
                   value={edit.kind ?? ""}
-                  onChange={(e) => {
+                  onChange={(v) => {
                     const { kind: _k, ...rest } = edit;
-                    setEdit(e.target.value ? { ...rest, kind: e.target.value as LineKind } : rest);
+                    setEdit(v ? { ...rest, kind: v as LineKind } : rest);
                   }}
-                >
-                  <option value="">Non précisée</option>
-                  {(Object.keys(KIND_LABEL) as LineKind[]).map((k) => (
-                    <option key={k} value={k}>
-                      {KIND_LABEL[k]}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "Non précisée" },
+                    ...(Object.keys(KIND_LABEL) as LineKind[]).map((k) => ({
+                      value: k,
+                      label: KIND_LABEL[k],
+                    })),
+                  ]}
+                />
               </F>
             </div>
             <div className="mt-4 flex justify-end gap-2">

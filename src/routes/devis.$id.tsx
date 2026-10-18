@@ -41,6 +41,8 @@ import {
 } from "@/lib/store";
 import { errorMessage } from "@/lib/storage";
 import { invoiceFromQuote, loadInvoices, saveInvoice, type Invoice } from "@/lib/invoices";
+import { Dropdown } from "@/components/Dropdown";
+import { DatePicker } from "@/components/DatePicker";
 
 export const Route = createFileRoute("/devis/$id")({
   head: () => ({
@@ -365,37 +367,28 @@ function Editor() {
           <Section title="Document">
             <div className="grid gap-3 sm:grid-cols-3">
               <F label="Statut" id="status">
-                <select
+                <Dropdown
                   id="status"
-                  className="field"
                   value={q.status}
-                  onChange={(e) => update(withStatus(q, e.target.value as Status))}
-                >
-                  {Object.entries(STATUS_LABEL).map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => update(withStatus(q, v as Status))}
+                  options={Object.entries(STATUS_LABEL).map(([k, v]) => ({ value: k, label: v }))}
+                />
               </F>
               <F label="Date du devis" id="issue" error={err("issueDate")}>
-                <input
+                <DatePicker
                   id="issue"
-                  type="date"
-                  className="field"
-                  aria-invalid={!!err("issueDate")}
                   value={q.issueDate}
-                  onChange={(e) => update({ issueDate: e.target.value })}
+                  invalid={!!err("issueDate")}
+                  onChange={(v) => update({ issueDate: v })}
                 />
               </F>
               <F label="Valable jusqu'au" id="valid" error={err("validUntil")}>
-                <input
+                <DatePicker
                   id="valid"
-                  type="date"
-                  className="field"
-                  aria-invalid={!!err("validUntil")}
                   value={q.validUntil}
-                  onChange={(e) => update({ validUntil: e.target.value })}
+                  min={q.issueDate}
+                  invalid={!!err("validUntil")}
+                  onChange={(v) => update({ validUntil: v })}
                 />
               </F>
             </div>
@@ -404,24 +397,24 @@ function Editor() {
           <Section title="Client">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <F label="Choisir un client enregistré" id="client-pick">
-                <select
+                <Dropdown
                   id="client-pick"
-                  className="field"
                   value={q.clientId ?? ""}
-                  onChange={(e) => pickClient(e.target.value)}
-                >
-                  <option value="">
-                    {clients.length ? "— Saisie libre —" : "Aucun client enregistré"}
-                  </option>
-                  {[...clients]
-                    .sort((a, b) => a.name.localeCompare(b.name, "fr"))
-                    .map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                        {c.city ? ` — ${c.city}` : ""}
-                      </option>
-                    ))}
-                </select>
+                  onChange={pickClient}
+                  options={[
+                    {
+                      value: "",
+                      label: clients.length ? "— Saisie libre —" : "Aucun client enregistré",
+                    },
+                    ...[...clients]
+                      .sort((a, b) => a.name.localeCompare(b.name, "fr"))
+                      .map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                        ...(c.city ? { hint: c.city } : {}),
+                      })),
+                  ]}
+                />
               </F>
               {(!linked || linkedChanged) && q.client.name.trim() && (
                 <button type="button" className="btn btn-ghost" onClick={storeClient}>
@@ -555,18 +548,12 @@ function Editor() {
           <Section title="Mise en page">
             <div className="grid gap-3 sm:grid-cols-2">
               <F label="Modèle" id="tpl">
-                <select
+                <Dropdown
                   id="tpl"
-                  className="field"
                   value={q.template}
-                  onChange={(e) => update({ template: e.target.value as TemplateId })}
-                >
-                  {TEMPLATES.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {x.name} — {x.hint}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => update({ template: v as TemplateId })}
+                  options={TEMPLATES.map((x) => ({ value: x.id, label: x.name, hint: x.hint }))}
+                />
               </F>
               <AccentPicker value={q.accent} onChange={(accent) => update({ accent })} />
             </div>

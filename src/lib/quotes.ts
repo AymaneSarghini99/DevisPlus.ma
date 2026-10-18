@@ -21,12 +21,25 @@ export type Line = {
   kind?: LineKind;
 };
 export type Status = "brouillon" | "envoye" | "accepte" | "refuse";
-export type TemplateId = "classic" | "premium" | "btp" | "services";
+export type TemplateId =
+  "classic" | "premium" | "btp" | "services" | "zellige" | "marche" | "bilingue" | "commercial";
 export const TEMPLATES: { id: TemplateId; name: string; hint: string }[] = [
   { id: "classic", name: "Classique", hint: "Blanc et marine, sobre et professionnel." },
   { id: "premium", name: "Premium", hint: "Typographie soignée, couleurs de votre marque." },
   { id: "btp", name: "BTP", hint: "Matériaux, main-d'œuvre et quantités regroupés." },
   { id: "services", name: "Services", hint: "Agences, freelances et consultants." },
+  { id: "zellige", name: "Traditionnel", hint: "Frise zellige, titre encadré, tableau quadrillé." },
+  {
+    id: "marche",
+    name: "Bordereau des prix",
+    hint: "Style marchés publics : détail estimatif quadrillé.",
+  },
+  { id: "bilingue", name: "Bilingue FR / AR", hint: "Intitulés en français et en arabe." },
+  {
+    id: "commercial",
+    name: "Commercial",
+    hint: "Encadrés émetteur / client, zones cachet et signature.",
+  },
 ];
 export type Party = {
   name: string;

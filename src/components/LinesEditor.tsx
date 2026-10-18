@@ -13,6 +13,7 @@ import {
   type Unit,
 } from "@/lib/quotes";
 import type { CatalogItem } from "@/lib/store";
+import { Dropdown } from "@/components/Dropdown";
 
 type Props = {
   lines: Line[];
@@ -109,16 +110,12 @@ export function LinesEditor({
                   />
                 </Field>
                 <Field label="Unité" id={`u-${l.id}`}>
-                  <select
+                  <Dropdown
                     id={`u-${l.id}`}
-                    className="field"
                     value={l.unit}
-                    onChange={(e) => set(l.id, { unit: e.target.value as Unit })}
-                  >
-                    {UNITS.map((u) => (
-                      <option key={u}>{u}</option>
-                    ))}
-                  </select>
+                    onChange={(v) => set(l.id, { unit: v as Unit })}
+                    options={UNITS.map((u) => ({ value: u, label: u }))}
+                  />
                 </Field>
                 <Field label="P.U. HT (DH)" id={`p-${l.id}`}>
                   <input
@@ -148,45 +145,34 @@ export function LinesEditor({
                   />
                 </Field>
                 <Field label="TVA" id={`t-${l.id}`}>
-                  <select
+                  <Dropdown
                     id={`t-${l.id}`}
-                    className="field"
-                    value={l.vatRate}
-                    onChange={(e) => set(l.id, { vatRate: Number(e.target.value) })}
-                  >
-                    {rates.map((r) => (
-                      <option key={r} value={r}>
-                        {r} %
-                      </option>
-                    ))}
-                  </select>
+                    value={String(l.vatRate)}
+                    onChange={(v) => set(l.id, { vatRate: Number(v) })}
+                    options={rates.map((r) => ({ value: String(r), label: `${r} %` }))}
+                  />
                 </Field>
                 {showKind && (
                   <Field label="Nature" id={`k-${l.id}`}>
-                    <select
+                    <Dropdown
                       id={`k-${l.id}`}
-                      className="field"
                       value={l.kind ?? ""}
-                      onChange={(e) => {
+                      onChange={(v) => {
                         const { kind: _k, ...rest } = l;
                         onChange(
                           lines.map((x) =>
-                            x.id === l.id
-                              ? e.target.value
-                                ? { ...rest, kind: e.target.value as LineKind }
-                                : rest
-                              : x,
+                            x.id === l.id ? (v ? { ...rest, kind: v as LineKind } : rest) : x,
                           ),
                         );
                       }}
-                    >
-                      <option value="">Divers</option>
-                      {(Object.keys(KIND_LABEL) as LineKind[]).map((k) => (
-                        <option key={k} value={k}>
-                          {KIND_LABEL[k]}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        { value: "", label: "Divers" },
+                        ...(Object.keys(KIND_LABEL) as LineKind[]).map((k) => ({
+                          value: k,
+                          label: KIND_LABEL[k],
+                        })),
+                      ]}
+                    />
                   </Field>
                 )}
                 <div className="col-span-2 flex items-center justify-between self-end text-sm sm:col-span-3 lg:col-span-full">

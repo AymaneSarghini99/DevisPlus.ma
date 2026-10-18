@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader, PageTitle } from "@/components/Brand";
 import { F, PartyFields } from "@/components/Form";
@@ -8,6 +8,7 @@ import { missingInvoiceMentions } from "@/lib/invoices";
 import { emptyParty, loadQuotes, VAT_RATES, type Company } from "@/lib/quotes";
 import {
   defaultSettings,
+  EXAMPLE_COMPANY,
   hasProfile,
   loadSettings,
   partyErrors,
@@ -15,6 +16,7 @@ import {
   type Settings,
 } from "@/lib/store";
 import { errorMessage } from "@/lib/storage";
+import { Dropdown } from "@/components/Dropdown";
 
 export const Route = createFileRoute("/parametres")({
   head: () => ({
@@ -104,7 +106,26 @@ function SettingsPage() {
         </button>
       </AppHeader>
       <main className="mx-auto max-w-3xl space-y-10 px-4 py-8">
-        <PageTitle title="Paramètres" />
+        <PageTitle title="Paramètres">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              if (
+                s.company.name.trim() &&
+                !confirm("Remplacer les informations de l'entreprise par l'exemple ?")
+              )
+                return;
+              update({ company: { ...EXAMPLE_COMPANY } });
+              toast("Exemple chargé : données fictives", {
+                description:
+                  "Remplacez-les par vos vraies informations avant d'envoyer des devis, puis enregistrez.",
+              });
+            }}
+          >
+            <Wand2 className="size-4" /> Remplir avec un exemple
+          </button>
+        </PageTitle>
 
         <section>
           <h2 className="font-semibold">Votre entreprise</h2>
@@ -112,12 +133,29 @@ function SettingsPage() {
             Repris automatiquement sur chaque nouveau devis. Les devis et factures déjà créés
             gardent les informations de leur date.
           </p>
-          <PartyFields who="company" p={s.company} set={setCo} err={err} />
+          <PartyFields
+            who="company"
+            p={s.company}
+            set={setCo}
+            err={err}
+            placeholders={{
+              name: "Ex. : Atlas Rénovation SARL",
+              ice: "15 chiffres, ex. 002345678000091",
+              contact: "Ex. : Youssef El Amrani",
+              address: "Ex. : 45, boulevard Zerktouni, 3ᵉ étage",
+              city: "Ex. : Casablanca",
+              phone: "Ex. : 05 22 47 12 30",
+              email: "Ex. : contact@entreprise.ma",
+              if_: "Ex. : 45678912",
+              rc: "Ex. : 512345 — Casablanca",
+            }}
+          />
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <F label="Taxe professionnelle (TP)" id="tp">
               <input
                 id="tp"
                 className="field num"
+                placeholder="Ex. : 34512678"
                 value={s.company.tp}
                 onChange={(e) => setCo({ tp: e.target.value })}
               />
@@ -132,6 +170,7 @@ function SettingsPage() {
               <input
                 id="bank"
                 className="field"
+                placeholder="Ex. : Attijariwafa bank — agence Maârif"
                 value={s.company.bank}
                 onChange={(e) => setCo({ bank: e.target.value })}
               />
@@ -140,6 +179,7 @@ function SettingsPage() {
               <input
                 id="rib"
                 className="field num"
+                placeholder="007 780 0001234567890123 45"
                 inputMode="numeric"
                 aria-invalid={!!err("company.rib")}
                 value={s.company.rib}
@@ -209,18 +249,12 @@ function SettingsPage() {
               />
             </F>
             <F label="TVA par défaut" id="defvat" error={err("vat")}>
-              <select
+              <Dropdown
                 id="defvat"
-                className="field"
-                value={s.defaultVat}
-                onChange={(e) => update({ defaultVat: Number(e.target.value) })}
-              >
-                {s.vatRates.map((r) => (
-                  <option key={r} value={r}>
-                    {r} %
-                  </option>
-                ))}
-              </select>
+                value={String(s.defaultVat)}
+                onChange={(v) => update({ defaultVat: Number(v) })}
+                options={s.vatRates.map((r) => ({ value: String(r), label: `${r} %` }))}
+              />
             </F>
           </div>
           <div className="mt-3">

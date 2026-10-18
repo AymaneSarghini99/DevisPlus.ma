@@ -185,7 +185,7 @@ function Templates() {
           </button>
         </PageTitle>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Les quatre modèles utilisent les mêmes données et le même calcul. Le modèle par défaut
+          Les huit modèles utilisent les mêmes données et le même calcul. Le modèle par défaut
           s'applique aux nouveaux devis ; chaque devis peut ensuite en changer.
           {last
             ? ` Aperçu avec votre dernier devis (${last.number}).`
