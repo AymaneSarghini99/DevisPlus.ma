@@ -19,6 +19,19 @@ Each company's data (settings, logo, clients, catalogue, quotes, invoices, Googl
 connection) is stored on the server under that company only. One company can never read or
 change another's: the database refuses it (row-level security, checked by `npm run db:test`).
 
+## Deploying (Cloudflare Workers)
+
+The shared app runs on Cloudflare Workers as the Worker `devisplus`
+(https://devisplus.aymansarghini7.workers.dev until devisplus.ma points to it).
+
+- Redeploy after changes: `npm run deploy` (build, then upload). The compatibility date is set in
+  the command because the build writes today's date, which Cloudflare may refuse.
+- Secrets (server settings) live in Cloudflare: `npx wrangler secret put NAME --name devisplus`,
+  or the dashboard (Workers → devisplus → Settings → Variables and secrets).
+- Live logs: `npx wrangler tail devisplus --format pretty`.
+- Database changes: `npm run db:migrate` with `DATABASE_URL_UNPOOLED` set to the Neon
+  `production` branch (direct connection).
+
 ## Admin portal (you)
 
 - Address: `admin.devisplus.ma` when `ADMIN_HOST=admin.devisplus.ma` is set (on that host only
