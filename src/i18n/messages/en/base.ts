@@ -123,6 +123,10 @@ export const meta: M["meta"] = {
     title: "Account pending | DevisPlus.ma",
     description: "Your account is being reviewed by the DevisPlus team.",
   },
+  password: {
+    title: "Password | DevisPlus.ma",
+    description: "Change or reset the password of your DevisPlus account.",
+  },
   admin: {
     title: "Administration — DevisPlus.ma",
     description: "DevisPlus customer and payment register.",

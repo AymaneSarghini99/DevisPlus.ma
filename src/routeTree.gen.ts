@@ -23,12 +23,15 @@ import { Route as DataProcessingRouteImport } from './routes/data-processing'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ModelesRouteImport } from './routes/modeles'
+import { Route as MotDePasseRouteImport } from './routes/mot-de-passe'
+import { Route as MotDePasseOublieRouteImport } from './routes/mot-de-passe-oublie'
 import { Route as NexxEntrepriseGroupRouteImport } from './routes/nexx-entreprise-group'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RapportsRouteImport } from './routes/rapports'
 import { Route as RefundsRouteImport } from './routes/refunds'
+import { Route as ReinitialiserRouteImport } from './routes/reinitialiser'
 import { Route as RelancesRouteImport } from './routes/relances'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -122,6 +125,16 @@ const ModelesRoute = ModelesRouteImport.update({
   path: '/modeles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MotDePasseRoute = MotDePasseRouteImport.update({
+  id: '/mot-de-passe',
+  path: '/mot-de-passe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MotDePasseOublieRoute = MotDePasseOublieRouteImport.update({
+  id: '/mot-de-passe-oublie',
+  path: '/mot-de-passe-oublie',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NexxEntrepriseGroupRoute = NexxEntrepriseGroupRouteImport.update({
   id: '/nexx-entreprise-group',
   path: '/nexx-entreprise-group',
@@ -150,6 +163,11 @@ const RapportsRoute = RapportsRouteImport.update({
 const RefundsRoute = RefundsRouteImport.update({
   id: '/refunds',
   path: '/refunds',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReinitialiserRoute = ReinitialiserRouteImport.update({
+  id: '/reinitialiser',
+  path: '/reinitialiser',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RelancesRoute = RelancesRouteImport.update({
@@ -278,12 +296,15 @@ export interface FileRoutesByFullPath {
   '/inscription': typeof InscriptionRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/mot-de-passe': typeof MotDePasseRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
   '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
   '/refunds': typeof RefundsRoute
+  '/reinitialiser': typeof ReinitialiserRoute
   '/relances': typeof RelancesRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -322,12 +343,15 @@ export interface FileRoutesByTo {
   '/inscription': typeof InscriptionRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/mot-de-passe': typeof MotDePasseRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
   '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
   '/refunds': typeof RefundsRoute
+  '/reinitialiser': typeof ReinitialiserRoute
   '/relances': typeof RelancesRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -367,12 +391,15 @@ export interface FileRoutesById {
   '/inscription': typeof InscriptionRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
+  '/mot-de-passe': typeof MotDePasseRoute
+  '/mot-de-passe-oublie': typeof MotDePasseOublieRoute
   '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
   '/onboarding': typeof OnboardingRoute
   '/parametres': typeof ParametresRoute
   '/privacy': typeof PrivacyRoute
   '/rapports': typeof RapportsRoute
   '/refunds': typeof RefundsRoute
+  '/reinitialiser': typeof ReinitialiserRoute
   '/relances': typeof RelancesRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -413,12 +440,15 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/legal'
     | '/modeles'
+    | '/mot-de-passe'
+    | '/mot-de-passe-oublie'
     | '/nexx-entreprise-group'
     | '/onboarding'
     | '/parametres'
     | '/privacy'
     | '/rapports'
     | '/refunds'
+    | '/reinitialiser'
     | '/relances'
     | '/robots.txt'
     | '/sitemap.xml'
@@ -457,12 +487,15 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/legal'
     | '/modeles'
+    | '/mot-de-passe'
+    | '/mot-de-passe-oublie'
     | '/nexx-entreprise-group'
     | '/onboarding'
     | '/parametres'
     | '/privacy'
     | '/rapports'
     | '/refunds'
+    | '/reinitialiser'
     | '/relances'
     | '/robots.txt'
     | '/sitemap.xml'
@@ -501,12 +534,15 @@ export interface FileRouteTypes {
     | '/inscription'
     | '/legal'
     | '/modeles'
+    | '/mot-de-passe'
+    | '/mot-de-passe-oublie'
     | '/nexx-entreprise-group'
     | '/onboarding'
     | '/parametres'
     | '/privacy'
     | '/rapports'
     | '/refunds'
+    | '/reinitialiser'
     | '/relances'
     | '/robots.txt'
     | '/sitemap.xml'
@@ -546,12 +582,15 @@ export interface RootRouteChildren {
   InscriptionRoute: typeof InscriptionRoute
   LegalRoute: typeof LegalRoute
   ModelesRoute: typeof ModelesRoute
+  MotDePasseRoute: typeof MotDePasseRoute
+  MotDePasseOublieRoute: typeof MotDePasseOublieRoute
   NexxEntrepriseGroupRoute: typeof NexxEntrepriseGroupRoute
   OnboardingRoute: typeof OnboardingRoute
   ParametresRoute: typeof ParametresRoute
   PrivacyRoute: typeof PrivacyRoute
   RapportsRoute: typeof RapportsRoute
   RefundsRoute: typeof RefundsRoute
+  ReinitialiserRoute: typeof ReinitialiserRoute
   RelancesRoute: typeof RelancesRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -676,6 +715,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mot-de-passe': {
+      id: '/mot-de-passe'
+      path: '/mot-de-passe'
+      fullPath: '/mot-de-passe'
+      preLoaderRoute: typeof MotDePasseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mot-de-passe-oublie': {
+      id: '/mot-de-passe-oublie'
+      path: '/mot-de-passe-oublie'
+      fullPath: '/mot-de-passe-oublie'
+      preLoaderRoute: typeof MotDePasseOublieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nexx-entreprise-group': {
       id: '/nexx-entreprise-group'
       path: '/nexx-entreprise-group'
@@ -716,6 +769,13 @@ declare module '@tanstack/react-router' {
       path: '/refunds'
       fullPath: '/refunds'
       preLoaderRoute: typeof RefundsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reinitialiser': {
+      id: '/reinitialiser'
+      path: '/reinitialiser'
+      fullPath: '/reinitialiser'
+      preLoaderRoute: typeof ReinitialiserRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/relances': {
@@ -890,12 +950,15 @@ const rootRouteChildren: RootRouteChildren = {
   InscriptionRoute: InscriptionRoute,
   LegalRoute: LegalRoute,
   ModelesRoute: ModelesRoute,
+  MotDePasseRoute: MotDePasseRoute,
+  MotDePasseOublieRoute: MotDePasseOublieRoute,
   NexxEntrepriseGroupRoute: NexxEntrepriseGroupRoute,
   OnboardingRoute: OnboardingRoute,
   ParametresRoute: ParametresRoute,
   PrivacyRoute: PrivacyRoute,
   RapportsRoute: RapportsRoute,
   RefundsRoute: RefundsRoute,
+  ReinitialiserRoute: ReinitialiserRoute,
   RelancesRoute: RelancesRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

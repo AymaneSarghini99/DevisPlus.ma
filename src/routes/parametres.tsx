@@ -104,6 +104,7 @@ function SettingsPage() {
     ["numbering", t("account.docs.title")],
     ["appearance", t("settings.appearance")],
     ["google-drive", t("drive.title")],
+    ["password", t("account.password.changeTitle")],
     ["legal", t("settings.legalTitle")],
   ] as const;
 
@@ -366,6 +367,16 @@ function SettingsPage() {
           <AppearanceSection s={s} update={update} />
 
           <GoogleDriveSection />
+
+          <Card
+            id="password"
+            title={t("account.password.changeTitle")}
+            intro={t("account.password.settingsText")}
+          >
+            <Link to="/mot-de-passe" className="btn btn-ghost border">
+              {t("account.password.changeTitle")}
+            </Link>
+          </Card>
 
           <Card id="legal" title={t("settings.legalTitle")} intro={t("legal.settingsText")}>
             <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">

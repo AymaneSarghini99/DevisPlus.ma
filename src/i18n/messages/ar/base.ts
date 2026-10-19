@@ -121,6 +121,10 @@ export const meta: M["meta"] = {
     title: "الحساب قيد المراجعة | DevisPlus.ma",
     description: "حسابك قيد المراجعة من طرف فريق DevisPlus.",
   },
+  password: {
+    title: "كلمة المرور | DevisPlus.ma",
+    description: "غيّر أو أعد تعيين كلمة مرور حسابك في DevisPlus.",
+  },
   admin: {
     title: "الإدارة — DevisPlus.ma",
     description: "سجل عملاء DevisPlus ومدفوعاتهم.",

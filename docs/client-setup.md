@@ -34,6 +34,17 @@ settings → Domains; Cloudflare Workers: Settings → Domains & Routes), set `A
 `https://admin.devisplus.ma/api/google/callback` to the Google OAuth client's redirect URIs if you
 sign in with Google there.
 
+## Forgotten passwords
+
+- **With an email service** (`RESEND_API_KEY` and `EMAIL_FROM` set; the sender domain verified
+  in Resend): "Mot de passe oublié ?" on the sign-in page emails a link valid for 1 hour, and the
+  user chooses a new password (`/reinitialiser`).
+- **Without one** (default): the same page asks the user to contact you on WhatsApp or by email.
+  In the admin portal, the account's **Mot de passe** button sets a temporary password, shown
+  once; their open sessions are closed.
+- Anyone signed in can change their password at `/mot-de-passe` (link in Paramètres and in the
+  admin portal header); their other devices are signed out.
+
 ## Checklist for a new customer deployment (Phase 1–2)
 
 1. **Database.** Pick one:

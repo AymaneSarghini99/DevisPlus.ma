@@ -121,6 +121,10 @@ export const meta = {
     title: "Compte en attente | DevisPlus.ma",
     description: "Votre compte est en cours de validation par l'équipe DevisPlus.",
   },
+  password: {
+    title: "Mot de passe | DevisPlus.ma",
+    description: "Changez ou réinitialisez le mot de passe de votre compte DevisPlus.",
+  },
   admin: {
     title: "Administration — DevisPlus.ma",
     description: "Registre des clients et des paiements DevisPlus.",

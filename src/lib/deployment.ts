@@ -62,6 +62,9 @@ const isAsset = (path: string) =>
   path.startsWith("/@") ||
   /\.[a-z0-9]+$/i.test(path);
 
+/** Account pages also served on the admin host (sign-in, password). */
+const ADMIN_HOST_PAGES = ["/connexion", "/mot-de-passe-oublie", "/reinitialiser", "/mot-de-passe"];
+
 /**
  * Admin-portal routing: on the admin host only /admin and the sign-in page are served; on the
  * other hosts /admin moves to the admin host. Returns the address to redirect to, or null.
@@ -71,7 +74,7 @@ export function adminRedirect(url: URL, d: Pick<Deployment, "adminHost">): strin
   const onAdmin = url.host.toLowerCase() === d.adminHost;
   const p = url.pathname.replace(/\/$/, "") || "/";
   if (onAdmin) {
-    if (p === "/admin" || p.startsWith("/admin/") || p === "/connexion") return null;
+    if (p === "/admin" || p.startsWith("/admin/") || ADMIN_HOST_PAGES.includes(p)) return null;
     return new URL("/admin", url).toString();
   }
   if (p === "/admin" || p.startsWith("/admin/")) {

@@ -3,6 +3,7 @@ import {
   Check,
   Copy,
   Globe,
+  KeyRound,
   Loader2,
   PauseCircle,
   RefreshCw,
@@ -88,6 +89,7 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
   const [busy, setBusy] = useState("");
   const [creating, setCreating] = useState(false);
   const [dns, setDns] = useState<HostnameState | null>(null);
+  const [resetting, setResetting] = useState<AccountRow | null>(null);
 
   const counts = useMemo(() => {
     const c = { all: list.length, pending: 0, approved: 0, rejected: 0, suspended: 0 };
@@ -385,6 +387,17 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
                         )}
                         {a.approval === "pending" && <Btn action="reject" icon={X} />}
                         {a.approval === "approved" && <Btn action="suspend" icon={PauseCircle} />}
+                        {a.userId && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost h-8 border px-2.5 text-xs"
+                            disabled={!!busy}
+                            onClick={() => setResetting(a)}
+                          >
+                            <KeyRound className="size-3.5" />
+                            {t("account.admin.action.resetPassword")}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -402,7 +415,137 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
         />
       )}
       {dns && <DnsDialog state={dns} onClose={() => setDns(null)} />}
+      {resetting && <ResetPassword account={resetting} onClose={() => setResetting(null)} />}
     </div>
+  );
+}
+
+/** Customer's sign-in page, as seen from the admin portal (admin.x → x). */
+const signInAddress = () =>
+  typeof window === "undefined"
+    ? ""
+    : `${window.location.origin.replace("//admin.", "//")}/connexion`;
+
+/** Sign-in details shown once, each with a copy button. */
+function Credentials({ email, password }: { email: string; password: string }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      {(
+        [
+          [t("account.admin.signInAt"), signInAddress()],
+          [t("auth.email"), email],
+          [t("auth.password"), password],
+        ] as const
+      ).map(([label, value]) => (
+        <div key={label} className="flex items-center justify-between gap-2 border-b pb-2">
+          <span className="text-muted-foreground">{label}</span>
+          <span className="flex items-center gap-1">
+            <bdi dir="ltr" className="num font-medium">
+              {value}
+            </bdi>
+            <CopyButton value={value} />
+          </span>
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** New temporary password for a customer who forgot theirs; shown once. */
+function ResetPassword({ account, onClose }: { account: AccountRow; onClose: () => void }) {
+  const { t } = useTranslation();
+  const { dir } = useLocale();
+  const [password, setPassword] = useState(newPassword);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+
+  const submit = async () => {
+    setError("");
+    if (password.length < 8) return setError(t("validation.passwordShort"));
+    setBusy(true);
+    try {
+      const { ok, data } = await post({
+        action: "resetPassword",
+        userId: account.userId,
+        password,
+      });
+      if (!ok)
+        return setError(
+          t(`account.admin.error.${data.error ?? "failed"}`, {
+            defaultValue: t("account.admin.error.failed"),
+          }),
+        );
+      setDone(true);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir={dir} className="sm:max-w-md">
+        <DialogTitle>{t("account.admin.resetTitle")}</DialogTitle>
+        <DialogDescription>
+          {t("account.admin.resetText", { email: account.email })}
+        </DialogDescription>
+        {done ? (
+          <div className="space-y-3 text-sm">
+            <p className="rounded-sm border-s-2 border-emerald-600 bg-emerald-50 px-3 py-2 text-emerald-950">
+              {t("account.admin.resetDone")}
+            </p>
+            <Credentials email={account.email} password={password} />
+            <button type="button" className="btn btn-primary w-full" onClick={onClose}>
+              {t("admin.form.close")}
+            </button>
+          </div>
+        ) : (
+          <form
+            noValidate
+            className="grid gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
+            }}
+          >
+            <F
+              label={t("account.admin.form.password")}
+              id="rp-password"
+              hint={t("account.admin.form.passwordHint")}
+            >
+              <div className="flex gap-2">
+                <input
+                  id="rp-password"
+                  dir="ltr"
+                  className="field num"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="btn btn-ghost border"
+                  aria-label={t("account.admin.form.newPassword")}
+                  title={t("account.admin.form.newPassword")}
+                  onClick={() => setPassword(newPassword())}
+                >
+                  <RefreshCw className="size-4" />
+                </button>
+              </div>
+            </F>
+            {error && (
+              <p role="alert" className="text-sm text-destructive">
+                {error}
+              </p>
+            )}
+            <button type="submit" className="btn btn-primary" disabled={busy}>
+              {busy && <Loader2 className="size-4 animate-spin" />}
+              {t("account.admin.resetSubmit")}
+            </button>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -462,11 +605,6 @@ function CreateAccount({
     }
   };
 
-  const address =
-    typeof window === "undefined"
-      ? ""
-      : `${window.location.origin.replace("//admin.", "//")}/connexion`;
-
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent dir={dir} className="sm:max-w-md">
@@ -477,23 +615,7 @@ function CreateAccount({
             <p className="rounded-sm border-s-2 border-emerald-600 bg-emerald-50 px-3 py-2 text-emerald-950">
               {t("account.admin.createdText")}
             </p>
-            {(
-              [
-                [t("account.admin.signInAt"), address],
-                [t("auth.email"), done.email],
-                [t("auth.password"), done.password],
-              ] as const
-            ).map(([label, value]) => (
-              <div key={label} className="flex items-center justify-between gap-2 border-b pb-2">
-                <span className="text-muted-foreground">{label}</span>
-                <span className="flex items-center gap-1">
-                  <bdi dir="ltr" className="num font-medium">
-                    {value}
-                  </bdi>
-                  <CopyButton value={value} />
-                </span>
-              </div>
-            ))}
+            <Credentials email={done.email} password={done.password} />
             <button type="button" className="btn btn-primary w-full" onClick={onClose}>
               {t("admin.form.close")}
             </button>

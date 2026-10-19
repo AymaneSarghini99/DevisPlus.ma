@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Download,
   FileJson,
+  KeyRound,
   Loader2,
   LogOut,
   Plus,
@@ -203,6 +204,16 @@ function AdminHeader({ signedIn }: { signedIn: boolean }) {
         </div>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
+          {signedIn && (
+            <Link
+              to="/mot-de-passe"
+              className="rounded-sm p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              aria-label={t("account.password.changeTitle")}
+              title={t("account.password.changeTitle")}
+            >
+              <KeyRound className="size-4" />
+            </Link>
+          )}
           {signedIn && (
             <button
               type="button"

@@ -10,6 +10,7 @@ import { betterAuth } from "better-auth";
 import { PostgresDialect, type PostgresPool } from "kysely";
 import { readEnv } from "@/lib/google/config";
 import { deploymentFrom, type SignupMode } from "@/lib/deployment";
+import { emailConfig, resetEmail, sendEmail } from "./email";
 import { hashPassword, verifyPassword } from "./password";
 
 type Env = Record<string, string | undefined>;
@@ -99,6 +100,7 @@ export async function requestOrigin(pool: Pool, s: AuthSettings, request: Reques
 
 export function createAuth(pool: Pool, s: AuthSettings, origin = s.appUrl) {
   const closed = s.signupMode === "closed";
+  const mail = emailConfig(readEnv());
   return betterAuth({
     appName: "DevisPlus.ma",
     baseURL: origin,
@@ -160,6 +162,15 @@ export function createAuth(pool: Pool, s: AuthSettings, origin = s.appUrl) {
       autoSignIn: true,
       // One deployment per customer: the DevisPlus team creates the accounts (admin portal).
       disableSignUp: closed,
+      // "Mot de passe oublié": a link by email when an email service is set (lib/account/email).
+      ...(mail
+        ? {
+            sendResetPassword: async ({ user, url }) =>
+              sendEmail(mail, { to: user.email, ...resetEmail(url) }),
+            resetPasswordTokenExpiresIn: 60 * 60,
+          }
+        : {}),
+      revokeSessionsOnPasswordReset: true,
       password: { hash: hashPassword, verify: verifyPassword },
     },
     socialProviders: s.google

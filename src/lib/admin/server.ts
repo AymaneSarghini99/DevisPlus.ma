@@ -168,6 +168,32 @@ async function createAccount(db: Db, b: Body) {
   return null;
 }
 
+/**
+ * New temporary password for an account (the customer forgot theirs), to hand over. Their other
+ * sign-in methods (Google) stay; every open session is closed.
+ */
+async function resetPassword(db: Db, b: Body) {
+  const userId = str(b, "userId", 64);
+  const password = typeof b["password"] === "string" ? (b["password"] as string) : "";
+  if (password.length < MIN_PASSWORD || password.length > 128)
+    return json({ error: "password" }, 400);
+  const user = await db.query("select 1 from auth.users where id = $1", [userId]);
+  if (!user.rowCount) return json({ error: "not_found" }, 404);
+  const hash = await hashPassword(password);
+  const updated = await db.query(
+    "update auth.accounts set password = $2, updated_at = now() where user_id = $1 and provider_id = 'credential'",
+    [userId, hash],
+  );
+  if (!updated.rowCount)
+    await db.query(
+      `insert into auth.accounts (user_id, account_id, provider_id, password)
+       values ($1, $2, 'credential', $3)`,
+      [userId, userId, hash],
+    );
+  await db.query("delete from auth.sessions where user_id = $1", [userId]);
+  return null;
+}
+
 /** Cloudflare custom hostname: activate the requested domain, check it, or remove it. */
 async function domainAction(db: Db, b: Body) {
   const cf = cloudflareConfig(readEnv());
@@ -214,7 +240,7 @@ async function domainAction(db: Db, b: Body) {
   }
 }
 
-/** POST /api/admin/accounts {action, …} — approve / reject / suspend, create, domains. */
+/** POST /api/admin/accounts {action, …} — approve / reject / suspend, create, reset, domains. */
 export async function handleAccountsPost(request: Request) {
   if (!sameOrigin(request)) return json({ error: "forbidden" }, 403);
   const b = ((await request.json().catch(() => null)) ?? {}) as Body;
@@ -226,6 +252,7 @@ export async function handleAccountsPost(request: Request) {
         if (action === "approve" || action === "reject" || action === "suspend")
           res = await setApproval(db, b);
         else if (action === "create") res = await createAccount(db, b);
+        else if (action === "resetPassword") res = await resetPassword(db, b);
         else if (
           action === "domainActivate" ||
           action === "domainRefresh" ||

@@ -57,8 +57,14 @@ export const hasLock = (t: Tenant | null) => !!t && hasAccount(t.admin);
 
 // ---------- access to the app pages ----------
 
-/** Sign-up and sign-in pages: reachable without an account. */
-export const AUTH_PATHS = ["/inscription", "/connexion"];
+/** Sign-up, sign-in and password pages: reachable without an open workspace. */
+export const AUTH_PATHS = [
+  "/inscription",
+  "/connexion",
+  "/mot-de-passe-oublie",
+  "/reinitialiser",
+  "/mot-de-passe",
+];
 
 /**
  * What an app page shows:

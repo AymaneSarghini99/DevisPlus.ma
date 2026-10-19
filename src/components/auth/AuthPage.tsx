@@ -262,6 +262,16 @@ export function AuthPage({
                       {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
+                  {!signup && (
+                    <p className="mt-1.5 text-end text-xs">
+                      <Link
+                        to="/mot-de-passe-oublie"
+                        className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                      >
+                        {t("account.password.forgotLink")}
+                      </Link>
+                    </p>
+                  )}
                   {signup && (
                     <>
                       <p className="mt-1 text-xs text-muted-foreground">{t("auth.passwordHint")}</p>
