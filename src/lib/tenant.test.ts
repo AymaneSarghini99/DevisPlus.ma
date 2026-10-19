@@ -126,6 +126,7 @@ const ADMIN = {
   email: "admin@climatizone.ma",
   passwordHash: "ab".repeat(32),
   salt: "cd".repeat(16),
+  googleSub: "",
 };
 
 describe("steps 2–6", () => {

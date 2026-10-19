@@ -14,10 +14,12 @@ import { Route as AcceptableUseRouteImport } from './routes/acceptable-use'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as ClientsRouteImport } from './routes/clients'
+import { Route as ConnexionRouteImport } from './routes/connexion'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CreerDevisEnLigneRouteImport } from './routes/creer-devis-en-ligne'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DataProcessingRouteImport } from './routes/data-processing'
+import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ModelesRouteImport } from './routes/modeles'
 import { Route as NexxEntrepriseGroupRouteImport } from './routes/nexx-entreprise-group'
@@ -36,6 +38,8 @@ import { Route as FacturesIndexRouteImport } from './routes/factures.index'
 import { Route as FacturesIdRouteImport } from './routes/factures.$id'
 import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as ApiAuthGoogleIdentityRouteImport } from './routes/api/auth/google-identity'
+import { Route as ApiAuthGoogleStartRouteImport } from './routes/api/auth/google-start'
 import { Route as ApiGoogleCallbackRouteImport } from './routes/api/google/callback'
 import { Route as ApiGoogleConnectRouteImport } from './routes/api/google/connect'
 import { Route as ApiGoogleDisconnectRouteImport } from './routes/api/google/disconnect'
@@ -68,6 +72,11 @@ const ClientsRoute = ClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConnexionRoute = ConnexionRouteImport.update({
+  id: '/connexion',
+  path: '/connexion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CookiesRoute = CookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
@@ -86,6 +95,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const DataProcessingRoute = DataProcessingRouteImport.update({
   id: '/data-processing',
   path: '/data-processing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscriptionRoute = InscriptionRouteImport.update({
+  id: '/inscription',
+  path: '/inscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalRoute = LegalRouteImport.update({
@@ -178,6 +192,16 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthGoogleIdentityRoute = ApiAuthGoogleIdentityRouteImport.update({
+  id: '/api/auth/google-identity',
+  path: '/api/auth/google-identity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthGoogleStartRoute = ApiAuthGoogleStartRouteImport.update({
+  id: '/api/auth/google-start',
+  path: '/api/auth/google-start',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGoogleCallbackRoute = ApiGoogleCallbackRouteImport.update({
   id: '/api/google/callback',
   path: '/api/google/callback',
@@ -215,10 +239,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
+  '/connexion': typeof ConnexionRoute
   '/cookies': typeof CookiesRoute
   '/creer-devis-en-ligne': typeof CreerDevisEnLigneRoute
   '/dashboard': typeof DashboardRoute
   '/data-processing': typeof DataProcessingRoute
+  '/inscription': typeof InscriptionRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
   '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
@@ -237,6 +263,8 @@ export interface FileRoutesByFullPath {
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/api/auth/google-identity': typeof ApiAuthGoogleIdentityRoute
+  '/api/auth/google-start': typeof ApiAuthGoogleStartRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
   '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
@@ -250,10 +278,12 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
+  '/connexion': typeof ConnexionRoute
   '/cookies': typeof CookiesRoute
   '/creer-devis-en-ligne': typeof CreerDevisEnLigneRoute
   '/dashboard': typeof DashboardRoute
   '/data-processing': typeof DataProcessingRoute
+  '/inscription': typeof InscriptionRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
   '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
@@ -272,6 +302,8 @@ export interface FileRoutesByTo {
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures': typeof FacturesIndexRoute
   '/guides': typeof GuidesIndexRoute
+  '/api/auth/google-identity': typeof ApiAuthGoogleIdentityRoute
+  '/api/auth/google-start': typeof ApiAuthGoogleStartRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
   '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
@@ -286,10 +318,12 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
+  '/connexion': typeof ConnexionRoute
   '/cookies': typeof CookiesRoute
   '/creer-devis-en-ligne': typeof CreerDevisEnLigneRoute
   '/dashboard': typeof DashboardRoute
   '/data-processing': typeof DataProcessingRoute
+  '/inscription': typeof InscriptionRoute
   '/legal': typeof LegalRoute
   '/modeles': typeof ModelesRoute
   '/nexx-entreprise-group': typeof NexxEntrepriseGroupRoute
@@ -308,6 +342,8 @@ export interface FileRoutesById {
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/api/auth/google-identity': typeof ApiAuthGoogleIdentityRoute
+  '/api/auth/google-start': typeof ApiAuthGoogleStartRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
   '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
@@ -323,10 +359,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/catalogue'
     | '/clients'
+    | '/connexion'
     | '/cookies'
     | '/creer-devis-en-ligne'
     | '/dashboard'
     | '/data-processing'
+    | '/inscription'
     | '/legal'
     | '/modeles'
     | '/nexx-entreprise-group'
@@ -345,6 +383,8 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/factures/'
     | '/guides/'
+    | '/api/auth/google-identity'
+    | '/api/auth/google-start'
     | '/api/google/callback'
     | '/api/google/connect'
     | '/api/google/disconnect'
@@ -358,10 +398,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/catalogue'
     | '/clients'
+    | '/connexion'
     | '/cookies'
     | '/creer-devis-en-ligne'
     | '/dashboard'
     | '/data-processing'
+    | '/inscription'
     | '/legal'
     | '/modeles'
     | '/nexx-entreprise-group'
@@ -380,6 +422,8 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/factures'
     | '/guides'
+    | '/api/auth/google-identity'
+    | '/api/auth/google-start'
     | '/api/google/callback'
     | '/api/google/connect'
     | '/api/google/disconnect'
@@ -393,10 +437,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/catalogue'
     | '/clients'
+    | '/connexion'
     | '/cookies'
     | '/creer-devis-en-ligne'
     | '/dashboard'
     | '/data-processing'
+    | '/inscription'
     | '/legal'
     | '/modeles'
     | '/nexx-entreprise-group'
@@ -415,6 +461,8 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/factures/'
     | '/guides/'
+    | '/api/auth/google-identity'
+    | '/api/auth/google-start'
     | '/api/google/callback'
     | '/api/google/connect'
     | '/api/google/disconnect'
@@ -429,10 +477,12 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CatalogueRoute: typeof CatalogueRoute
   ClientsRoute: typeof ClientsRoute
+  ConnexionRoute: typeof ConnexionRoute
   CookiesRoute: typeof CookiesRoute
   CreerDevisEnLigneRoute: typeof CreerDevisEnLigneRoute
   DashboardRoute: typeof DashboardRoute
   DataProcessingRoute: typeof DataProcessingRoute
+  InscriptionRoute: typeof InscriptionRoute
   LegalRoute: typeof LegalRoute
   ModelesRoute: typeof ModelesRoute
   NexxEntrepriseGroupRoute: typeof NexxEntrepriseGroupRoute
@@ -451,6 +501,8 @@ export interface RootRouteChildren {
   GuidesSlugRoute: typeof GuidesSlugRoute
   FacturesIndexRoute: typeof FacturesIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
+  ApiAuthGoogleIdentityRoute: typeof ApiAuthGoogleIdentityRoute
+  ApiAuthGoogleStartRoute: typeof ApiAuthGoogleStartRoute
   ApiGoogleCallbackRoute: typeof ApiGoogleCallbackRoute
   ApiGoogleConnectRoute: typeof ApiGoogleConnectRoute
   ApiGoogleDisconnectRoute: typeof ApiGoogleDisconnectRoute
@@ -496,6 +548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClientsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/connexion': {
+      id: '/connexion'
+      path: '/connexion'
+      fullPath: '/connexion'
+      preLoaderRoute: typeof ConnexionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cookies': {
       id: '/cookies'
       path: '/cookies'
@@ -522,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/data-processing'
       fullPath: '/data-processing'
       preLoaderRoute: typeof DataProcessingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscription': {
+      id: '/inscription'
+      path: '/inscription'
+      fullPath: '/inscription'
+      preLoaderRoute: typeof InscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal': {
@@ -650,6 +716,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/google-identity': {
+      id: '/api/auth/google-identity'
+      path: '/api/auth/google-identity'
+      fullPath: '/api/auth/google-identity'
+      preLoaderRoute: typeof ApiAuthGoogleIdentityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/google-start': {
+      id: '/api/auth/google-start'
+      path: '/api/auth/google-start'
+      fullPath: '/api/auth/google-start'
+      preLoaderRoute: typeof ApiAuthGoogleStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/google/callback': {
       id: '/api/google/callback'
       path: '/api/google/callback'
@@ -701,10 +781,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CatalogueRoute: CatalogueRoute,
   ClientsRoute: ClientsRoute,
+  ConnexionRoute: ConnexionRoute,
   CookiesRoute: CookiesRoute,
   CreerDevisEnLigneRoute: CreerDevisEnLigneRoute,
   DashboardRoute: DashboardRoute,
   DataProcessingRoute: DataProcessingRoute,
+  InscriptionRoute: InscriptionRoute,
   LegalRoute: LegalRoute,
   ModelesRoute: ModelesRoute,
   NexxEntrepriseGroupRoute: NexxEntrepriseGroupRoute,
@@ -723,6 +805,8 @@ const rootRouteChildren: RootRouteChildren = {
   GuidesSlugRoute: GuidesSlugRoute,
   FacturesIndexRoute: FacturesIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,
+  ApiAuthGoogleIdentityRoute: ApiAuthGoogleIdentityRoute,
+  ApiAuthGoogleStartRoute: ApiAuthGoogleStartRoute,
   ApiGoogleCallbackRoute: ApiGoogleCallbackRoute,
   ApiGoogleConnectRoute: ApiGoogleConnectRoute,
   ApiGoogleDisconnectRoute: ApiGoogleDisconnectRoute,

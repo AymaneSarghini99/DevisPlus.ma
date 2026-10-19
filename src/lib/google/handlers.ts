@@ -11,6 +11,7 @@
 import type { GoogleConfig } from "./config";
 import {
   authUrl,
+  signInUrl,
   cleanFolderName,
   createFolder,
   createPdf,
@@ -40,10 +41,22 @@ export type Connection = {
   folderName: string | null;
   connectedAt: string;
 };
-type OAuthTx = { state: string; verifier: string; exp: number };
+type OAuthTx = {
+  state: string;
+  verifier: string;
+  exp: number;
+  /** "signin": Google sign-in / sign-up (identity only); absent: Drive connection. */
+  mode?: "signin";
+  /** Page to return to after a Google sign-in. */
+  intent?: "signup" | "signin";
+};
+/** Verified Google identity, handed once to the sign-up / sign-in page. */
+export type GoogleIdentity = { sub: string; email: string; name: string; exp: number };
 
 const CONN = "dp_gdrive";
 const TX = "dp_goauth";
+const GID = "dp_gid";
+const GID_MAX_AGE = 300;
 const CONN_MAX_AGE = 180 * 24 * 3600;
 const TX_MAX_AGE = 600;
 
@@ -126,10 +139,18 @@ export async function handleCallback(req: Request, d: Deps) {
   if (!c) return back("not_configured");
   const url = new URL(req.url);
   const clearTx = clear(c, TX);
+  const tx = await unseal<OAuthTx>(readCookie(req, cookieName(c, TX)), c.encryptionKey, TX);
   const error = url.searchParams.get("error");
+  if (tx?.mode === "signin") {
+    const page = tx.intent === "signup" ? "/inscription" : "/connexion";
+    if (error)
+      return redirect(`${page}?google=${error === "access_denied" ? "denied" : "error"}`, [
+        clearTx,
+      ]);
+    return finishSignIn(url, tx, page, c, d, clearTx);
+  }
   if (error) return back(error === "access_denied" ? "denied" : "error", [clearTx]);
 
-  const tx = await unseal<OAuthTx>(readCookie(req, cookieName(c, TX)), c.encryptionKey, TX);
   const state = url.searchParams.get("state") ?? "";
   const code = url.searchParams.get("code") ?? "";
   if (!tx || tx.exp < Date.now() || !state || !safeEqual(state, tx.state) || !code)
@@ -363,4 +384,71 @@ export async function handleUpload(req: Request, d: Deps) {
       code === "revoked" ? [clear(c, CONN)] : [],
     );
   }
+}
+
+// ---------- Google sign-in / sign-up (identity only) ----------
+
+/** GET /api/auth/google-start?intent=signup|signin — starts Google sign-in (state + PKCE). */
+export async function handleSignInStart(req: Request, d: Deps) {
+  const intent = new URL(req.url).searchParams.get("intent") === "signup" ? "signup" : "signin";
+  const page = intent === "signup" ? "/inscription" : "/connexion";
+  const c = d.config;
+  if (!c) return redirect(`${page}?google=not_configured`);
+  const tx: OAuthTx = {
+    state: randomToken(),
+    verifier: randomToken(48),
+    exp: Date.now() + TX_MAX_AGE * 1000,
+    mode: "signin",
+    intent,
+  };
+  return redirect(signInUrl(c, tx.state, await sha256b64url(tx.verifier)), [
+    cookie(c, TX, await seal(tx, c.encryptionKey, TX), TX_MAX_AGE),
+  ]);
+}
+
+async function finishSignIn(
+  url: URL,
+  tx: OAuthTx,
+  page: string,
+  c: GoogleConfig,
+  d: Deps,
+  clearTx: string,
+) {
+  const state = url.searchParams.get("state") ?? "";
+  const code = url.searchParams.get("code") ?? "";
+  if (tx.exp < Date.now() || !state || !safeEqual(state, tx.state) || !code)
+    return redirect(`${page}?google=state`, [clearTx]);
+  try {
+    const t = await exchangeCode(c, code, tx.verifier, d.fetch);
+    const who = await userInfo(t.access_token, d.fetch);
+    // The access token is not kept: only the verified identity is used.
+    await revoke(t.access_token, d.fetch);
+    if (!who.email || !who.emailVerified) return redirect(`${page}?google=unverified`, [clearTx]);
+    const id: GoogleIdentity = {
+      sub: who.sub,
+      email: who.email.toLowerCase(),
+      name: who.name,
+      exp: Date.now() + GID_MAX_AGE * 1000,
+    };
+    return redirect(`${page}?google=ok`, [
+      clearTx,
+      cookie(c, GID, await seal(id, c.encryptionKey, GID), GID_MAX_AGE),
+    ]);
+  } catch (e) {
+    return redirect(`${page}?google=${codeOf(e)}`, [clearTx]);
+  }
+}
+
+/** POST /api/auth/google-identity — hands the verified identity to the page once, then forgets it. */
+export async function handleIdentity(req: Request, d: Deps) {
+  const c = d.config;
+  if (!c) return json({ error: "not_configured" }, 503);
+  if (!sameOrigin(req, c)) return json({ error: "forbidden" }, 403);
+  const id = await unseal<GoogleIdentity>(
+    readCookie(req, cookieName(c, GID)),
+    c.encryptionKey,
+    GID,
+  );
+  if (!id || id.exp < Date.now()) return json({ error: "none" }, 404, [clear(c, GID)]);
+  return json({ sub: id.sub, email: id.email, name: id.name }, 200, [clear(c, GID)]);
 }

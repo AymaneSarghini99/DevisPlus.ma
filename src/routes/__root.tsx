@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
@@ -158,6 +158,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/** Local test toolbar: only under `vite dev`, never bundled in production builds. */
+const DevToolbar = import.meta.env.DEV ? lazy(() => import("../dev/DevToolbar")) : null;
+function DevTools() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!DevToolbar || !mounted) return null;
+  return (
+    <Suspense fallback={null}>
+      <DevToolbar />
+    </Suspense>
+  );
+}
+
 function RootShell({ children }: { children: ReactNode }) {
   const { locale } = Route.useRouteContext();
   return (
@@ -187,6 +200,7 @@ function RootComponent() {
         <WhatsAppWidget />
         <LocalizedToaster />
         <ConfirmHost />
+        <DevTools />
       </LocaleProvider>
     </QueryClientProvider>
   );

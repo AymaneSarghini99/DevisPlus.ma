@@ -109,6 +109,14 @@ export const meta: M["meta"] = {
     title: "NEXX Entreprise Group: مجموعة واحدة وطموحات مختلفة | DevisPlus.ma",
     description: "DevisPlus.ma جزء من NEXX Entreprise Group. اكتشف المجموعة وطموحاتها.",
   },
+  signin: {
+    title: "تسجيل الدخول | DevisPlus.ma",
+    description: "ادخل إلى فضائك على DevisPlus.",
+  },
+  signup: {
+    title: "إنشاء حساب | DevisPlus.ma",
+    description: "أنشئ حسابك على DevisPlus مجانًا.",
+  },
   admin: {
     title: "الإدارة — DevisPlus.ma",
     description: "سجل عملاء DevisPlus ومدفوعاتهم.",

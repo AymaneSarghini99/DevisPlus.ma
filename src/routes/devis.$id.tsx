@@ -5,6 +5,7 @@ import { Copy, Printer, Receipt, UserPlus } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { DownloadPdfButton } from "@/components/DownloadPdfButton";
 import { SaveBar } from "@/components/SaveBar";
+import { useDevFill, type DevAction } from "@/dev/devFill";
 import { DriveDocStatus } from "@/components/DriveDocStatus";
 import { driveFileName } from "@/lib/driveSync";
 import { toast } from "sonner";
@@ -21,8 +22,10 @@ import { pageMeta } from "@/i18n/meta";
 import {
   amountInWords,
   duplicateQuote,
+  emptyParty,
   loadQuotes,
   needsExemptionNote,
+  newLine,
   newQuote,
   quoteTotals,
   saveQuote,
@@ -91,6 +94,9 @@ function Editor() {
   const [q, setQ] = useState<Quote | null>(null);
   const [missing, setMissing] = useState(false);
   const [settings, setSettings] = useState<Settings>(defaultSettings);
+  // Local test toolbar (vite dev only): fill or clear the quote being edited.
+  const devFill = useRef<((a: DevAction) => void) | null>(null);
+  useDevFill("quote", (a) => devFill.current?.(a));
   const [clients, setClients] = useState<Client[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -164,6 +170,15 @@ function Editor() {
     setQ({ ...q, ...patch });
     setDirty(true);
     setSaved(false);
+  };
+  devFill.current = (a) => {
+    if (!import.meta.env.DEV) return;
+    if (a === "clear")
+      update({ client: emptyParty(), lines: [newLine(settings.defaultVat)], delivery: "" });
+    else if (import.meta.env.DEV)
+      void import("@/dev/mock").then(({ mockClient, mockLines }) =>
+        update({ client: mockClient(), lines: mockLines(), delivery: "2 semaines" }),
+      );
   };
   const setParty = (who: "company" | "client", patch: Partial<Party>) =>
     update({ [who]: { ...q[who], ...patch } } as Partial<Quote>);

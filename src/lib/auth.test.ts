@@ -52,26 +52,37 @@ describe("owner access", () => {
 });
 
 describe("access to the app pages", () => {
-  it("sends visitors without an account to the setup wizard, then asks known accounts to sign in", async () => {
-    const { accessDecision } = await import("./auth");
-    const none = newTenant();
+  it("sends visitors to sign up, sign in, then the setup wizard", async () => {
+    const { accessDecision, safeNext, googleMatches } = await import("./auth");
     const admin = await createAdmin("a@b.ma", "motdepasse1");
     const started = { ...newTenant(), admin };
     const finished = {
       ...started,
-      onboarding: { ...started.onboarding, finishedAt: "2026-10-18T10:00:00Z" },
+      onboarding: { ...started.onboarding, finishedAt: "2026-10-19T10:00:00Z" },
     };
-    // No account: every app page goes to the wizard, the wizard itself is open.
-    expect(accessDecision("/devis/nouveau", null, false)).toBe("setup");
-    expect(accessDecision("/dashboard", none, false)).toBe("setup");
-    expect(accessDecision("/onboarding", null, false)).toBe("open");
-    // Account created but setup not finished: back to the wizard.
-    expect(accessDecision("/devis/nouveau", started, true)).toBe("setup");
-    // Known account, not signed in: sign-in first (wizard included).
+    // No account in this browser: sign-up first, for every app page and the wizard.
+    expect(accessDecision("/devis/nouveau", null, false)).toBe("signup");
+    expect(accessDecision("/onboarding", newTenant(), false)).toBe("signup");
+    // Account, not signed in: sign-in.
     expect(accessDecision("/devis/nouveau", finished, false)).toBe("login");
     expect(accessDecision("/onboarding", started, false)).toBe("login");
-    // Signed in with a finished setup: the app.
+    // Signed in, setup unfinished: the wizard (which itself is open).
+    expect(accessDecision("/dashboard", started, true)).toBe("setup");
+    expect(accessDecision("/onboarding", started, true)).toBe("open");
+    // Signed in and set up.
     expect(accessDecision("/devis/nouveau", finished, true)).toBe("open");
-    expect(accessDecision("/parametres/", finished, true)).toBe("open");
+    // A Google-only account also counts as an account.
+    const g = {
+      ...newTenant(),
+      admin: { ...newTenant().admin, email: "g@b.ma", googleSub: "123" },
+    };
+    expect(accessDecision("/dashboard", g, false)).toBe("login");
+    expect(googleMatches(g, "123")).toBe(true);
+    expect(googleMatches(g, "999")).toBe(false);
+    expect(googleMatches(newTenant(), "")).toBe(false);
+    // Return paths stay inside the app.
+    expect(safeNext("/devis/nouveau")).toBe("/devis/nouveau");
+    expect(safeNext("//evil.example")).toBeUndefined();
+    expect(safeNext("https://evil.example")).toBeUndefined();
   });
 });

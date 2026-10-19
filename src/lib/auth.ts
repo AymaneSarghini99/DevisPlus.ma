@@ -37,6 +37,7 @@ export async function createAdmin(email: string, password: string): Promise<Admi
     email: email.trim().toLowerCase(),
     salt: hex(salt),
     passwordHash: await derive(password, salt),
+    googleSub: "",
   };
 }
 
@@ -54,11 +55,11 @@ export async function verifyAdmin(admin: AdminAccount, email: string, password: 
   return same(await derive(password, fromHex(admin.salt)), admin.passwordHash);
 }
 
-/** A lock exists once an admin password has been set. */
-export const hasLock = (t: Tenant | null) => !!t?.admin.passwordHash;
+/** An account exists once it has a password or a Google identity. */
+export const hasLock = (t: Tenant | null) => !!(t?.admin.passwordHash || t?.admin.googleSub);
 
 /** The session lasts until the browser tab is closed. */
-const token = (t: Tenant) => `${t.id}:${t.admin.passwordHash.slice(0, 16)}`;
+const token = (t: Tenant) => `${t.id}:${(t.admin.passwordHash || t.admin.googleSub).slice(0, 16)}`;
 export function isUnlocked(t: Tenant) {
   try {
     return sessionStorage.getItem(SESSION_KEY) === token(t);
@@ -123,22 +124,40 @@ export function signOutOwner() {
 
 // ---------- access to the app pages ----------
 
+/** Sign-up and sign-in pages: reachable without an account. */
+export const AUTH_PATHS = ["/inscription", "/connexion"];
+
 /**
- * What an app page shows: "setup" sends visitors without an account (or with an unfinished
- * setup) to the setup wizard, whose first step creates the account; "login" asks a known
- * account to sign in; "open" shows the page. The wizard itself only needs sign-in once an
- * account exists. Public pages and the owner's /admin page are not concerned.
+ * What an app page shows:
+ * - "signup": no account in this browser yet (sign-up page, then the setup wizard);
+ * - "login": an account exists but nobody signed in during this browser session;
+ * - "setup": signed in but the setup wizard is not finished;
+ * - "open": the page.
+ * Public pages, the sign-up/sign-in pages and the owner's /admin page are not concerned.
  */
-export type AccessDecision = "open" | "login" | "setup";
+export type AccessDecision = "open" | "login" | "setup" | "signup";
 export function accessDecision(
   path: string,
   tenant: Tenant | null,
   unlocked: boolean,
 ): AccessDecision {
   const p = path.replace(/\/$/, "") || "/";
-  const account = hasLock(tenant);
-  if (account && !unlocked) return "login";
+  if (!hasLock(tenant)) return "signup";
+  if (!unlocked) return "login";
   if (p === "/onboarding") return "open";
-  if (!account || !tenant?.onboarding.finishedAt) return "setup";
+  if (!tenant?.onboarding.finishedAt) return "setup";
   return "open";
 }
+
+/** True when a Google identity (verified by the server) matches this account. */
+export const googleMatches = (t: Tenant | null, sub: string) =>
+  !!t?.admin.googleSub && !!sub && t.admin.googleSub === sub;
+
+/** Safe in-app return path after sign-in (never another site). */
+export const safeNext = (next: unknown) =>
+  typeof next === "string" &&
+  next.startsWith("/") &&
+  !next.startsWith("//") &&
+  !next.startsWith("/\\")
+    ? next
+    : undefined;

@@ -52,6 +52,22 @@ export function authUrl(c: GoogleConfig, state: string, codeChallenge: string, l
   return u.toString();
 }
 
+/** Google sign-in (identity only: name and email, no Drive access, no refresh token). */
+export function signInUrl(c: GoogleConfig, state: string, codeChallenge: string) {
+  const u = new URL(AUTH_URL);
+  u.search = new URLSearchParams({
+    client_id: c.clientId,
+    redirect_uri: c.redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    prompt: "select_account",
+    state,
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
+  }).toString();
+  return u.toString();
+}
+
 async function tokenRequest(fetchFn: Fetch, body: Record<string, string>) {
   let res: Response;
   try {
@@ -114,9 +130,19 @@ export async function revoke(token: string, fetchFn: Fetch) {
 export async function userInfo(accessToken: string, fetchFn: Fetch) {
   const res = await fetchFn(USERINFO_URL, { headers: { authorization: `Bearer ${accessToken}` } });
   if (!res.ok) throw new GoogleError(res.status >= 500 ? "google_unavailable" : "bad_request");
-  const u = (await res.json()) as { sub?: string; email?: string; email_verified?: boolean };
+  const u = (await res.json()) as {
+    sub?: string;
+    email?: string;
+    email_verified?: boolean;
+    name?: string;
+  };
   if (!u.sub) throw new GoogleError("bad_request");
-  return { sub: u.sub, email: u.email ?? "" };
+  return {
+    sub: u.sub,
+    email: u.email ?? "",
+    emailVerified: u.email_verified === true,
+    name: u.name ?? "",
+  };
 }
 
 async function drive(accessToken: string, path: string, fetchFn: Fetch, init: RequestInit = {}) {

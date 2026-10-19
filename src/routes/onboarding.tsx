@@ -14,6 +14,7 @@ import { QuotesStep } from "@/components/onboarding/steps/QuotesStep";
 import { ReviewStep } from "@/components/onboarding/steps/ReviewStep";
 import type { Secret, StepProps } from "@/components/onboarding/steps/shared";
 import { createAdmin, unlock } from "@/lib/auth";
+import { useDevFill } from "@/dev/devFill";
 import type { Locale } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
@@ -74,6 +75,23 @@ function Onboarding() {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const navigate = useNavigate();
   const [secret, setSecret] = useState<Secret>({ password: "", confirm: "" });
+  // Local test toolbar (vite dev only): fill the current step, or start the setup over.
+  useDevFill("onboarding", (action) => {
+    if (import.meta.env.DEV) {
+      if (action === "clear") {
+        localStorage.removeItem("devisplus.tenant");
+        sessionStorage.clear();
+        window.location.reload();
+        return;
+      }
+      void import("@/dev/mock").then(({ mockStep, MOCK_PASSWORD }) => {
+        setTenant((tn) => (tn ? mockStep(tn, tn.onboarding.current) : tn));
+        // Only a wizard without an account gets the test password (never replace a real one).
+        if (!(tenant?.admin.passwordHash || tenant?.admin.googleSub))
+          setSecret({ password: MOCK_PASSWORD, confirm: MOCK_PASSWORD });
+      });
+    }
+  });
   const [busy, setBusy] = useState(false);
   const [tried, setTried] = useState(false);
   const [shake, setShake] = useState(false);

@@ -16,8 +16,11 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
   const p = tenant.profile;
   const set = (patch: Partial<BusinessProfile>) =>
     update((tn) => {
-      // The admin email follows the business email until it is changed by hand.
+      // Before an account exists, the admin email follows the business email. Once the account
+      // exists (sign-up page), its sign-in email is never changed from here.
+      const account = !!(tn.admin.passwordHash || tn.admin.googleSub);
       const follow =
+        !account &&
         patch.email !== undefined &&
         (!tn.admin.email || tn.admin.email === tn.profile.email.trim());
       return {
@@ -27,6 +30,8 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
       };
     });
   const [show, setShow] = useState(false);
+  // Account created on the sign-up page: no need to ask for a password again.
+  const hasAccount = !!(tenant.admin.passwordHash || tenant.admin.googleSub);
   const slug = tenant.domain.subdomain || slugify(p.companyName);
 
   const chooseLanguage = (l: Locale) => {
@@ -119,74 +124,86 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
         })}
       </FormSection>
 
-      <FormSection title={t("onboarding.profile.account")} delay={340}>
-        <p className="-mt-2 text-xs text-muted-foreground sm:col-span-2">
-          {t("onboarding.profile.accountText")}
+      {hasAccount ? (
+        <p className="ob-enter flex flex-wrap items-center gap-x-2 rounded-[var(--radius)] border border-dashed px-4 py-3 text-sm">
+          <span className="font-medium">{t("onboarding.profile.account")}</span>
+          <bdi dir="ltr" className="text-muted-foreground">
+            {tenant.admin.email}
+          </bdi>
+          {tenant.admin.googleSub && (
+            <span className="text-xs text-muted-foreground">· Google</span>
+          )}
         </p>
-        <F
-          label={t("onboarding.profile.adminEmail")}
-          id="ob-adminEmail"
-          error={err("adminEmail")}
-          wide
-        >
-          <input
+      ) : (
+        <FormSection title={t("onboarding.profile.account")} delay={340}>
+          <p className="-mt-2 text-xs text-muted-foreground sm:col-span-2">
+            {t("onboarding.profile.accountText")}
+          </p>
+          <F
+            label={t("onboarding.profile.adminEmail")}
             id="ob-adminEmail"
-            type="email"
-            autoComplete="username"
-            dir="ltr"
-            className={FIELD}
-            aria-invalid={!!err("adminEmail")}
-            value={tenant.admin.email}
-            onChange={(e) =>
-              update((tn) => ({ ...tn, admin: { ...tn.admin, email: e.target.value.trim() } }))
-            }
-          />
-        </F>
-        <F
-          label={t("onboarding.profile.password")}
-          id="ob-password"
-          error={err("password")}
-          hint={
-            tenant.admin.passwordHash
-              ? t("onboarding.profile.passwordKeep")
-              : t("onboarding.profile.passwordHint")
-          }
-        >
-          <div className="relative">
+            error={err("adminEmail")}
+            wide
+          >
             <input
-              id="ob-password"
+              id="ob-adminEmail"
+              type="email"
+              autoComplete="username"
+              dir="ltr"
+              className={FIELD}
+              aria-invalid={!!err("adminEmail")}
+              value={tenant.admin.email}
+              onChange={(e) =>
+                update((tn) => ({ ...tn, admin: { ...tn.admin, email: e.target.value.trim() } }))
+              }
+            />
+          </F>
+          <F
+            label={t("onboarding.profile.password")}
+            id="ob-password"
+            error={err("password")}
+            hint={
+              tenant.admin.passwordHash
+                ? t("onboarding.profile.passwordKeep")
+                : t("onboarding.profile.passwordHint")
+            }
+          >
+            <div className="relative">
+              <input
+                id="ob-password"
+                type={show ? "text" : "password"}
+                autoComplete="new-password"
+                dir="ltr"
+                className={`${FIELD} pe-10`}
+                aria-invalid={!!err("password")}
+                value={secret.password}
+                onChange={(e) => setSecret({ ...secret, password: e.target.value })}
+              />
+              <button
+                type="button"
+                className="absolute end-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground"
+                aria-label={show ? t("onboarding.profile.hide") : t("onboarding.profile.show")}
+                aria-pressed={show}
+                onClick={() => setShow(!show)}
+              >
+                {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
+          </F>
+          <F label={t("onboarding.profile.confirm")} id="ob-confirm" error={err("confirm")}>
+            <input
+              id="ob-confirm"
               type={show ? "text" : "password"}
               autoComplete="new-password"
               dir="ltr"
-              className={`${FIELD} pe-10`}
-              aria-invalid={!!err("password")}
-              value={secret.password}
-              onChange={(e) => setSecret({ ...secret, password: e.target.value })}
+              className={FIELD}
+              aria-invalid={!!err("confirm")}
+              value={secret.confirm}
+              onChange={(e) => setSecret({ ...secret, confirm: e.target.value })}
             />
-            <button
-              type="button"
-              className="absolute end-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:text-foreground"
-              aria-label={show ? t("onboarding.profile.hide") : t("onboarding.profile.show")}
-              aria-pressed={show}
-              onClick={() => setShow(!show)}
-            >
-              {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </button>
-          </div>
-        </F>
-        <F label={t("onboarding.profile.confirm")} id="ob-confirm" error={err("confirm")}>
-          <input
-            id="ob-confirm"
-            type={show ? "text" : "password"}
-            autoComplete="new-password"
-            dir="ltr"
-            className={FIELD}
-            aria-invalid={!!err("confirm")}
-            value={secret.confirm}
-            onChange={(e) => setSecret({ ...secret, confirm: e.target.value })}
-          />
-        </F>
-      </FormSection>
+          </F>
+        </FormSection>
+      )}
 
       <FormSection title={t("onboarding.profile.preferences")} delay={420}>
         <F label={t("onboarding.profile.currency")} id="ob-currency">
