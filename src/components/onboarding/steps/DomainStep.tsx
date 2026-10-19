@@ -1,5 +1,6 @@
 import { Clock, Globe, Mail, Server } from "lucide-react";
 import { toast } from "sonner";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { F } from "@/components/Form";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
@@ -11,6 +12,23 @@ import { workspaceAddress } from "@/onboarding/preview";
 import { DomainGuide } from "../DomainGuide";
 import { ChoiceCard, FIELD, FormSection, type StepProps } from "./shared";
 
+/** Opens a prepared activation request (email or WhatsApp); the user sends it from their own app. */
+export function sendDomainRequest(t: TFunction, tenant: Tenant, channel: "email" | "whatsapp") {
+  const p = tenant.profile;
+  const d = tenant.domain;
+  const subject = t("onboarding.domain.requestSubject", { company: p.companyName.trim() });
+  const body = t("onboarding.domain.requestBody", {
+    company: p.companyName.trim(),
+    subdomain: `${d.subdomain.trim()}.${PLATFORM_DOMAIN}`,
+    custom: d.mode === "custom" ? d.customDomain.trim() : t("onboarding.domain.none"),
+    email: p.email.trim(),
+    phone: p.phone.trim(),
+  });
+  if (channel === "email")
+    window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  else window.open(whatsappUrl(CONTACT.whatsapp, `${subject}\n\n${body}`), "_blank", "noopener");
+}
+
 export function DomainStep({ tenant, update, err }: StepProps) {
   const { t } = useTranslation();
   const fmt = useFormat();
@@ -19,20 +37,8 @@ export function DomainStep({ tenant, update, err }: StepProps) {
     update((tn: Tenant) => ({ ...tn, domain: { ...tn.domain, ...patch } }));
   const valid = Object.keys(domainErrors(d)).length === 0;
 
-  /** Opens a prepared activation request; the user sends it from their own app. */
   const request = (channel: "email" | "whatsapp") => {
-    const p = tenant.profile;
-    const subject = t("onboarding.domain.requestSubject", { company: p.companyName.trim() });
-    const body = t("onboarding.domain.requestBody", {
-      company: p.companyName.trim(),
-      subdomain: `${d.subdomain.trim()}.${PLATFORM_DOMAIN}`,
-      custom: d.mode === "custom" ? d.customDomain.trim() : t("onboarding.domain.none"),
-      email: p.email.trim(),
-      phone: p.phone.trim(),
-    });
-    if (channel === "email")
-      window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    else window.open(whatsappUrl(CONTACT.whatsapp, `${subject}\n\n${body}`), "_blank", "noopener");
+    sendDomainRequest(t, tenant, channel);
     set({ requestedAt: new Date().toISOString() });
     toast(t("onboarding.domain.prepared"), {
       description: t("onboarding.domain.preparedText"),

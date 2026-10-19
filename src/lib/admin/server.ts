@@ -11,14 +11,8 @@ import { sessionUserOn, type SessionUser } from "@/lib/account/server";
 import { hashPassword } from "@/lib/account/password";
 import { asServer, asUser, json, pgError, sameOrigin, withPool, type Db } from "@/lib/db/server";
 import { deploymentFrom } from "@/lib/deployment";
-import {
-  cleanHostname,
-  cloudflareConfig,
-  CloudflareError,
-  createHostname,
-  deleteHostname,
-  getHostname,
-} from "@/lib/domains/cloudflare";
+import { cloudflareConfig } from "@/lib/domains/cloudflare";
+import { domainAction } from "@/lib/domains/server";
 import { readEnv } from "@/lib/google/config";
 import { applyOps, writeError } from "@/lib/workspace/server";
 import { PLATFORM_KEYS, validOps } from "@/lib/workspace/keys";
@@ -222,49 +216,16 @@ async function deleteAccount(db: Db, b: Body) {
 }
 
 /** Cloudflare custom hostname: activate the requested domain, check it, or remove it. */
-async function domainAction(db: Db, b: Body) {
-  const cf = cloudflareConfig(readEnv());
-  if (!cf) return json({ error: "domains_off" }, 503);
-  const orgId = str(b, "orgId", 64);
-  const { rows } = await db.query<{ custom_hostname_id: string | null }>(
-    "select custom_hostname_id from public.organizations where id = $1",
-    [orgId],
-  );
-  if (!rows.length) return json({ error: "not_found" }, 404);
-  const current = rows[0]!.custom_hostname_id;
-  try {
-    if (b["action"] === "domainRemove") {
-      if (current) await deleteHostname(cf, current);
-      await db.query(
-        "update public.organizations set custom_hostname_id = null, custom_domain = null, domain_state = 'none' where id = $1",
-        [orgId],
-      );
-      return json({ ok: true });
-    }
-    let state;
-    if (b["action"] === "domainActivate" && !current) {
-      const hostname = cleanHostname(b["hostname"]);
-      if (!hostname) return json({ error: "hostname" }, 400);
-      const used = await db.query(
-        "select 1 from public.organizations where custom_domain = $1 and id <> $2",
-        [hostname, orgId],
-      );
-      if (used.rowCount) return json({ error: "hostname_taken" }, 409);
-      state = await createHostname(cf, hostname);
-    } else if (current) state = await getHostname(cf, current);
-    else return json({ error: "bad_request" }, 400);
-    await db.query(
-      `update public.organizations
-       set custom_hostname_id = $2, custom_domain = $3, domain_mode = 'custom',
-           domain_state = $4::public.domain_state
-       where id = $1`,
-      [orgId, state.id, state.hostname, state.state === "active" ? "active" : "pending"],
-    );
-    return json({ domain: state });
-  } catch (e) {
-    if (e instanceof CloudflareError) return json({ error: "cloudflare", detail: e.message }, 502);
-    throw e;
-  }
+async function adminDomain(db: Db, b: Body) {
+  const action =
+    b["action"] === "domainActivate"
+      ? "connect"
+      : b["action"] === "domainRemove"
+        ? "remove"
+        : "check";
+  const r = await domainAction(db, str(b, "orgId", 64), action, b["hostname"]);
+  if (!r.ok) return json({ error: r.error, ...(r.detail ? { detail: r.detail } : {}) }, r.status);
+  return json(r.domain ? { domain: r.domain } : { ok: true });
 }
 
 /** POST /api/admin/accounts {action, …} — approve / reject / suspend, create, reset, domains. */
@@ -286,7 +247,7 @@ export async function handleAccountsPost(request: Request) {
           action === "domainRefresh" ||
           action === "domainRemove"
         )
-          return await domainAction(db, b);
+          return await adminDomain(db, b);
         else return json({ error: "bad_request" }, 400);
       } catch (e) {
         const { code } = pgError(e);

@@ -53,6 +53,7 @@ import { Route as ApiGoogleFoldersRouteImport } from './routes/api/google/folder
 import { Route as ApiGoogleStatusRouteImport } from './routes/api/google/status'
 import { Route as ApiGoogleUploadRouteImport } from './routes/api/google/upload'
 import { Route as ApiWorkspaceIndexRouteImport } from './routes/api/workspace/index'
+import { Route as ApiWorkspaceDomainRouteImport } from './routes/api/workspace/domain'
 import { Route as ApiWorkspaceStatusRouteImport } from './routes/api/workspace/status'
 
 const IndexRoute = IndexRouteImport.update({
@@ -275,6 +276,11 @@ const ApiWorkspaceIndexRoute = ApiWorkspaceIndexRouteImport.update({
   path: '/api/workspace/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWorkspaceDomainRoute = ApiWorkspaceDomainRouteImport.update({
+  id: '/api/workspace/domain',
+  path: '/api/workspace/domain',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWorkspaceStatusRoute = ApiWorkspaceStatusRouteImport.update({
   id: '/api/workspace/status',
   path: '/api/workspace/status',
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/api/google/folders': typeof ApiGoogleFoldersRoute
   '/api/google/status': typeof ApiGoogleStatusRoute
   '/api/google/upload': typeof ApiGoogleUploadRoute
+  '/api/workspace/domain': typeof ApiWorkspaceDomainRoute
   '/api/workspace/status': typeof ApiWorkspaceStatusRoute
   '/api/workspace/': typeof ApiWorkspaceIndexRoute
 }
@@ -372,6 +379,7 @@ export interface FileRoutesByTo {
   '/api/google/folders': typeof ApiGoogleFoldersRoute
   '/api/google/status': typeof ApiGoogleStatusRoute
   '/api/google/upload': typeof ApiGoogleUploadRoute
+  '/api/workspace/domain': typeof ApiWorkspaceDomainRoute
   '/api/workspace/status': typeof ApiWorkspaceStatusRoute
   '/api/workspace': typeof ApiWorkspaceIndexRoute
 }
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/api/google/folders': typeof ApiGoogleFoldersRoute
   '/api/google/status': typeof ApiGoogleStatusRoute
   '/api/google/upload': typeof ApiGoogleUploadRoute
+  '/api/workspace/domain': typeof ApiWorkspaceDomainRoute
   '/api/workspace/status': typeof ApiWorkspaceStatusRoute
   '/api/workspace/': typeof ApiWorkspaceIndexRoute
 }
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/api/google/folders'
     | '/api/google/status'
     | '/api/google/upload'
+    | '/api/workspace/domain'
     | '/api/workspace/status'
     | '/api/workspace/'
   fileRoutesByTo: FileRoutesByTo
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/api/google/folders'
     | '/api/google/status'
     | '/api/google/upload'
+    | '/api/workspace/domain'
     | '/api/workspace/status'
     | '/api/workspace'
   id:
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/api/google/folders'
     | '/api/google/status'
     | '/api/google/upload'
+    | '/api/workspace/domain'
     | '/api/workspace/status'
     | '/api/workspace/'
   fileRoutesById: FileRoutesById
@@ -611,6 +623,7 @@ export interface RootRouteChildren {
   ApiGoogleFoldersRoute: typeof ApiGoogleFoldersRoute
   ApiGoogleStatusRoute: typeof ApiGoogleStatusRoute
   ApiGoogleUploadRoute: typeof ApiGoogleUploadRoute
+  ApiWorkspaceDomainRoute: typeof ApiWorkspaceDomainRoute
   ApiWorkspaceStatusRoute: typeof ApiWorkspaceStatusRoute
   ApiWorkspaceIndexRoute: typeof ApiWorkspaceIndexRoute
 }
@@ -925,6 +938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWorkspaceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/workspace/domain': {
+      id: '/api/workspace/domain'
+      path: '/api/workspace/domain'
+      fullPath: '/api/workspace/domain'
+      preLoaderRoute: typeof ApiWorkspaceDomainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/workspace/status': {
       id: '/api/workspace/status'
       path: '/api/workspace/status'
@@ -979,6 +999,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGoogleFoldersRoute: ApiGoogleFoldersRoute,
   ApiGoogleStatusRoute: ApiGoogleStatusRoute,
   ApiGoogleUploadRoute: ApiGoogleUploadRoute,
+  ApiWorkspaceDomainRoute: ApiWorkspaceDomainRoute,
   ApiWorkspaceStatusRoute: ApiWorkspaceStatusRoute,
   ApiWorkspaceIndexRoute: ApiWorkspaceIndexRoute,
 }

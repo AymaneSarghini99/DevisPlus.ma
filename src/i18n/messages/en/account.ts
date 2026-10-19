@@ -179,6 +179,33 @@ export const account = {
       "Hello, I would like to activate my DevisPlus workspace. Company: {{company}} — account: {{email}}",
     later: "Later",
   },
+  domain: {
+    intro:
+      "Choose your workspace address: an included DevisPlus subdomain, or your own domain name.",
+    save: "Save the address",
+    saved: "Address saved",
+    connectText:
+      "Connect your domain: we give you the DNS record to add at your domain provider; the SSL certificate is created automatically.",
+    connect: "Connect my domain",
+    dnsText:
+      "Add these records at your domain provider (OVH, GoDaddy, Genious…), then click “Check”. Activation usually takes from a few minutes to a few hours.",
+    activeText: "Your domain is active: your workspace is available at this address.",
+    activeNow: "{{domain}} is active.",
+    check: "Check",
+    remove: "Remove the domain",
+    removeConfirm:
+      "Remove the domain {{domain}}? Your workspace stays available on the DevisPlus subdomain.",
+    trialNote:
+      "Your own domain is connected once your workspace is activated. Ask our team for activation:",
+    state: { active: "Active", pending: "Being verified", failed: "Verification failed" },
+    error: {
+      trial: "Your own domain is connected once your workspace is activated.",
+      hostname: "This domain name is not valid.",
+      hostname_taken: "This domain is already used by another company.",
+      domains_off: "Automatic domain connection is not available: ask our team for activation.",
+      forbidden: "Only the account owner can change the domain.",
+    },
+  },
   docs: {
     title: "Numbering and footer",
     text: "Applies to new quotes and invoices; existing documents keep their number.",

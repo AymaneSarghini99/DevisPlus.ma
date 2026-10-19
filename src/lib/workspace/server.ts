@@ -6,7 +6,10 @@
  */
 import type { Pool } from "@neondatabase/serverless";
 import { sessionUserOn, type SessionUser } from "@/lib/account/server";
-import { asUser, json, pgError, sameOrigin, withPool, type Db } from "@/lib/db/server";
+import { asServer, asUser, json, pgError, sameOrigin, withPool, type Db } from "@/lib/db/server";
+import { cloudflareConfig, type HostnameState } from "@/lib/domains/cloudflare";
+import { domainAction } from "@/lib/domains/server";
+import { readEnv } from "@/lib/google/config";
 import { validOps, WORKSPACE_KEYS, type KeyedOp } from "./keys";
 
 export type Approval = "pending" | "approved" | "rejected" | "suspended";
@@ -165,5 +168,53 @@ export async function handleWorkspacePost(request: Request) {
     } catch (e) {
       return writeError(e);
     }
+  });
+}
+
+// ---------- the company's own domain (Cloudflare custom hostname) ----------
+
+/**
+ * GET /api/workspace/domain — whether domains can be connected here, and the company's domain
+ * with its activation state and the DNS records to add (asked to Cloudflare when connected).
+ */
+export const handleDomainGet = (request: Request) =>
+  withUser(request, async (pool, user) => {
+    const org = await asUser(pool, user.id, orgOf);
+    if (!canUse(org)) return json({ org: orgJson(org) }, 403);
+    const cf = cloudflareConfig(readEnv());
+    let domain: HostnameState | null = null;
+    if (cf && org.customDomain) {
+      const r = await asServer(pool, (db) => domainAction(db, org.id, "check"));
+      domain = r.ok ? r.domain : null;
+    }
+    return json({
+      enabled: !!cf,
+      target: cf?.target ?? "",
+      approval: org.approval,
+      domain,
+      customDomain: org.customDomain,
+      domainState: org.domainState,
+    });
+  });
+
+/** POST /api/workspace/domain {action: connect | check | remove, hostname} — approved owners and admins. */
+export async function handleDomainPost(request: Request) {
+  if (!sameOrigin(request)) return json({ error: "forbidden" }, 403);
+  const b = ((await request.json().catch(() => null)) ?? {}) as {
+    action?: unknown;
+    hostname?: unknown;
+  };
+  const action = b.action;
+  if (action !== "connect" && action !== "check" && action !== "remove")
+    return json({ error: "bad_request" }, 400);
+  return withUser(request, async (pool, user) => {
+    const org = await asUser(pool, user.id, orgOf);
+    if (!canUse(org)) return json({ org: orgJson(org) }, 403);
+    // The free trial includes the DevisPlus address; an own domain comes with activation.
+    if (org.approval !== "approved") return json({ error: "trial" }, 402);
+    if (org.role !== "owner" && org.role !== "admin") return json({ error: "forbidden" }, 403);
+    const r = await asServer(pool, (db) => domainAction(db, org.id, action, b.hostname));
+    if (!r.ok) return json({ error: r.error, ...(r.detail ? { detail: r.detail } : {}) }, r.status);
+    return json({ domain: r.domain });
   });
 }

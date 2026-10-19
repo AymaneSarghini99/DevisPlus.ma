@@ -184,6 +184,38 @@ export const account = {
       "Bonjour, je souhaite activer mon espace DevisPlus. Entreprise : {{company}} — compte : {{email}}",
     later: "Plus tard",
   },
+  domain: {
+    intro:
+      "Choisissez l'adresse de votre espace : un sous-domaine DevisPlus inclus, ou votre propre nom de domaine.",
+    save: "Enregistrer l'adresse",
+    saved: "Adresse enregistrée",
+    connectText:
+      "Connectez votre domaine : nous vous donnons l'enregistrement DNS à ajouter chez votre fournisseur, le certificat SSL est créé automatiquement.",
+    connect: "Connecter mon domaine",
+    dnsText:
+      "Ajoutez ces enregistrements chez votre fournisseur de domaine (OVH, GoDaddy, Genious…), puis cliquez sur « Vérifier ». L'activation prend en général de quelques minutes à quelques heures.",
+    activeText: "Votre domaine est actif : votre espace est disponible à cette adresse.",
+    activeNow: "{{domain}} est actif.",
+    check: "Vérifier",
+    remove: "Retirer le domaine",
+    removeConfirm:
+      "Retirer le domaine {{domain}} ? Votre espace restera disponible sur le sous-domaine DevisPlus.",
+    trialNote:
+      "Votre propre domaine se connecte une fois votre espace activé. Demandez l'activation à notre équipe :",
+    state: {
+      active: "Actif",
+      pending: "En cours de vérification",
+      failed: "Échec de la vérification",
+    },
+    error: {
+      trial: "Votre propre domaine se connecte une fois votre espace activé.",
+      hostname: "Ce nom de domaine n'est pas valide.",
+      hostname_taken: "Ce domaine est déjà utilisé par une autre entreprise.",
+      domains_off:
+        "La connexion automatique des domaines n'est pas disponible : demandez l'activation à notre équipe.",
+      forbidden: "Seul le responsable du compte peut changer le domaine.",
+    },
+  },
   docs: {
     title: "Numérotation et pied de page",
     text: "S'applique aux nouveaux devis et factures ; les documents existants gardent leur numéro.",
