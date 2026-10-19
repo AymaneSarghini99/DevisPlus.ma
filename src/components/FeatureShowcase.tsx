@@ -250,6 +250,8 @@ export function AnatomyQuote({ active }: { active: Zone | null }) {
                 <bdi>{fmt.money(ttc)}</bdi>
               </div>
             </div>,
+            // Totals stay on the end side, also when they wrap under the amount in words.
+            "ms-auto",
           )}
         </div>
       </div>
