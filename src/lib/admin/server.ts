@@ -194,6 +194,33 @@ async function resetPassword(db: Db, b: Body) {
   return null;
 }
 
+/**
+ * Erases a company and its people for good, as if they had never used the app: the company's
+ * data (settings, clients, quotes, invoices, Drive connection, uploads), its members' accounts,
+ * sessions, sign-in methods and reset links. Platform admins are never erased this way.
+ * Members who also belong to another company keep their account.
+ */
+async function deleteAccount(db: Db, b: Body) {
+  const orgId = str(b, "orgId", 64);
+  const { rows: members } = await db.query<{ user_id: string; admin: boolean; others: boolean }>(
+    `select m.user_id,
+            exists (select 1 from public.platform_admins p where p.user_id = m.user_id) as admin,
+            exists (select 1 from public.memberships x
+                    where x.user_id = m.user_id and x.organization_id <> m.organization_id) as others
+     from public.memberships m where m.organization_id = $1`,
+    [orgId],
+  );
+  if (members.some((m) => m.admin)) return json({ error: "is_admin" }, 403);
+  const gone = await db.query("delete from public.organizations where id = $1", [orgId]);
+  if (!gone.rowCount) return json({ error: "not_found" }, 404);
+  const users = members.filter((m) => !m.others).map((m) => m.user_id);
+  if (users.length) {
+    await db.query("delete from auth.verifications where value = any ($1::text[])", [users]);
+    await db.query("delete from auth.users where id = any ($1::uuid[])", [users]);
+  }
+  return null;
+}
+
 /** Cloudflare custom hostname: activate the requested domain, check it, or remove it. */
 async function domainAction(db: Db, b: Body) {
   const cf = cloudflareConfig(readEnv());
@@ -253,6 +280,7 @@ export async function handleAccountsPost(request: Request) {
           res = await setApproval(db, b);
         else if (action === "create") res = await createAccount(db, b);
         else if (action === "resetPassword") res = await resetPassword(db, b);
+        else if (action === "deleteAccount") res = await deleteAccount(db, b);
         else if (
           action === "domainActivate" ||
           action === "domainRefresh" ||

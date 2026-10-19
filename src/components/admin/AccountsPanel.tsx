@@ -34,7 +34,13 @@ export type AccountsData = {
 type Approval = AccountRow["approval"];
 const APPROVALS: Approval[] = ["pending", "approved", "rejected", "suspended"];
 type Action =
-  "approve" | "reject" | "suspend" | "domainActivate" | "domainRefresh" | "domainRemove";
+  | "approve"
+  | "reject"
+  | "suspend"
+  | "domainActivate"
+  | "domainRefresh"
+  | "domainRemove"
+  | "deleteAccount";
 
 const BADGE: Record<Approval, string> = {
   pending: "bg-amber-100 text-amber-900",
@@ -120,6 +126,15 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
       });
       if (!ok) return;
     }
+    if (action === "deleteAccount") {
+      const ok = await askConfirm({
+        title: t("account.admin.confirm.deleteAccount", { name: a.company || a.email }),
+        description: t("account.admin.confirm.deleteAccountText", { email: a.email }),
+        confirmLabel: t("account.admin.action.deleteAccount"),
+        tone: "danger",
+      });
+      if (!ok) return;
+    }
     if (action === "domainRemove") {
       const ok = await askConfirm({
         title: t("account.admin.confirm.domainRemove", { domain: a.customDomain }),
@@ -148,7 +163,12 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
           .catch(() => null);
         if (fresh?.accounts) setList(fresh.accounts);
       }
-      if (action === "approve" || action === "reject" || action === "suspend")
+      if (
+        action === "approve" ||
+        action === "reject" ||
+        action === "suspend" ||
+        action === "deleteAccount"
+      )
         toast.success(t(`account.admin.done.${action}`, { name: a.company || a.email }));
       if (action === "domainRemove") {
         setList((l) =>
@@ -396,6 +416,22 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
                           >
                             <KeyRound className="size-3.5" />
                             {t("account.admin.action.resetPassword")}
+                          </button>
+                        )}
+                        {!a.isAdmin && (
+                          <button
+                            type="button"
+                            className="btn btn-ghost h-8 border px-2 text-xs text-destructive hover:bg-red-50"
+                            disabled={!!busy}
+                            aria-label={t("account.admin.action.deleteAccount")}
+                            title={t("account.admin.action.deleteAccount")}
+                            onClick={() => act(a, "deleteAccount")}
+                          >
+                            {loading("deleteAccount") ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-3.5" />
+                            )}
                           </button>
                         )}
                       </div>

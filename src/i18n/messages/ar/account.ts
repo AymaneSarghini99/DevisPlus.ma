@@ -65,6 +65,7 @@ export const account = {
       domainRefresh: "تحقق",
       domainRemove: "إزالة",
       resetPassword: "كلمة المرور",
+      deleteAccount: "حذف الحساب",
     },
     confirm: {
       reject: "رفض تسجيل {{name}}؟",
@@ -72,11 +73,15 @@ export const account = {
       suspend: "إيقاف فضاء {{name}}؟",
       suspendText: "يُحجب الولوج فورًا؛ تبقى البيانات محفوظة ويمكن إعادة تفعيل الفضاء.",
       domainRemove: "إزالة النطاق {{domain}}؟",
+      deleteAccount: "حذف {{name}} نهائيًا؟",
+      deleteAccountText:
+        "يُمحى الحساب {{email}} ومقاولته وكل بياناته (عروض الأسعار، الفواتير، الزبناء، الكتالوج، الإعدادات، Google Drive). هذا الإجراء نهائي.",
     },
     done: {
       approve: "تمت المصادقة على {{name}}.",
       reject: "تم رفض {{name}}.",
       suspend: "تم إيقاف {{name}}.",
+      deleteAccount: "تم حذف {{name}}.",
     },
     error: {
       failed: "فشلت العملية. حاول مجددًا.",
@@ -88,6 +93,7 @@ export const account = {
       hostname_taken: "هذا النطاق مستعمل من طرف مقاولة أخرى.",
       domains_off: "النطاقات الخاصة غير مُعدّة (Cloudflare).",
       cloudflare: "رفضت Cloudflare الطلب:",
+      is_admin: "لا يمكن حذف حساب مسؤول من هنا.",
     },
     resetTitle: "كلمة مرور جديدة",
     resetText:

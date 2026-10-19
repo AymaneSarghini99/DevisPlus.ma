@@ -67,6 +67,7 @@ export const account = {
       domainRefresh: "Check",
       domainRemove: "Remove",
       resetPassword: "Password",
+      deleteAccount: "Delete account",
     },
     confirm: {
       reject: "Reject the sign-up of {{name}}?",
@@ -75,11 +76,15 @@ export const account = {
       suspendText:
         "Access is blocked at once; the data is kept and the workspace can be reactivated.",
       domainRemove: "Remove the domain {{domain}}?",
+      deleteAccount: "Delete {{name}} for good?",
+      deleteAccountText:
+        "The account {{email}}, its company and all its data (quotes, invoices, clients, catalogue, settings, Google Drive) are erased. This cannot be undone.",
     },
     done: {
       approve: "{{name}} is approved.",
       reject: "{{name}} is rejected.",
       suspend: "{{name}} is suspended.",
+      deleteAccount: "{{name}} is deleted.",
     },
     error: {
       failed: "The operation failed. Please try again.",
@@ -91,6 +96,7 @@ export const account = {
       hostname_taken: "This domain is already used by another company.",
       domains_off: "Custom domains are not configured (Cloudflare).",
       cloudflare: "Cloudflare refused the request:",
+      is_admin: "An admin account cannot be deleted here.",
     },
     resetTitle: "New password",
     resetText:

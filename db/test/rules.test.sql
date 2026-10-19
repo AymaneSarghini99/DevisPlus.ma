@@ -225,6 +225,14 @@ select t.eq((select count(*)::text from public.workspace_data), '0', 'a platform
 reset role;
 select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
 
+-- Erasing a company (admin portal → delete), as the app's server: everything goes, issued invoices included.
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset erase_
+delete from public.organizations where id = :'org_a';
+select t.eq((select count(*)::text from public.workspace_data where organization_id = :'org_a'), '0', 'the team can erase a company and all its data, issued invoices included');
+select t.eq((select count(*)::text from public.invoices where organization_id = :'org_a'), '0', 'its invoices are erased too');
+delete from auth.users where id = '11111111-1111-4111-8111-111111111111';
+select t.eq((select count(*)::text from public.profiles where id = '11111111-1111-4111-8111-111111111111'), '0', 'erasing the user removes its profile');
+
 -- ------------------------------------------------------------------ visitor not signed in
 set role anon;
 select set_config('request.jwt.claim.sub', '', false);

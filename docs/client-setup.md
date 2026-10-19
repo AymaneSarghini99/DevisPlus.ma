@@ -27,7 +27,9 @@ change another's: the database refuses it (row-level security, checked by `npm r
     has no password.
 - Tabs: **Inscriptions** (every company, join date, last visit, setup done or not, requested
   address; Valider / Refuser / Suspendre; "Créer un compte client") and **Registre clients**
-  (your sales and payments register, saved online).
+  (your sales and payments register, saved online). The red bin on an account erases it for
+  good after one confirmation: the account, its company and all its data, as if it had never
+  used the app (admin accounts are protected; your register entries are kept).
 
 To serve the portal on `admin.devisplus.ma`: add the domain to the deployment (Lovable: Project
 settings → Domains; Cloudflare Workers: Settings → Domains & Routes), set `ADMIN_HOST`, and add
