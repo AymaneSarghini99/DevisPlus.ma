@@ -206,6 +206,20 @@ export const account = {
       forbidden: "Only the account owner can change the domain.",
     },
   },
+  pdf: {
+    openOf: "See the PDF of quote {{number}}",
+    onDrive: "Saved in Google Drive — see the PDF",
+    notOnDrive: "See the PDF (not in Google Drive yet)",
+    view: { drive: "Google Drive", preview: "Preview" },
+    savedOn: "in Drive since {{date}}",
+    openDrive: "Open in Google Drive",
+    edit: "Open the quote",
+    notConnected:
+      "Google Drive is not connected: the preview below is exactly what the PDF contains.",
+    connect: "Connect Google Drive",
+    notSaved:
+      "This quote is not in Google Drive yet. Click the Drive icon at the top to save it there.",
+  },
   docs: {
     title: "Numbering and footer",
     text: "Applies to new quotes and invoices; existing documents keep their number.",

@@ -216,6 +216,20 @@ export const account = {
       forbidden: "Seul le responsable du compte peut changer le domaine.",
     },
   },
+  pdf: {
+    openOf: "Voir le PDF du devis {{number}}",
+    onDrive: "Enregistré sur Google Drive — voir le PDF",
+    notOnDrive: "Voir le PDF (pas encore sur Google Drive)",
+    view: { drive: "Google Drive", preview: "Aperçu" },
+    savedOn: "sur Drive depuis le {{date}}",
+    openDrive: "Ouvrir dans Google Drive",
+    edit: "Ouvrir le devis",
+    notConnected:
+      "Google Drive n'est pas connecté : l'aperçu ci-dessous est le contenu exact du PDF.",
+    connect: "Connecter Google Drive",
+    notSaved:
+      "Ce devis n'est pas encore sur Google Drive. Cliquez sur l'icône Drive en haut pour l'y enregistrer.",
+  },
   docs: {
     title: "Numérotation et pied de page",
     text: "S'applique aux nouveaux devis et factures ; les documents existants gardent leur numéro.",

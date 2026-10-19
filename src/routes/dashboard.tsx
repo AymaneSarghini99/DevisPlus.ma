@@ -18,6 +18,9 @@ import {
 import { useFormat } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
 import { isTrialLimit, showPaywall } from "@/lib/trial";
+import { DRIVE_EVENT, loadDriveRecords, type DriveRecord } from "@/lib/driveSync";
+import { GoogleDriveIcon } from "@/components/GoogleDriveIcon";
+import { QuotePdfDialog } from "@/components/QuotePdfDialog";
 import { errorMessage } from "@/lib/storage";
 import { Dropdown } from "@/components/Dropdown";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
@@ -39,6 +42,15 @@ function Dashboard() {
   const fmt = useFormat();
   const navigate = useNavigate();
   const [quotes, setQuotes] = useState<Quote[] | null>(null);
+  // Quote whose PDF is shown in the pop-up, and the Drive copies (refreshed after uploads).
+  const [pdfOf, setPdfOf] = useState<Quote | null>(null);
+  const [drive, setDrive] = useState<Record<string, DriveRecord>>({});
+  useEffect(() => {
+    const sync = () => setDrive(loadDriveRecords());
+    sync();
+    window.addEventListener(DRIVE_EVENT, sync);
+    return () => window.removeEventListener(DRIVE_EVENT, sync);
+  }, []);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<Status | "">("");
   useEffect(() => setQuotes(loadQuotes()), []);
@@ -160,7 +172,7 @@ function Dashboard() {
                     <th className="px-4 py-3 font-medium">{t("dashboard.colValidity")}</th>
                     <th className="px-4 py-3 font-medium">{t("dashboard.colStatus")}</th>
                     <th className="px-4 py-3 text-end font-medium">{t("dashboard.colTotal")}</th>
-                    <th className="w-20" />
+                    <th className="w-28" />
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -201,6 +213,20 @@ function Dashboard() {
                       </td>
                       <td className="whitespace-nowrap px-2">
                         <button
+                          aria-label={t("account.pdf.openOf", { number: q.number })}
+                          title={
+                            drive[`devis:${q.id}`]?.fileId
+                              ? t("account.pdf.onDrive")
+                              : t("account.pdf.notOnDrive")
+                          }
+                          className="rounded-sm p-2 hover:bg-muted"
+                          onClick={() => setPdfOf(q)}
+                        >
+                          <GoogleDriveIcon
+                            className={`size-4 ${drive[`devis:${q.id}`]?.fileId ? "" : "opacity-40 grayscale"}`}
+                          />
+                        </button>
+                        <button
                           aria-label={t("dashboard.duplicateOf", { number: q.number })}
                           title={t("common.duplicate")}
                           className="rounded-sm p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -231,6 +257,7 @@ function Dashboard() {
             </div>
           </>
         )}
+        {pdfOf && <QuotePdfDialog quote={pdfOf} onClose={() => setPdfOf(null)} />}
       </main>
     </div>
   );

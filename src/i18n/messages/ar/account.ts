@@ -197,6 +197,19 @@ export const account = {
       forbidden: "وحده صاحب الحساب يمكنه تغيير النطاق.",
     },
   },
+  pdf: {
+    openOf: "عرض PDF لعرض الأسعار {{number}}",
+    onDrive: "محفوظ على Google Drive — عرض PDF",
+    notOnDrive: "عرض PDF (ليس على Google Drive بعد)",
+    view: { drive: "Google Drive", preview: "معاينة" },
+    savedOn: "على Drive منذ {{date}}",
+    openDrive: "فتح في Google Drive",
+    edit: "فتح عرض الأسعار",
+    notConnected: "Google Drive غير متصل: المعاينة أدناه هي المحتوى الدقيق لملف PDF.",
+    connect: "ربط Google Drive",
+    notSaved:
+      "عرض الأسعار هذا ليس على Google Drive بعد. انقر على أيقونة Drive في الأعلى لحفظه هناك.",
+  },
   docs: {
     title: "الترقيم وتذييل الصفحة",
     text: "يُطبق على عروض الأسعار والفواتير الجديدة؛ تحتفظ الوثائق الحالية بأرقامها.",
