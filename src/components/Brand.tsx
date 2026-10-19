@@ -4,15 +4,21 @@ import { useTranslation } from "react-i18next";
 import logo from "@/assets/devisplus-logo.png";
 import { LOCALES, NATIVE_NAME } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
+import { useAppTheme } from "@/lib/appTheme";
 import { LogoutButton } from "./AdminGate";
 import { Flag } from "./Flags";
 
-export function Logo() {
+/** DevisPlus logo, or the client's own header logo (`src`) on the app pages. */
+export function Logo({ src }: { src?: string | undefined }) {
   const { t } = useTranslation();
   return (
     <Link to="/" className="shrink-0" aria-label={t("nav.home")}>
       {/* The logo is never mirrored, whatever the page direction. */}
-      <img src={logo} alt="DevisPlus.ma" width={480} height={92} className="h-7 w-auto" />
+      {src ? (
+        <img src={src} alt="" className="h-9 w-auto max-w-[180px] object-contain" />
+      ) : (
+        <img src={logo} alt="DevisPlus.ma" width={480} height={92} className="h-7 w-auto" />
+      )}
     </Link>
   );
 }
@@ -66,11 +72,12 @@ export function AppHeader({
   languages?: boolean;
 }) {
   const { t } = useTranslation();
+  const theme = useAppTheme();
   return (
     <header className="no-print border-b bg-card">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-4 md:h-14 md:flex-nowrap">
         <div className="flex h-14 items-center md:h-auto">
-          <Logo />
+          <Logo src={theme?.logo || undefined} />
         </div>
         <div className="order-last -mx-4 w-[calc(100%+2rem)] overflow-x-auto border-t md:order-none md:mx-0 md:w-auto md:flex-1 md:border-0">
           <nav
@@ -82,7 +89,10 @@ export function AppHeader({
                 key={n.to}
                 to={n.to}
                 className="flex items-center whitespace-nowrap border-b-2 border-transparent text-muted-foreground hover:text-foreground"
-                activeProps={{ className: "!border-accent font-medium !text-foreground" }}
+                activeProps={{
+                  className:
+                    "![border-color:var(--app-line,var(--accent))] font-medium !text-foreground",
+                }}
                 activeOptions={{ includeSearch: false }}
               >
                 {t(`nav.${n.key}`)}

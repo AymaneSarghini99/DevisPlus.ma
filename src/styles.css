@@ -176,10 +176,11 @@
   }
 }
 @utility btn-accent {
-  background: var(--accent);
-  color: var(--accent-foreground);
+  /* --app-btn: the client's own button colour, set on the app pages (lib/appTheme). */
+  background: var(--app-btn, var(--accent));
+  color: var(--app-btn-fg, var(--accent-foreground));
   &:hover:not(:disabled) {
-    background: color-mix(in oklab, var(--accent) 85%, black);
+    background: color-mix(in oklab, var(--app-btn, var(--accent)) 85%, black);
   }
 }
 @utility btn-ghost {

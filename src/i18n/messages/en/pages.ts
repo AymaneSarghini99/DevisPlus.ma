@@ -108,6 +108,23 @@ export const reports: M["reports"] = {
 };
 
 export const settings: M["settings"] = {
+  appearance: "Workspace appearance",
+  appearanceHint:
+    "Make your workspace yours: header logo, button colour and the line under the links. Your quotes and invoices don't change.",
+  headerLogo: "Header logo",
+  headerLogoCurrent: "Current header logo",
+  headerLogoUpload: "Upload a logo",
+  headerLogoReplace: "Replace",
+  headerLogoFromDocs: "Use my quote logo",
+  headerLogoReset: "Back to the DevisPlus logo",
+  headerLogoHint:
+    "PNG, JPG, WebP or SVG, 5 MB max. A horizontal logo on a transparent background looks best.",
+  buttonColor: "Button colour",
+  buttonSample: "New quote",
+  lineColor: "Colour of the line under the links",
+  colorDefault: "Original colour",
+  colorCustom: "Pick another colour",
+  colorReset: "Original colour",
   title: "Settings",
   onThisPage: "On this page",
   allSaved: "Everything is saved",

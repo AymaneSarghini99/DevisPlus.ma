@@ -122,6 +122,23 @@ export const reports: M["reports"] = {
 };
 
 export const settings: M["settings"] = {
+  appearance: "مظهر المساحة",
+  appearanceHint:
+    "اجعل مساحتك بألوانك: شعار الترويسة، ولون الأزرار، ولون الخط تحت الروابط. عروض الأسعار والفواتير لا تتغير.",
+  headerLogo: "شعار الترويسة",
+  headerLogoCurrent: "شعار الترويسة الحالي",
+  headerLogoUpload: "رفع شعار",
+  headerLogoReplace: "استبدال",
+  headerLogoFromDocs: "استخدام شعار عروض الأسعار",
+  headerLogoReset: "العودة إلى شعار DevisPlus",
+  headerLogoHint:
+    "PNG أو JPG أو WebP أو SVG، بحد أقصى 5 ميغابايت. يبدو الشعار الأفقي بخلفية شفافة أفضل.",
+  buttonColor: "لون الأزرار",
+  buttonSample: "عرض سعر جديد",
+  lineColor: "لون الخط تحت الروابط",
+  colorDefault: "اللون الأصلي",
+  colorCustom: "اختيار لون آخر",
+  colorReset: "اللون الأصلي",
   title: "الإعدادات",
   onThisPage: "في هذه الصفحة",
   allSaved: "كل شيء محفوظ",

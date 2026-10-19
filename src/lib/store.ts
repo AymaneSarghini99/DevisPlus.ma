@@ -48,6 +48,10 @@ export type Settings = {
   defaultCustom: string; // id of the custom template used for new quotes, "" for none
   /** Default language of generated documents — separate from the interface language. */
   docLang: Locale;
+  /** Workspace look (app pages only): header logo (data URL, "" = DevisPlus), colours ("" = default). */
+  appLogo: string;
+  appButton: string;
+  appLine: string;
 };
 
 // ---------- clients ----------
@@ -139,6 +143,9 @@ export const defaultSettings = (): Settings => ({
   customTemplates: [],
   defaultCustom: "",
   docLang: "fr",
+  appLogo: "",
+  appButton: "",
+  appLine: "",
 });
 export function loadSettings(): Settings {
   const s = { ...defaultSettings(), ...read<Partial<Settings>>("devisplus.settings", {}) };

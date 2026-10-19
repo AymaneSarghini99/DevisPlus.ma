@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { LOCALES, NATIVE_NAME, type Locale } from "@/i18n/config";
 import { useFormat } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
+import { AppearanceSection } from "@/components/AppearanceSection";
 import { GoogleDriveSection } from "@/components/GoogleDriveSection";
 import { LegalLink } from "@/components/LegalPage";
 import { LEGAL_DOCS } from "@/legal/documents";
@@ -96,6 +97,7 @@ function SettingsPage() {
     ["company", t("editor.sectionCompany")],
     ["bank", t("doc.bank")],
     ["quotes", t("settings.preferences")],
+    ["appearance", t("settings.appearance")],
     ["google-drive", t("drive.title")],
     ["legal", t("settings.legalTitle")],
   ] as const;
@@ -353,6 +355,8 @@ function SettingsPage() {
               <p className="mt-2 text-xs text-muted-foreground">{t("settings.ratesHint")}</p>
             </div>
           </Card>
+
+          <AppearanceSection s={s} update={update} />
 
           <GoogleDriveSection />
 

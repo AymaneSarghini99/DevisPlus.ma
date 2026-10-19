@@ -107,6 +107,23 @@ export const reports = {
 };
 
 export const settings = {
+  appearance: "Apparence de l'espace",
+  appearanceHint:
+    "Mettez votre espace à vos couleurs : logo de l'en-tête, couleur des boutons et de la ligne sous les liens. Vos devis et factures ne changent pas.",
+  headerLogo: "Logo de l'en-tête",
+  headerLogoCurrent: "Logo actuel de l'en-tête",
+  headerLogoUpload: "Importer un logo",
+  headerLogoReplace: "Remplacer",
+  headerLogoFromDocs: "Utiliser le logo de mes devis",
+  headerLogoReset: "Revenir au logo DevisPlus",
+  headerLogoHint:
+    "PNG, JPG, WebP ou SVG, 5 Mo maximum. Un logo horizontal sur fond transparent rend mieux.",
+  buttonColor: "Couleur des boutons",
+  buttonSample: "Nouveau devis",
+  lineColor: "Couleur de la ligne sous les liens",
+  colorDefault: "Couleur d'origine",
+  colorCustom: "Choisir une autre couleur",
+  colorReset: "Couleur d'origine",
   title: "Paramètres",
   onThisPage: "Sur cette page",
   allSaved: "Tout est enregistré",
