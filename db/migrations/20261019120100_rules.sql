@@ -35,14 +35,25 @@ as $$
   select exists (select 1 from public.platform_admins p where p.user_id = auth.uid());
 $$;
 
--- True for the server's service role, and for migrations / seed scripts run by the database
--- owner without any signed-in user (API requests always carry a role: anon or authenticated).
+-- True for the app's server acting for no particular user (connected as the database owner,
+-- without a signed-in user), and for migrations and seed scripts. User requests always carry a
+-- role (authenticated or anon), so they are never trusted.
 create function public.is_trusted_caller()
 returns boolean
 language sql stable set search_path = ''
 as $$
   select coalesce(auth.role(), '') = 'service_role'
-    or (auth.role() is null and auth.uid() is null and session_user in ('postgres', 'supabase_admin'));
+    or (
+      auth.role() is null and auth.uid() is null
+      and current_user = session_user
+      and (
+        session_user = (
+          select pg_catalog.pg_get_userbyid(d.datdba) from pg_catalog.pg_database d
+          where d.datname = pg_catalog.current_database()
+        )
+        or session_user in ('postgres', 'supabase_admin')
+      )
+    );
 $$;
 
 -- ---------------------------------------------------------------------------------------------

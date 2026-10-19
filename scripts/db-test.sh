@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the Supabase migrations, the seed and the database checks on a throwaway local PostgreSQL
+# Runs the database migrations, the seed and the checks on a throwaway local PostgreSQL
 # (no Docker needed). Usage: npm run db:test
 set -euo pipefail
 export LC_ALL="${LC_ALL:-en_US.UTF-8}"
@@ -11,16 +11,18 @@ PORT="${PORT:-54329}"
 "$PGBIN/initdb" -D "$DIR/data" -U postgres -A trust >/dev/null
 "$PGBIN/pg_ctl" -D "$DIR/data" -o "-p $PORT -k $DIR -c listen_addresses=''" -l "$DIR/log" -w start >/dev/null
 trap '"$PGBIN/pg_ctl" -D "$DIR/data" stop -m fast >/dev/null 2>&1; rm -rf "$DIR"' EXIT
-db() { "$PGBIN/psql" -h "$DIR" -p "$PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -q "$@"; }
+# Like on Neon: the database belongs to a regular role (not a superuser) that may create roles.
+"$PGBIN/psql" -h "$DIR" -p "$PORT" -U postgres -d postgres -q \
+  -c "create role app_owner login createrole" -c "create database devisplus owner app_owner" >/dev/null
+db() { "$PGBIN/psql" -h "$DIR" -p "$PORT" -U app_owner -d devisplus -v ON_ERROR_STOP=1 -q "$@"; }
 
-db -f supabase/dbtest/supabase_shim.sql >/dev/null
-for f in supabase/migrations/*.sql; do
+for f in db/migrations/*.sql; do
   echo "migration  $(basename "$f")"
   db -f "$f" >/dev/null
 done
-echo "seed       supabase/seed.sql"
-db -f supabase/seed.sql >/dev/null
-db -f supabase/dbtest/rules.test.sql 2>&1 | grep -E 'ok   |FAIL|ERROR|passed' | sed 's/^psql:[^ ]* NOTICE:  /  /'
+echo "seed       db/seed.sql"
+db -f db/seed.sql >/dev/null
+db -f db/test/rules.test.sql 2>&1 | grep -E 'ok   |FAIL|ERROR|passed' | sed 's/^psql:[^ ]* NOTICE:  /  /'
 
 # Numbering under load: two sessions issue 20 invoices each at the same time.
 ORG=00000000-0000-4000-8000-0000000000a1
@@ -42,4 +44,5 @@ db -tA -c "select case when count(*) = 41 and count(distinct number) = 41
   if [ "$r" = ok ]; then echo "  ok   two sessions issuing at once: 41 invoices, 41 numbers, no gap"
   else echo "  FAIL concurrent numbering"; exit 1; fi
 }
+db -f db/test/smoke.sql 2>&1 | grep -E 'ok   |FAIL|ERROR|passed' | sed 's/^psql:[^ ]* NOTICE:  /  /'
 echo "Database checks finished."

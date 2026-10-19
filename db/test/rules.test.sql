@@ -1,5 +1,5 @@
 -- Checks of the RLS policies and business rules. Run by scripts/db-test.sh on a local PostgreSQL
--- (with supabase_shim.sql + the migrations). Any failed check stops the run with an error.
+-- (the migrations, then the seed). Any failed check stops the run with an error.
 \set ON_ERROR_STOP 1
 \set QUIET 1
 \pset tuples_only on
@@ -116,12 +116,11 @@ insert into public.invoices (id, organization_id, status, issue_date) values ('a
 select t.eq((select number from public.invoices where id = 'aaaaaaaa-0000-4000-8000-0000000000e4'), 'FA-2025-008', 'imported invoices keep their numbers; the next one follows');
 select t.fails($$insert into public.invoice_lines (organization_id, invoice_id) values ('$$ || :'org_a' || $$', 'aaaaaaaa-0000-4000-8000-0000000000e3')$$, 'cannot be changed', 'after the import transaction its lines are frozen');
 
--- Settings, team, storage.
+-- Settings and team.
 update public.organizations set company_name = 'Atlas Rénovation', app_button_color = '#DC2626' where id = :'org_a';
 select t.fails($$update public.organizations set default_vat = 14 where id = '$$ || :'org_a' || $$'$$, 'default_vat_offered', 'the default VAT must be one of the offered rates');
 select t.fails($$update public.organizations set app_line_color = 'red' where id = '$$ || :'org_a' || $$'$$, 'hex_color', 'colours must be hex');
 insert into public.memberships (organization_id, user_id, role) values (:'org_a', '33333333-3333-4333-8333-333333333333', 'member');
-insert into storage.objects (bucket_id, name) values ('logos', :'org_a' || '/header-logo.png');
 select t.eq((select connected::text from public.drive_status(:'org_a')), 'false', 'drive_status tells the browser it is not connected');
 select t.fails($$select * from public.drive_connections$$, 'permission denied', 'the Drive connection (refresh token) is not readable by browsers');
 select t.fails($$insert into public.document_sequences values ('$$ || :'org_a' || $$', 'FA', 2030, 99)$$, 'permission denied', 'browsers cannot write the numbering');
@@ -141,10 +140,8 @@ select t.eq((select count(*)::text from public.quotes), '0', 'B cannot see A''s 
 select t.eq((select count(*)::text from public.invoices), '0', 'B cannot see A''s invoices');
 select t.eq((select count(*)::text from public.clients), '0', 'B cannot see A''s clients');
 select t.eq((select count(*)::text from public.profiles), '1', 'B cannot see A''s team profiles');
-select t.eq((select count(*)::text from storage.objects), '0', 'B cannot see A''s files');
 select t.fails($$insert into public.quotes (organization_id) values ('$$ || :'org_a' || $$')$$, 'row-level security|not a member', 'B cannot create a quote in A');
 select t.fails($$insert into public.clients (organization_id, name) values ('$$ || :'org_a' || $$', 'X')$$, 'row-level security', 'B cannot add a client to A');
-select t.fails($$insert into storage.objects (bucket_id, name) values ('logos', '$$ || :'org_a' || $$/x.png')$$, 'row-level security', 'B cannot upload into A''s folder');
 select t.fails($$select public.next_document_number('$$ || :'org_a' || $$', 'DV')$$, 'not a member', 'B cannot take a number from A''s sequence');
 select t.fails($$select public.bump_document_sequence('$$ || :'org_a' || $$', 'DV', 'DV-2026-900')$$, 'not a member', 'B cannot move A''s sequence');
 select t.fails($$insert into public.memberships (organization_id, user_id, role) values ('$$ || :'org_a' || $$', '22222222-2222-4222-8222-222222222222', 'owner')$$, 'row-level security', 'B cannot join A');

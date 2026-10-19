@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:test": "./scripts/db-test.sh"
+    "db:test": "./scripts/db-test.sh",
+    "db:migrate": "./scripts/db-migrate.sh"
   },
   "overrides": {
     "rolldown": "1.2.1"

@@ -1,5 +1,9 @@
 # DevisPlus.ma: database build prompt
 
+> **Update (2026-10-19):** the database is hosted on **Neon** (plain Postgres) instead of
+> Supabase. The tables and rules below are unchanged; sign-in uses **Better Auth** in the app's
+> server, and files will go to object storage (Cloudflare R2 or Neon). See `db/README.md`.
+
 Copy everything under "Prompt" into the tool that will build the database (Lovable with
 Supabase, Claude Code, or a developer). It is written from the app as it is today
 (branch `feature/devis-gestion-complete`): every table below matches data the app already
