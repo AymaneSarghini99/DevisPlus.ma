@@ -36,7 +36,8 @@ describe("admin lock", () => {
 describe("server account passwords", () => {
   it("are stored as a salted PBKDF2 hash and verified", async () => {
     const h = await hashPassword("motdepasse1");
-    expect(h).toMatch(/^pbkdf2\$150000\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+    // At most 100 000 iterations: the limit of Cloudflare Workers.
+    expect(h).toMatch(/^pbkdf2\$100000\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
     expect(h).not.toContain("motdepasse1");
     expect(await hashPassword("motdepasse1")).not.toBe(h);
     expect(await verifyPassword({ hash: h, password: "motdepasse1" })).toBe(true);

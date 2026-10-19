@@ -2,8 +2,10 @@
  * Password hashing for Better Auth: PBKDF2-SHA-256 through Web Crypto. Native and fast, so it
  * fits the CPU limits of Cloudflare Workers (Better Auth's default scrypt runs in JavaScript).
  * Stored format: pbkdf2$<iterations>$<salt hex>$<hash hex>
+ *
+ * Cloudflare Workers refuse PBKDF2 above 100 000 iterations, so that is the count used.
  */
-const ITERATIONS = 150_000;
+export const ITERATIONS = 100_000;
 
 const hex = (b: ArrayBuffer | Uint8Array) =>
   [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -35,7 +37,13 @@ export async function verifyPassword({ hash, password }: { hash: string; passwor
   const iterations = Number(iter);
   if (kind !== "pbkdf2" || !salt || !expected || !Number.isInteger(iterations) || iterations < 1)
     return false;
-  const actual = await derive(password, fromHex(salt), iterations);
+  let actual: string;
+  try {
+    actual = await derive(password, fromHex(salt), iterations);
+  } catch {
+    // e.g. a hash made with more iterations than this runtime allows: never a server error.
+    return false;
+  }
   // Constant-time comparison.
   if (actual.length !== expected.length) return false;
   let d = 0;
