@@ -210,6 +210,7 @@ export const errors = {
   alreadyIssued: "Cette facture est déjà émise.",
   invoiceClient: "Le nom du client est requis.",
   invoiceLines: "La facture ne contient aucune ligne.",
+  trialLimit: "Votre essai gratuit est limité à 2 devis.",
   issuedLocked: "Une facture émise ne peut pas être supprimée.",
   paymentDraft: "Les paiements s'enregistrent sur une facture émise.",
   paymentDate: "Indiquez la date du paiement.",

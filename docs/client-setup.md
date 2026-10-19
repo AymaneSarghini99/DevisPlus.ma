@@ -6,9 +6,14 @@ app, saved per company in the database).
 
 | Model | Who signs up | Where | `SIGNUP_MODE` |
 |---|---|---|---|
-| Shared app (devisplus.ma) | Anyone; you accept each company in the admin portal | One deployment, one database, every company separated by the database rules | `approval` (default) |
+| Shared app (devisplus.ma) | Anyone; free trial with 2 quotes, then the payment pop-up; you approve the company once paid | One deployment, one database, every company separated by the database rules | `approval` (default) |
 | One deployment per customer (Phase 1–2) | Nobody; you create the account in the admin portal | Its own deployment, own address, own (or the customer's) database | `closed` |
 | Self-service (Phase 3, later) | Anyone, accepted at once | Shared app | `open` |
+
+Free trial: a new sign-up ("Essai gratuit" in the admin portal) uses every feature with up to
+2 quotes. Creating a 3rd one opens a payment pop-up (offer, WhatsApp, email); the database also
+refuses it. Click **Valider** once they have paid: the limit goes away. Refused and suspended
+companies are blocked.
 
 Each company's data (settings, logo, clients, catalogue, quotes, invoices, Google Drive
 connection) is stored on the server under that company only. One company can never read or

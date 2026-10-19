@@ -4,7 +4,8 @@ import type { Locale } from "@/i18n/config";
 import { makeFormat, type Format } from "@/i18n/format";
 import { amountInWordsAr, amountInWordsEn } from "./amountWords";
 import { nextInFormat, normalizeNumbering, type DocKind, type Numbering } from "./numbering";
-import { read, write } from "./storage";
+import { AppError, read, write } from "./storage";
+import { trialQuotesLeft } from "./trial";
 
 export type Unit = "pièce" | "heure" | "jour" | "m²" | "m³" | "ml" | "kg" | "forfait";
 export const UNITS: Unit[] = ["pièce", "heure", "jour", "m²", "m³", "ml", "kg", "forfait"];
@@ -291,7 +292,11 @@ export function loadQuotes(): Quote[] {
 }
 /** Saves (insert or update). Gives the quote a fresh number if another quote already uses its number. */
 export function saveQuote(q: Quote): Quote {
-  const others = loadQuotes().filter((x) => x.id !== q.id);
+  const all = loadQuotes();
+  const others = all.filter((x) => x.id !== q.id);
+  // Free trial: a new quote beyond the limit is refused (the page shows the payment pop-up).
+  if (others.length === all.length && trialQuotesLeft(all.length) === 0)
+    throw new AppError("trialLimit");
   const saved = others.some((x) => x.number === q.number)
     ? { ...q, number: nextNumber(others) }
     : q;

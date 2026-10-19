@@ -209,6 +209,7 @@ export const errors: M["errors"] = {
   alreadyIssued: "This invoice has already been issued.",
   invoiceClient: "The client name is required.",
   invoiceLines: "The invoice has no lines.",
+  trialLimit: "Your free trial is limited to 2 quotes.",
   issuedLocked: "An issued invoice cannot be deleted.",
   paymentDraft: "Payments are recorded on issued invoices.",
   paymentDate: "Enter the payment date.",

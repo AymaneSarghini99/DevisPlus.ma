@@ -17,6 +17,7 @@ import {
 } from "@/lib/quotes";
 import { useFormat } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
+import { isTrialLimit, showPaywall, trialQuotesLeft } from "@/lib/trial";
 import { errorMessage } from "@/lib/storage";
 import { Dropdown } from "@/components/Dropdown";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
@@ -62,7 +63,8 @@ function Dashboard() {
       toast.success(t("dashboard.copied", { number: copy.number }));
       navigate({ to: "/devis/$id", params: { id: copy.id }, search: {} });
     } catch (e) {
-      toast.error(errorMessage(e, t));
+      if (isTrialLimit(e)) showPaywall();
+      else toast.error(errorMessage(e, t));
     }
   };
   const remove = async (q: Quote) => {
@@ -79,6 +81,8 @@ function Dashboard() {
     }
   };
 
+  // Free trial: quotes left before the payment pop-up (null once approved).
+  const left = quotes ? trialQuotesLeft(quotes.length) : null;
   const create = (
     <Link to="/devis/$id" params={{ id: "nouveau" }} search={{}} className="btn btn-accent">
       <Plus className="size-4" /> {t("dashboard.create")}
@@ -89,7 +93,20 @@ function Dashboard() {
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <PageTitle title={t("dashboard.title")}>{create}</PageTitle>
+        <PageTitle title={t("dashboard.title")}>
+          <div className="flex flex-wrap items-center gap-2">
+            {left !== null && (
+              <button
+                type="button"
+                onClick={() => left === 0 && showPaywall()}
+                className={`rounded-full px-3 py-1 text-xs font-medium ${left === 0 ? "bg-amber-100 text-amber-900 hover:bg-amber-200" : "bg-muted text-muted-foreground"}`}
+              >
+                {left === 0 ? t("account.trial.none") : t("account.trial.left", { n: left })}
+              </button>
+            )}
+            {create}
+          </div>
+        </PageTitle>
         <OnboardingBanner />
 
         {quotes && quotes.length > 0 && (

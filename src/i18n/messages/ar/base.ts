@@ -207,6 +207,7 @@ export const errors: M["errors"] = {
   alreadyIssued: "هذه الفاتورة صادرة بالفعل.",
   invoiceClient: "اسم العميل إلزامي.",
   invoiceLines: "لا تحتوي الفاتورة على أي بند.",
+  trialLimit: "تجربتك المجانية محدودة في عرضَي أسعار.",
   issuedLocked: "لا يمكن حذف فاتورة صادرة.",
   paymentDraft: "تُسجَّل الدفعات على الفواتير الصادرة فقط.",
   paymentDate: "أدخل تاريخ الدفع.",

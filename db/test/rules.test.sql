@@ -169,9 +169,23 @@ select t.fails($$update public.organizations set approval_status = 'approved' wh
   'only the DevisPlus team', 'a company cannot approve itself');
 select t.fails($$update public.organizations set domain_state = 'active' where id = '$$ || :'org_a' || $$'$$,
   'only the DevisPlus team', 'a company cannot activate its own domain');
-select t.fails($$insert into public.workspace_data (organization_id, key, value) values ('$$ || :'org_a' || $$', 'clients', '[]')$$,
-  'row-level security', 'a company waiting for approval cannot save data');
+-- Free trial: a company not approved yet uses the app with up to 2 quotes.
+insert into public.workspace_data (organization_id, key, value) values (:'org_a', 'quotes', '[{"id":"q1"},{"id":"q2"}]');
+select t.eq((select jsonb_array_length(value)::text from public.workspace_data where organization_id = :'org_a' and key = 'quotes'), '2', 'a company in trial can save 2 quotes');
+select t.fails($$update public.workspace_data set value = public.apply_data_op(value, '{"t":"array","upsert":[{"id":"q3"}],"remove":[]}') where key = 'quotes'$$,
+  'trial limit', 'a company in trial cannot add a 3rd quote');
+update public.workspace_data set value = public.apply_data_op(value, '{"t":"array","upsert":[{"id":"q1","edited":true}],"remove":[]}') where key = 'quotes';
+select t.eq((select (value -> 0 ->> 'edited') from public.workspace_data where organization_id = :'org_a' and key = 'quotes'), 'true', 'in trial, existing quotes can still be edited');
 reset role;
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
+update public.organizations set approval_status = 'rejected' where id = :'org_a';
+set role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', false) \gset claim_
+select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', false);
+select t.eq((select count(*)::text from public.workspace_data), '0', 'a rejected company reaches nothing');
+reset role;
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
+delete from public.workspace_data where organization_id = :'org_a' and key = 'quotes';
 select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
 update public.organizations set approval_status = 'approved', approval_changed_at = now() where id in (:'org_a', :'org_b');
 select t.eq((select count(*)::text from public.organizations where approval_status = 'approved' and id in (:'org_a', :'org_b')), '2', 'the server (DevisPlus team) can approve');
@@ -183,6 +197,8 @@ insert into public.workspace_data (organization_id, key, value) values
   (:'org_a', 'clients', '[{"id":"c1","name":"Client A"}]'),
   (:'org_a', 'invoices', '[{"id":"i1","status":"emise","number":"FA-2026-001","issueDate":"2026-10-01","client":{"name":"X"},"lines":[{"id":"l1"}],"payments":[]},{"id":"i2","status":"brouillon","number":"","lines":[]}]');
 select t.eq((select updated_by::text from public.workspace_data where organization_id = :'org_a' and key = 'clients'), '11111111-1111-4111-8111-111111111111', 'who saved is recorded');
+insert into public.workspace_data (organization_id, key, value) values (:'org_a', 'quotes', '[{"id":"q1"},{"id":"q2"},{"id":"q3"},{"id":"q4"}]');
+select t.eq((select jsonb_array_length(value)::text from public.workspace_data where organization_id = :'org_a' and key = 'quotes'), '4', 'an approved company has no quote limit');
 update public.workspace_data set value = public.apply_data_op(value, '{"t":"array","upsert":[{"id":"i1","status":"emise","number":"FA-2026-001","issueDate":"2026-10-01","client":{"name":"X"},"lines":[{"id":"l1"}],"payments":[{"id":"p1","amount":100}]}]}')
   where organization_id = :'org_a' and key = 'invoices';
 select t.eq((select jsonb_array_length(value -> 0 -> 'payments')::text from public.workspace_data where organization_id = :'org_a' and key = 'invoices'), '1', 'a payment can be recorded on an issued invoice');

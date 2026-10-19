@@ -53,6 +53,7 @@ import {
   type Client,
   type Settings,
 } from "@/lib/store";
+import { isTrialLimit, showPaywall, trialQuotesLeft } from "@/lib/trial";
 import { errorMessage } from "@/lib/storage";
 import { invoiceFromQuote, loadInvoices, saveInvoice, type Invoice } from "@/lib/invoices";
 import { Dropdown } from "@/components/Dropdown";
@@ -121,6 +122,12 @@ function Editor() {
     setSaved(false);
     setTried(false);
     if (id === "nouveau") {
+      // Free trial used up: the payment pop-up instead of a new quote.
+      if (trialQuotesLeft(all.length) === 0) {
+        showPaywall();
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
       const fresh = newQuote(all, quoteDefaults(s));
       const c = loadClients().find((x) => x.id === preselect);
       setQ(
@@ -139,7 +146,7 @@ function Editor() {
       setQ(found);
       setMissing(!found);
     }
-  }, [id, preselect]);
+  }, [id, preselect, navigate]);
 
   useBlocker({
     shouldBlockFn: async () =>
@@ -204,7 +211,8 @@ function Editor() {
         navigate({ to: "/devis/$id", params: { id: s.id }, search: {}, replace: true });
       return s;
     } catch (e) {
-      toast.error(errorMessage(e, t));
+      if (isTrialLimit(e)) showPaywall();
+      else toast.error(errorMessage(e, t));
       return null;
     }
   };
@@ -261,7 +269,8 @@ function Editor() {
       toast.success(t("dashboard.copied", { number: copy.number }));
       navigate({ to: "/devis/$id", params: { id: copy.id }, search: {} });
     } catch (e) {
-      toast.error(errorMessage(e, t));
+      if (isTrialLimit(e)) showPaywall();
+      else toast.error(errorMessage(e, t));
     }
   };
 

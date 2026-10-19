@@ -88,6 +88,7 @@ export async function applyOps(
 export function writeError(e: unknown) {
   const { code, message } = pgError(e);
   if (/issued invoice/i.test(message)) return json({ error: "issuedLocked" }, 409);
+  if (/trial limit/i.test(message)) return json({ error: "trialLimit" }, 402);
   if (code === "42501") return json({ error: "forbidden" }, 403);
   if (code === "22023" || code === "22P02" || code === "23514")
     return json({ error: "bad_request" }, 400);
@@ -106,7 +107,15 @@ async function withUser(
   return res ?? json({ error: "not_configured" }, 503);
 }
 
+/** Quotes a company in free trial (signed up, not approved yet) can keep; see the free_trial migration. */
+export const TRIAL_QUOTES = 2;
+
+/** Approved companies, and companies in free trial, use their workspace. */
+export const canUse = (o: Pick<OrgInfo, "approval">) =>
+  o.approval === "approved" || o.approval === "pending";
+
 const orgJson = (o: OrgInfo) => ({
+  trialQuotes: o.approval === "pending" ? TRIAL_QUOTES : null,
   approval: o.approval,
   note: o.note,
   role: o.role,
@@ -115,12 +124,12 @@ const orgJson = (o: OrgInfo) => ({
   customDomain: o.customDomain,
 });
 
-/** GET /api/workspace — the company's data, or its approval status (403) while not approved. */
+/** GET /api/workspace — the company's data, or its status (403) when rejected or suspended. */
 export const handleWorkspaceGet = (request: Request) =>
   withUser(request, (pool, user) =>
     asUser(pool, user.id, async (db) => {
       const org = await orgOf(db);
-      if (org.approval !== "approved") return json({ org: orgJson(org) }, 403);
+      if (!canUse(org)) return json({ org: orgJson(org) }, 403);
       const { rows } = await db.query<{ key: string; value: unknown }>(
         "select key, value from public.workspace_data where organization_id = $1",
         [org.id],
@@ -149,7 +158,7 @@ export async function handleWorkspacePost(request: Request) {
     try {
       return await asUser(pool, user.id, async (db) => {
         const org = await orgOf(db);
-        if (org.approval !== "approved") return json({ org: orgJson(org) }, 403);
+        if (!canUse(org)) return json({ org: orgJson(org) }, 403);
         await applyOps(db, "workspace", org.id, ops);
         return json({ ok: true });
       });

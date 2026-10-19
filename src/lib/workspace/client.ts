@@ -9,6 +9,7 @@
 import type { Locale } from "@/i18n/config";
 import { linkTenant, type AccountUser } from "@/lib/account/link";
 import { attachRemote } from "@/lib/storage";
+import { setTrialLimit } from "@/lib/trial";
 import { loadTenant, saveTenant, type Tenant } from "@/lib/tenant";
 import { PLATFORM_KEYS, WORKSPACE_KEYS, type KeyMap } from "./keys";
 import { createRemoteStore, type RemoteStore, type SyncStatus } from "./sync";
@@ -21,6 +22,8 @@ export type WorkspaceOrg = {
   companyName: string;
   domainState: "none" | "pending" | "active";
   customDomain: string;
+  /** Quotes allowed during the free trial; null once approved. */
+  trialQuotes: number | null;
 };
 export type OpenResult =
   | { kind: "open"; org: WorkspaceOrg; tenant: Tenant; imported: boolean }
@@ -129,6 +132,7 @@ async function open(opened: Opened, user: AccountUser, locale: Locale): Promise<
       : false;
   // Signed out or switched account meanwhile: this workspace is not shown.
   if (current !== opened) return { kind: "error", error: "closed" };
+  setTrialLimit(body.org.trialQuotes ?? null);
   const detachStore = attachRemote(store);
   const stopWarning = warnBeforeLeaving(store);
   opened.store = store;
@@ -182,6 +186,7 @@ export async function flushWorkspace() {
 }
 
 export function closeWorkspace() {
+  setTrialLimit(null);
   current?.detach?.();
   current = null;
 }

@@ -5,6 +5,7 @@ import {
   Globe,
   KeyRound,
   Loader2,
+  MoreHorizontal,
   PauseCircle,
   RefreshCw,
   Search,
@@ -19,6 +20,13 @@ import { useTranslation } from "react-i18next";
 import { Dropdown } from "@/components/Dropdown";
 import { F } from "@/components/Form";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useLocale } from "@/i18n/LocaleProvider";
 import type { AccountRow } from "@/lib/admin/server";
 import { askConfirm } from "@/lib/confirm";
@@ -257,183 +265,177 @@ export function AccountsPanel({ initial }: { initial: AccountsData }) {
         <p className="py-8 text-center text-sm text-muted-foreground">{t("admin.noMatch")}</p>
       ) : (
         <div className="overflow-x-auto border bg-card">
-          <table className="w-full min-w-[64rem] text-sm">
+          <table className="w-full min-w-[52rem] text-sm">
             <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                {(
-                  ["account", "joined", "lastSeen", "setup", "domain", "status", "actions"] as const
-                ).map((k) => (
-                  <th
-                    key={k}
-                    className={`px-4 py-2.5 font-medium ${k === "actions" ? "text-end" : "text-start"}`}
-                  >
+                {(["account", "joined", "setup", "domain", "status"] as const).map((k) => (
+                  <th key={k} className="px-4 py-2.5 text-start font-medium">
                     {t(`account.admin.col.${k}`)}
                   </th>
                 ))}
+                <th className="w-px px-4 py-2.5">
+                  <span className="sr-only">{t("account.admin.col.actions")}</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {shown.map((a) => {
-                const req = requested(a);
-                const loading = (action: string) => busy === a.orgId + action;
-                const Btn = ({
-                  action,
-                  icon: Icon,
-                  tone = "ghost",
-                  extra,
-                }: {
-                  action: Action;
-                  icon: typeof Check;
-                  tone?: "ghost" | "primary";
-                  extra?: Record<string, unknown>;
-                }) => (
-                  <button
-                    type="button"
-                    className={`btn ${tone === "primary" ? "btn-primary" : "btn-ghost border"} h-8 px-2.5 text-xs`}
-                    disabled={!!busy}
-                    onClick={() => act(a, action, extra)}
-                  >
-                    {loading(action) ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Icon className="size-3.5" />
-                    )}
-                    {t(`account.admin.action.${action}`)}
-                  </button>
-                );
+                const req = a.customDomain || requested(a);
+                const rowBusy = busy.startsWith(a.orgId);
+                const canActivate =
+                  initial.domains &&
+                  !a.hostnameId &&
+                  a.requestedDomain?.mode === "custom" &&
+                  !!a.requestedDomain.customDomain;
                 return (
-                  <tr key={a.orgId} className="align-top">
-                    <td className="px-4 py-3">
-                      <bdi className="block font-medium">
-                        {a.company || <span className="text-muted-foreground">—</span>}
-                      </bdi>
-                      <span className="block text-xs text-muted-foreground">
-                        {a.name && <bdi>{a.name} · </bdi>}
-                        <bdi dir="ltr">{a.email}</bdi>
-                      </span>
-                      <span className="mt-1 flex flex-wrap gap-1">
-                        {a.methods.map((m) => (
-                          <span key={m} className="rounded-sm border px-1.5 py-px text-[11px]">
-                            {m === "google" ? "Google" : t("account.admin.method.password")}
-                          </span>
-                        ))}
+                  <tr key={a.orgId} className="transition-colors hover:bg-muted/30">
+                    <td className="max-w-72 px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <bdi className="truncate font-medium">{a.company || a.name || a.email}</bdi>
                         {a.isAdmin && (
-                          <span className="inline-flex items-center gap-1 rounded-sm bg-foreground px-1.5 py-px text-[11px] text-background">
-                            <ShieldCheck className="size-3" /> {t("account.admin.isAdmin")}
+                          <ShieldCheck
+                            className="size-3.5 shrink-0 text-muted-foreground"
+                            aria-label={t("account.admin.isAdmin")}
+                          />
+                        )}
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        <bdi dir="ltr">{a.email}</bdi>
+                        {a.methods.length > 0 && (
+                          <span>
+                            {" · "}
+                            {a.methods
+                              .map((m) =>
+                                m === "google" ? "Google" : t("account.admin.method.password"),
+                              )
+                              .join(", ")}
                           </span>
                         )}
-                      </span>
-                      {(a.phone || a.city) && (
-                        <bdi className="mt-1 block text-xs text-muted-foreground">
-                          {[a.phone, a.city].filter(Boolean).join(" · ")}
-                        </bdi>
-                      )}
+                      </div>
                     </td>
                     <td className="num px-4 py-3 whitespace-nowrap">
                       {fmt.date(a.joinedAt ?? a.createdAt)}
+                      <div className="text-xs text-muted-foreground">
+                        {a.lastSeen
+                          ? t("account.admin.lastSeenOn", { date: fmt.date(a.lastSeen) })
+                          : t("account.admin.neverSeen")}
+                      </div>
                     </td>
-                    <td className="num px-4 py-3 whitespace-nowrap text-muted-foreground">
-                      {a.lastSeen ? fmt.date(a.lastSeen) : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs">
+                    <td className="px-4 py-3">
                       {a.setupDone ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-700">
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-700">
                           <Check className="size-3.5" /> {t("account.admin.setupDone")}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           {t("account.admin.setupTodo")}
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs">
-                      {a.customDomain ? (
+                    <td className="max-w-56 px-4 py-3 text-xs">
+                      {req ? (
                         <>
-                          <bdi dir="ltr" className="num block">
-                            {a.customDomain}
-                          </bdi>
-                          <span className="text-muted-foreground">
-                            {t(`admin.domain.${a.domainState}`)}
-                          </span>
-                        </>
-                      ) : req ? (
-                        <>
-                          <bdi dir="ltr" className="num block">
+                          <bdi dir="ltr" className="num block truncate">
                             {req}
                           </bdi>
                           <span className="text-muted-foreground">
-                            {t("account.admin.requested")}
+                            {a.customDomain
+                              ? t(`admin.domain.${a.domainState}`)
+                              : t("account.admin.requested")}
                           </span>
                         </>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
-                      {initial.domains && (
-                        <span className="mt-1.5 flex flex-wrap gap-1">
-                          {a.hostnameId ? (
-                            <>
-                              <Btn action="domainRefresh" icon={RefreshCw} />
-                              <Btn action="domainRemove" icon={Trash2} />
-                            </>
-                          ) : (
-                            a.requestedDomain?.mode === "custom" &&
-                            a.requestedDomain.customDomain && (
-                              <Btn
-                                action="domainActivate"
-                                icon={Globe}
-                                extra={{ hostname: a.requestedDomain.customDomain }}
-                              />
-                            )
-                          )}
-                        </span>
-                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${BADGE[a.approval]}`}
+                        title={a.approvalChangedAt ? fmt.date(a.approvalChangedAt) : undefined}
                       >
                         {t(`account.admin.status.${a.approval}`)}
                       </span>
-                      {a.approvalChangedAt && (
-                        <span className="num mt-1 block text-[11px] text-muted-foreground">
-                          {fmt.date(a.approvalChangedAt)}
-                        </span>
-                      )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1.5">
                         {a.approval !== "approved" && (
-                          <Btn action="approve" icon={Check} tone="primary" />
-                        )}
-                        {a.approval === "pending" && <Btn action="reject" icon={X} />}
-                        {a.approval === "approved" && <Btn action="suspend" icon={PauseCircle} />}
-                        {a.userId && (
                           <button
                             type="button"
-                            className="btn btn-ghost h-8 border px-2.5 text-xs"
+                            className="btn btn-primary h-8 px-3 text-xs"
                             disabled={!!busy}
-                            onClick={() => setResetting(a)}
+                            onClick={() => act(a, "approve")}
                           >
-                            <KeyRound className="size-3.5" />
-                            {t("account.admin.action.resetPassword")}
-                          </button>
-                        )}
-                        {!a.isAdmin && (
-                          <button
-                            type="button"
-                            className="btn btn-ghost h-8 border px-2 text-xs text-destructive hover:bg-red-50"
-                            disabled={!!busy}
-                            aria-label={t("account.admin.action.deleteAccount")}
-                            title={t("account.admin.action.deleteAccount")}
-                            onClick={() => act(a, "deleteAccount")}
-                          >
-                            {loading("deleteAccount") ? (
+                            {busy === a.orgId + "approve" ? (
                               <Loader2 className="size-3.5 animate-spin" />
                             ) : (
-                              <Trash2 className="size-3.5" />
+                              <Check className="size-3.5" />
                             )}
+                            {t("account.admin.action.approve")}
                           </button>
                         )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            className="rounded-sm p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
+                            disabled={!!busy}
+                            aria-label={t("account.admin.more")}
+                            title={t("account.admin.more")}
+                          >
+                            {rowBusy && busy !== a.orgId + "approve" ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <MoreHorizontal className="size-4" />
+                            )}
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-48">
+                            {a.approval === "pending" && (
+                              <DropdownMenuItem onSelect={() => act(a, "reject")}>
+                                <X /> {t("account.admin.action.reject")}
+                              </DropdownMenuItem>
+                            )}
+                            {a.approval === "approved" && (
+                              <DropdownMenuItem onSelect={() => act(a, "suspend")}>
+                                <PauseCircle /> {t("account.admin.action.suspend")}
+                              </DropdownMenuItem>
+                            )}
+                            {a.userId && (
+                              <DropdownMenuItem onSelect={() => setResetting(a)}>
+                                <KeyRound /> {t("account.admin.action.resetPassword")}
+                              </DropdownMenuItem>
+                            )}
+                            {canActivate && (
+                              <DropdownMenuItem
+                                onSelect={() =>
+                                  act(a, "domainActivate", {
+                                    hostname: a.requestedDomain!.customDomain,
+                                  })
+                                }
+                              >
+                                <Globe /> {t("account.admin.action.domainActivate")}
+                              </DropdownMenuItem>
+                            )}
+                            {initial.domains && a.hostnameId && (
+                              <>
+                                <DropdownMenuItem onSelect={() => act(a, "domainRefresh")}>
+                                  <RefreshCw /> {t("account.admin.action.domainRefresh")}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => act(a, "domainRemove")}>
+                                  <Globe /> {t("account.admin.action.domainRemove")}
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {!a.isAdmin && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:bg-red-50 focus:text-destructive"
+                                  onSelect={() => act(a, "deleteAccount")}
+                                >
+                                  <Trash2 /> {t("account.admin.action.deleteAccount")}
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>

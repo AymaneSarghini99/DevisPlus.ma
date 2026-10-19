@@ -8,6 +8,8 @@ import { authClient } from "@/lib/account/client";
 import { accessDecision, AUTH_PATHS } from "@/lib/auth";
 import { isPublicPath } from "@/lib/paths";
 import { loadTenant, type Tenant } from "@/lib/tenant";
+import { showPaywall } from "@/lib/trial";
+import { Paywall } from "@/components/Paywall";
 import {
   closeWorkspace,
   flushWorkspace,
@@ -95,7 +97,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
   useEffect(
     () =>
       onWorkspaceSync((s, error) => {
-        if (s === "error")
+        if (s === "error" && error === "trialLimit") showPaywall();
+        else if (s === "error")
           toast.error(
             error === "issuedLocked" ? t("errors.issuedLocked") : t("account.sync.refused"),
             { id: "sync-error" },
@@ -106,7 +109,13 @@ export function AdminGate({ children }: { children: ReactNode }) {
     [t],
   );
 
-  if (free || open) return <>{children}</>;
+  if (free || open)
+    return (
+      <>
+        {children}
+        {open && <Paywall />}
+      </>
+    );
   if (failed)
     return (
       <div className="flex min-h-screen items-center justify-center px-4">

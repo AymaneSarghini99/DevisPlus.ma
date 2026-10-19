@@ -2,14 +2,14 @@
  * Google Drive connection kept per company in the database (public.drive_connections, a table
  * browsers cannot read). Server only.
  *
- * The connection belongs to the signed-in user's company, once approved: every device of the
- * company uses it. A connection made earlier in this browser (cookie) is moved to the company the
+ * The connection belongs to the signed-in user's company (approved or in free trial): every
+ * device of the company uses it. A connection made earlier in this browser (cookie) is moved to the company the
  * first time it is read.
  */
 import type { Pool } from "@neondatabase/serverless";
 import { sessionUserOn } from "@/lib/account/server";
 import { asServer, asUser, withPool } from "@/lib/db/server";
-import { orgOf } from "@/lib/workspace/server";
+import { canUse, orgOf } from "@/lib/workspace/server";
 import type { GoogleConfig } from "./config";
 import { cookieStore, type Connection, type ConnectionStore } from "./handlers";
 import { seal, unseal } from "./seal";
@@ -35,7 +35,7 @@ export function dbConnectionStore(c: GoogleConfig): ConnectionStore {
       const user = await sessionUserOn(pool, req);
       if (!user) return null;
       const o = await asUser(pool, user.id, orgOf);
-      return o.approval === "approved" ? o.id : null;
+      return canUse(o) ? o.id : null;
     })());
 
   async function write(pool: Pool, orgId: string, conn: Connection) {
