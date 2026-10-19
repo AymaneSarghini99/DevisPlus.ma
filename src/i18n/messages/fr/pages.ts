@@ -145,3 +145,58 @@ export const settings = {
   templatesLink: "Modèle, couleur et logo :",
   templatesPage: "page Modèles",
 };
+
+export const catalogueImport = {
+  open: "Importer Excel / CSV",
+  title: "Importer depuis Excel ou CSV",
+  intro:
+    "Ajoutez tout votre catalogue en une fois : une ligne par article, la première ligne contenant les noms des colonnes.",
+  template: "Télécharger le modèle",
+  drop: "Glissez votre fichier ici ou",
+  browse: "choisissez un fichier",
+  formats: "Excel (.xlsx) ou CSV. Pour un ancien fichier .xls, enregistrez-le d'abord en .xlsx.",
+  rows_one: "{{count}} ligne",
+  rows_other: "{{count}} lignes",
+  otherFile: "Choisir un autre fichier",
+  matchTitle: "Correspondance des colonnes",
+  matchText:
+    "Nous avons reconnu vos colonnes automatiquement. Corrigez si besoin : seul le nom est obligatoire.",
+  ignore: "— Ne pas importer —",
+  column: "Colonne {{n}}",
+  fields: {
+    name: "Nom de l'article *",
+    description: "Description",
+    unit: "Unité",
+    price: "Prix unitaire HT",
+    vat: "TVA",
+    kind: "Nature",
+  },
+  needName: "Choisissez la colonne qui contient le nom des articles.",
+  more_one: "… et {{count}} autre article",
+  more_other: "… et {{count}} autres articles",
+  ready_one: "{{count}} article prêt à importer",
+  ready_other: "{{count}} articles prêts à importer",
+  skipped_one: "{{count}} ligne ignorée :",
+  skipped_other: "{{count}} lignes ignorées :",
+  reason: {
+    name: "ligne {{row}} sans nom",
+    price: "ligne {{row}} prix illisible",
+  },
+  defaulted_one:
+    "{{count}} unité ou taux de TVA non reconnu : remplacé par {{unit}} / {{vat}}. Modifiable ensuite.",
+  defaulted_other:
+    "{{count}} unités ou taux de TVA non reconnus : remplacés par {{unit}} / {{vat}}. Modifiables ensuite.",
+  update_one: "{{count}} article porte le même nom qu'un article existant",
+  update_other: "{{count}} articles portent le même nom qu'un article existant",
+  updateOn: "Ils remplaceront les articles existants (prix, unité, TVA…).",
+  updateOff: "Ils seront ajoutés en double.",
+  run_one: "Importer {{count}} article",
+  run_other: "Importer {{count}} articles",
+  done: "Import terminé : {{added}} ajouté(s), {{updated}} mis à jour.",
+  errXls:
+    "L'ancien format .xls n'est pas pris en charge. Dans Excel : Fichier › Enregistrer sous › Classeur Excel (.xlsx) ou CSV.",
+  errEmpty:
+    "Ce fichier ne contient pas d'articles (il faut une ligne d'en-têtes puis au moins une ligne).",
+  errRead:
+    "Impossible de lire ce fichier. Essayez de l'enregistrer en CSV ou en .xlsx depuis Excel.",
+};

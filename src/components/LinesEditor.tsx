@@ -53,9 +53,17 @@ export function LinesEditor({
 }: Props) {
   const { t } = useTranslation();
   const fmt = useFormat();
-  const [picker, setPicker] = useState(false);
+  // Id of the line whose catalogue picker is open.
+  const [picker, setPicker] = useState<string | null>(null);
   const set = (id: string, patch: Partial<Line>) =>
     onChange(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
+  /** Inserts a line after `afterId`; an empty line at that place is replaced instead. */
+  const insertAfter = (afterId: string, line: Line, replaceEmpty = false) => {
+    const i = lines.findIndex((l) => l.id === afterId);
+    const at = lines[i];
+    const empty = replaceEmpty && at && !at.description && !at.unitPrice;
+    onChange([...lines.slice(0, empty ? i : i + 1), line, ...lines.slice(i + 1)]);
+  };
 
   return (
     <div>
@@ -87,17 +95,50 @@ export function LinesEditor({
                   />
                 </div>
                 {!readOnly && (
-                  <button
-                    type="button"
-                    aria-label={t("lines.deleteLine", { n: i + 1 })}
-                    disabled={lines.length === 1}
-                    className="btn btn-ghost size-10 shrink-0 px-0"
-                    onClick={() => onChange(lines.filter((x) => x.id !== l.id))}
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  <div className="flex shrink-0">
+                    <button
+                      type="button"
+                      aria-label={t("lines.addLine")}
+                      title={t("lines.addLine")}
+                      className="btn btn-ghost size-10 px-0"
+                      onClick={() => insertAfter(l.id, newLine(defaultVat))}
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={t("lines.fromCatalogue")}
+                      title={t("lines.fromCatalogue")}
+                      aria-expanded={picker === l.id}
+                      className={`btn btn-ghost size-10 px-0 ${picker === l.id ? "bg-muted" : ""}`}
+                      onClick={() => setPicker(picker === l.id ? null : l.id)}
+                    >
+                      <BookOpen className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={t("lines.deleteLine", { n: i + 1 })}
+                      title={t("lines.deleteLine", { n: i + 1 })}
+                      disabled={lines.length === 1}
+                      className="btn btn-ghost size-10 px-0"
+                      onClick={() => onChange(lines.filter((x) => x.id !== l.id))}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
                 )}
               </div>
+              {picker === l.id && !readOnly && (
+                <div className="ps-7">
+                  <CatalogPicker
+                    catalog={catalog}
+                    onPick={(item) => {
+                      insertAfter(l.id, lineFromItem(item), true);
+                      setPicker(null);
+                    }}
+                  />
+                </div>
+              )}
               <div
                 className={`mt-2 grid grid-cols-2 gap-2 ps-7 sm:grid-cols-3 ${showKind ? "lg:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.3fr)]" : "lg:grid-cols-5"} xl:items-end`}
               >
@@ -188,34 +229,6 @@ export function LinesEditor({
           );
         })}
       </div>
-
-      {!readOnly && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => onChange([...lines, newLine(defaultVat)])}
-          >
-            <Plus className="size-4" /> {t("lines.addLine")}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            aria-expanded={picker}
-            onClick={() => setPicker(!picker)}
-          >
-            <BookOpen className="size-4" /> {t("lines.fromCatalogue")}
-          </button>
-        </div>
-      )}
-      {picker && !readOnly && (
-        <CatalogPicker
-          catalog={catalog}
-          onPick={(i) =>
-            onChange([...lines.filter((l) => l.description || l.unitPrice), lineFromItem(i)])
-          }
-        />
-      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useState } from "react";
-import { Package, Plus, Search, Trash2 } from "lucide-react";
+import { FileSpreadsheet, Package, Plus, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader, EmptyState, PageTitle } from "@/components/Brand";
 import { F } from "@/components/Form";
@@ -19,6 +19,7 @@ import {
 } from "@/lib/store";
 import { errorMessage } from "@/lib/storage";
 import { Dropdown } from "@/components/Dropdown";
+import { CatalogImport } from "@/components/CatalogImport";
 
 export const Route = createFileRoute("/catalogue")({
   head: ({ match }) => pageMeta(match, "catalogue"),
@@ -37,13 +38,17 @@ function Catalogue() {
   const { fmt, locale } = useLocale();
   const [items, setItems] = useState<CatalogItem[] | null>(null);
   const [rates, setRates] = useState<number[]>([20, 14, 10, 7, 0]);
+  const [defaultVat, setDefaultVat] = useState(20);
+  const [importing, setImporting] = useState(false);
   const [search, setSearch] = useState("");
   const [edit, setEdit] = useState<CatalogItem | null>(null);
   const [tried, setTried] = useState(false);
 
   useEffect(() => {
     setItems(loadCatalog());
-    setRates(loadSettings().vatRates);
+    const st = loadSettings();
+    setRates(st.vatRates);
+    setDefaultVat(st.defaultVat);
   }, []);
 
   const list = useMemo(() => {
@@ -53,6 +58,7 @@ function Catalogue() {
   }, [items, search, locale]);
 
   const open = (i: CatalogItem) => {
+    setImporting(false);
     setEdit({ ...i });
     setTried(false);
   };
@@ -85,6 +91,10 @@ function Catalogue() {
       toast.error(errorMessage(e, t));
     }
   };
+  const startImport = () => {
+    setEdit(null);
+    setImporting(true);
+  };
   const itemRates = edit && !rates.includes(edit.vatRate) ? [...rates, edit.vatRate] : rates;
 
   return (
@@ -92,11 +102,29 @@ function Catalogue() {
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-8">
         <PageTitle title={t("catalogue.title")}>
-          <button className="btn btn-accent" onClick={() => open(newItem())}>
-            <Plus className="size-4" /> {t("catalogue.new")}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn btn-ghost" onClick={startImport}>
+              <FileSpreadsheet className="size-4" /> {t("catalogueImport.open")}
+            </button>
+            <button className="btn btn-accent" onClick={() => open(newItem())}>
+              <Plus className="size-4" /> {t("catalogue.new")}
+            </button>
+          </div>
         </PageTitle>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("catalogue.intro")}</p>
+
+        {importing && items && (
+          <CatalogImport
+            current={items}
+            defaultVat={defaultVat}
+            vatRates={rates}
+            onDone={(next) => {
+              setItems(next);
+              setImporting(false);
+            }}
+            onClose={() => setImporting(false)}
+          />
+        )}
 
         {edit && (
           <section
@@ -198,14 +226,20 @@ function Catalogue() {
         {items === null ? (
           <p className="mt-10 text-sm text-muted-foreground">{t("common.loading")}</p>
         ) : items.length === 0 ? (
-          !edit && (
+          !edit &&
+          !importing && (
             <EmptyState
               icon={<Package className="size-6" />}
               title={t("catalogue.emptyTitle")}
               action={
-                <button className="btn btn-accent" onClick={() => open(newItem())}>
-                  <Plus className="size-4" /> {t("catalogue.addFirst")}
-                </button>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <button className="btn btn-accent" onClick={() => open(newItem())}>
+                    <Plus className="size-4" /> {t("catalogue.addFirst")}
+                  </button>
+                  <button className="btn btn-ghost" onClick={startImport}>
+                    <FileSpreadsheet className="size-4" /> {t("catalogueImport.open")}
+                  </button>
+                </div>
               }
             >
               {t("catalogue.emptyText")}

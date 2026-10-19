@@ -99,6 +99,8 @@ export const loadCatalog = () => read<CatalogItem[]>("devisplus.catalog", []);
 export function saveItem(i: CatalogItem) {
   write("devisplus.catalog", [i, ...loadCatalog().filter((x) => x.id !== i.id)]);
 }
+/** Replaces the whole catalogue (used by the file import). */
+export const saveCatalog = (items: CatalogItem[]) => write("devisplus.catalog", items);
 export function deleteItem(id: string) {
   write(
     "devisplus.catalog",
