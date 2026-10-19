@@ -117,6 +117,10 @@ export const meta: M["meta"] = {
     title: "إنشاء حساب | DevisPlus.ma",
     description: "أنشئ حسابك على DevisPlus مجانًا.",
   },
+  waiting: {
+    title: "الحساب قيد المراجعة | DevisPlus.ma",
+    description: "حسابك قيد المراجعة من طرف فريق DevisPlus.",
+  },
   admin: {
     title: "الإدارة — DevisPlus.ma",
     description: "سجل عملاء DevisPlus ومدفوعاتهم.",

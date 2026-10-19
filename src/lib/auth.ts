@@ -2,7 +2,7 @@ import { hasAccount, type AdminAccount, type Tenant } from "./tenant";
 
 /**
  * Browser-side helpers around accounts. Workspace accounts are server accounts (Better Auth,
- * see lib/account); the PBKDF2 helpers below remain for the DevisPlus owner's /admin lock.
+ * see lib/account). The PBKDF2 helpers below check older browser-only accounts.
  */
 const ITERATIONS = 150_000;
 
@@ -54,46 +54,6 @@ export async function verifyAdmin(admin: AdminAccount, email: string, password: 
 
 /** This browser's workspace already belongs to an account (sign-in rather than sign-up). */
 export const hasLock = (t: Tenant | null) => !!t && hasAccount(t.admin);
-
-// ---------- platform owner (/admin) ----------
-// Separate from the workspace admin: the owner of DevisPlus manages the customer register.
-
-const OWNER_KEY = "devisplus.owner";
-const OWNER_SESSION = "devisplus.owner.session";
-
-export function loadOwner(): AdminAccount | null {
-  try {
-    const raw = localStorage.getItem(OWNER_KEY);
-    const a = raw ? (JSON.parse(raw) as AdminAccount) : null;
-    return a?.passwordHash ? a : null;
-  } catch {
-    return null;
-  }
-}
-export function saveOwner(a: AdminAccount) {
-  localStorage.setItem(OWNER_KEY, JSON.stringify(a));
-}
-export function isOwnerSignedIn(a: AdminAccount) {
-  try {
-    return sessionStorage.getItem(OWNER_SESSION) === a.passwordHash.slice(0, 16);
-  } catch {
-    return false;
-  }
-}
-export function signInOwner(a: AdminAccount) {
-  try {
-    sessionStorage.setItem(OWNER_SESSION, a.passwordHash.slice(0, 16));
-  } catch {
-    // ignore: asked again next time
-  }
-}
-export function signOutOwner() {
-  try {
-    sessionStorage.removeItem(OWNER_SESSION);
-  } catch {
-    // ignore
-  }
-}
 
 // ---------- access to the app pages ----------
 

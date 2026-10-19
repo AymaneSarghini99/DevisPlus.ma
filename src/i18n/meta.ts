@@ -20,7 +20,8 @@ type PageKey =
   | "guides"
   | "group"
   | "signin"
-  | "signup";
+  | "signup"
+  | "waiting";
 
 /** Pages search engines should index; every other app page is "noindex". */
 const INDEXABLE: PageKey[] = ["landing", "pricing", "guides", "group"];

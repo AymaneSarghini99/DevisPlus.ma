@@ -2,7 +2,7 @@ export const admin = {
   title: "Administration",
   subtitle: "Vos clients DevisPlus, leurs paiements et leurs domaines.",
   notice:
-    "Ce registre est tenu à la main : sans serveur, les inscriptions et paiements n'y arrivent pas automatiquement. Les données sont enregistrées dans ce navigateur, exportez une sauvegarde régulièrement.",
+    "Ce registre (ventes, paiements, domaines) est tenu à la main et enregistré en ligne. Les comptes inscrits sont dans l'onglet « Inscriptions ».",
   kpi: {
     customers: "Clients",
     leads: "Prospects",

@@ -13,12 +13,14 @@ import {
   type Unit,
 } from "./quotes";
 import {
+  defaultStyle,
   defaultWatermark,
   designFrom,
   normalizeWatermark,
   type CustomTemplate,
   type Watermark,
 } from "./design";
+import { defaultNumbering, normalizeNumbering, type Numbering } from "./numbering";
 import { read, write } from "./storage";
 import type { Locale } from "@/i18n/config";
 import { tFor } from "@/i18n/index";
@@ -52,6 +54,10 @@ export type Settings = {
   appLogo: string;
   appButton: string;
   appLine: string;
+  /** Number format of new quotes and invoices. */
+  numbering: Numbering;
+  /** Footer printed on new documents ("" = none); a custom template's own footer wins. */
+  docFooter: string;
 };
 
 // ---------- clients ----------
@@ -146,6 +152,8 @@ export const defaultSettings = (): Settings => ({
   appLogo: "",
   appButton: "",
   appLine: "",
+  numbering: defaultNumbering(),
+  docFooter: "",
 });
 export function loadSettings(): Settings {
   const s = { ...defaultSettings(), ...read<Partial<Settings>>("devisplus.settings", {}) };
@@ -158,6 +166,7 @@ export function loadSettings(): Settings {
     ...s,
     company: { ...emptyCompany(), ...s.company },
     watermark: normalizeWatermark(s.watermark),
+    numbering: normalizeNumbering(s.numbering),
   };
 }
 export const saveSettings = (s: Settings) => write("devisplus.settings", s);
@@ -171,11 +180,17 @@ export const docTerms = (s: Pick<Settings, "terms">, lang: Locale) =>
 
 export function quoteDefaults(s: Settings): Defaults {
   const custom = s.customTemplates.find((c) => c.id === s.defaultCustom);
+  const footer = s.docFooter.trim();
+  const design: Partial<Defaults> = custom
+    ? designFrom(custom)
+    : footer
+      ? { style: { ...defaultStyle(), footerNote: footer } }
+      : {};
   return {
     ...(hasProfile(s) ? { company: s.company } : {}),
     template: s.template,
     accent: s.accent,
-    ...(custom ? designFrom(custom) : {}),
+    ...design,
     ...(s.watermark.enabled ? { watermark: s.watermark } : {}),
     validityDays: s.validityDays,
     terms: docTerms(s, s.docLang),

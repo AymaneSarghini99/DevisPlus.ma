@@ -183,7 +183,7 @@ export const auth: M["auth"] = {
   submit: "Sign in",
   checking: "Checking…",
   wrong: "Incorrect email or password.",
-  localNote: "Your account is online; your quotes stay saved on this device for now.",
+  localNote: "Your account and your data are saved online, separately for each company.",
   logout: "Sign out",
   loggedOut: "You are signed out.",
   signupTitle: "Create your account",

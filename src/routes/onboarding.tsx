@@ -19,7 +19,8 @@ import type { Locale } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
 import { ONBOARDING_STEPS, type OnboardingStep } from "@/onboarding/config";
-import { errorMessage } from "@/lib/storage";
+import { errorMessage, write } from "@/lib/storage";
+import { flushWorkspace } from "@/lib/workspace/client";
 import { hasProfile, loadSettings } from "@/lib/store";
 import {
   completeStep,
@@ -81,9 +82,11 @@ function Onboarding() {
   useDevFill("onboarding", (action) => {
     if (import.meta.env.DEV) {
       if (action === "clear") {
+        // Also clears the workspace's server copy (through the storage layer).
+        write("devisplus.tenant", null);
         localStorage.removeItem("devisplus.tenant");
         sessionStorage.clear();
-        window.location.reload();
+        void flushWorkspace().then(() => window.location.reload());
         return;
       }
       void import("@/dev/mock").then(({ mockStep, MOCK_PASSWORD }) => {

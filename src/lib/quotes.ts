@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import type { Locale } from "@/i18n/config";
 import { makeFormat, type Format } from "@/i18n/format";
 import { amountInWordsAr, amountInWordsEn } from "./amountWords";
+import { nextInFormat, normalizeNumbering, type DocKind, type Numbering } from "./numbering";
 import { read, write } from "./storage";
 
 export type Unit = "pièce" | "heure" | "jour" | "m²" | "m³" | "ml" | "kg" | "forfait";
@@ -304,18 +305,21 @@ export function deleteQuote(id: string) {
   );
 }
 
-/** Next number = highest existing sequence for the year + 1 (never reuses a number after deletions of older ones). */
+/** Number format saved in the settings (read here directly: store.ts depends on this file). */
+const savedNumbering = () =>
+  normalizeNumbering(read<{ numbering?: Partial<Numbering> }>("devisplus.settings", {}).numbering);
+
+/**
+ * Next number = highest existing counter of the same format for the year + 1 (never reuses a
+ * number after deletions of older ones). Format: the settings' numbering (default DV-YYYY-NNN).
+ */
 export function nextNumber(
   existing: { number: string }[],
   year = new Date().getFullYear(),
-  prefix = "DV",
+  kind: DocKind = "DV",
+  numbering: Numbering = savedNumbering(),
 ) {
-  const re = new RegExp(`^${prefix}-${year}-(\\d+)$`);
-  const max = existing.reduce((m, q) => {
-    const x = re.exec(q.number);
-    return x ? Math.max(m, +x[1]!) : m;
-  }, 0);
-  return `${prefix}-${year}-${String(max + 1).padStart(3, "0")}`;
+  return nextInFormat(existing, numbering, kind, year);
 }
 
 export const newLine = (vatRate = 20): Line => ({

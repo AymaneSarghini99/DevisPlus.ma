@@ -1,12 +1,12 @@
 /**
  * HTTP handlers of the Google Drive integration (used by the /api/google/* server routes).
  *
- * Credential storage (this phase, no database yet): the Google refresh token is sealed with
- * AES-256-GCM using GOOGLE_TOKEN_ENCRYPTION_KEY (a server secret) and kept in an HttpOnly,
- * SameSite=Lax cookie. Page scripts cannot read it (HttpOnly) and nobody can decrypt it without
- * the server key; only this server uses it. The connection therefore belongs to the browser
- * that connected it, which matches the current app where each browser holds its workspace.
- * When accounts and Supabase are added, the sealed value moves to a server-only table.
+ * Credential storage: the Google refresh token is sealed with AES-256-GCM using
+ * GOOGLE_TOKEN_ENCRYPTION_KEY (a server secret), so nobody can use it without the server key.
+ * With the database (google/dbStore.ts) it is kept per company in drive_connections, a table
+ * browsers cannot read: the connection belongs to the company, on every device. Without a
+ * database (tests, older setups) it is kept in an HttpOnly cookie of the browser that connected
+ * it (cookieStore below).
  */
 import type { GoogleConfig } from "./config";
 import {
@@ -28,7 +28,20 @@ import {
 } from "./google";
 import { randomToken, safeEqual, seal, sha256b64url, unseal } from "./seal";
 
-export type Deps = { config: GoogleConfig | null; missing?: string[]; fetch: typeof fetch };
+export type Deps = {
+  config: GoogleConfig | null;
+  missing?: string[];
+  fetch: typeof fetch;
+  /** Where the connection is kept (default: an HttpOnly cookie of this browser). */
+  store?: (c: GoogleConfig) => ConnectionStore;
+};
+
+/** Keeps the sealed Drive connection; save and clear return the Set-Cookie headers to send. */
+export type ConnectionStore = {
+  load(req: Request): Promise<Connection | null>;
+  save(req: Request, conn: Connection): Promise<string[]>;
+  clear(req: Request): Promise<string[]>;
+};
 
 export type Connection = {
   v: 1;
@@ -88,12 +101,19 @@ const back = (result: string, cookies: string[] = []) =>
 const codeOf = (e: unknown): GoogleErrorCode | "error" =>
   e instanceof GoogleError ? e.code : "error";
 
-async function loadConnection(req: Request, c: GoogleConfig) {
-  return unseal<Connection>(readCookie(req, cookieName(c, CONN)), c.encryptionKey, CONN);
+/** The connection in an HttpOnly cookie of this browser. */
+export function cookieStore(c: GoogleConfig): ConnectionStore {
+  return {
+    load: async (req) =>
+      (await unseal<Connection>(readCookie(req, cookieName(c, CONN)), c.encryptionKey, CONN)) ??
+      null,
+    save: async (_req, conn) => [
+      cookie(c, CONN, await seal(conn, c.encryptionKey, CONN), CONN_MAX_AGE),
+    ],
+    clear: async () => [clear(c, CONN)],
+  };
 }
-async function saveConnection(c: GoogleConfig, conn: Connection) {
-  return cookie(c, CONN, await seal(conn, c.encryptionKey, CONN), CONN_MAX_AGE);
-}
+const storeOf = (d: Deps, c: GoogleConfig) => d.store?.(c) ?? cookieStore(c);
 
 /** State-changing calls must come from this deployment's own pages (CSRF protection). */
 function sameOrigin(req: Request, c: GoogleConfig) {
@@ -145,7 +165,8 @@ export async function handleCallback(req: Request, d: Deps) {
     }
     if (!t.refresh_token) return back("error", [clearTx]);
     const who = await userInfo(t.access_token, d.fetch);
-    const previous = await loadConnection(req, c);
+    const store = storeOf(d, c);
+    const previous = await store.load(req);
     const sameAccount = previous?.sub === who.sub;
     if (previous && !sameAccount) await revoke(previous.refreshToken, d.fetch);
     const conn: Connection = {
@@ -158,7 +179,7 @@ export async function handleCallback(req: Request, d: Deps) {
       folderName: sameAccount ? previous.folderName : null,
       connectedAt: new Date().toISOString(),
     };
-    return back("connected", [clearTx, await saveConnection(c, conn)]);
+    return back("connected", [clearTx, ...(await store.save(req, conn))]);
   } catch (e) {
     return back(codeOf(e), [clearTx]);
   }
@@ -168,7 +189,8 @@ export async function handleCallback(req: Request, d: Deps) {
 export async function handleStatus(req: Request, d: Deps) {
   const c = d.config;
   if (!c) return json({ configured: false, connected: false, missing: d.missing ?? [] });
-  const conn = await loadConnection(req, c);
+  const store = storeOf(d, c);
+  const conn = await store.load(req);
   if (!conn) return json({ configured: true, connected: false });
   try {
     const token = await refreshAccessToken(c, conn.refreshToken, d.fetch);
@@ -194,7 +216,11 @@ export async function handleStatus(req: Request, d: Deps) {
   } catch (e) {
     const code = codeOf(e);
     if (code === "revoked")
-      return json({ configured: true, connected: false, error: "revoked" }, 200, [clear(c, CONN)]);
+      return json(
+        { configured: true, connected: false, error: "revoked" },
+        200,
+        await store.clear(req),
+      );
     // Google unreachable: the connection exists but cannot be confirmed right now.
     return json({ configured: true, connected: true, email: conn.email, error: code }, 200);
   }
@@ -205,7 +231,8 @@ export async function handleFolders(req: Request, d: Deps) {
   const c = d.config;
   if (!c) return json({ error: "not_configured" }, 503);
   if (!sameOrigin(req, c)) return json({ error: "forbidden" }, 403);
-  const conn = await loadConnection(req, c);
+  const store = storeOf(d, c);
+  const conn = await store.load(req);
   if (!conn) return json({ error: "not_connected" }, 401);
   const body = (await req.json().catch(() => null)) as {
     action?: string;
@@ -224,7 +251,7 @@ export async function handleFolders(req: Request, d: Deps) {
       folder = await getFolder(token, body.id, d.fetch); // validated server-side with Google
     } else return json({ error: "bad_request" }, 400);
     const next = { ...conn, folderId: folder.id, folderName: folder.name };
-    return json({ folder }, 200, [await saveConnection(c, next)]);
+    return json({ folder }, 200, await store.save(req, next));
   } catch (e) {
     const code = codeOf(e);
     return json(
@@ -238,7 +265,7 @@ export async function handleFolders(req: Request, d: Deps) {
             : code === "rate_limited"
               ? 429
               : 502,
-      code === "revoked" ? [clear(c, CONN)] : [],
+      code === "revoked" ? await store.clear(req) : [],
     );
   }
 }
@@ -248,9 +275,10 @@ export async function handleDisconnect(req: Request, d: Deps) {
   const c = d.config;
   if (!c) return json({ error: "not_configured" }, 503);
   if (!sameOrigin(req, c)) return json({ error: "forbidden" }, 403);
-  const conn = await loadConnection(req, c);
+  const store = storeOf(d, c);
+  const conn = await store.load(req);
   const revoked = conn ? await revoke(conn.refreshToken, d.fetch) : true;
-  return json({ connected: false, revoked }, 200, [clear(c, CONN)]);
+  return json({ connected: false, revoked }, 200, await store.clear(req));
 }
 
 // ---------- quotation PDF upload ----------
@@ -294,7 +322,8 @@ export async function handleUpload(req: Request, d: Deps) {
   const c = d.config;
   if (!c) return json({ error: "not_configured" }, 503);
   if (req.headers.get("origin") !== c.appOrigin) return json({ error: "forbidden" }, 403);
-  const conn = await loadConnection(req, c);
+  const store = storeOf(d, c);
+  const conn = await store.load(req);
   if (!conn) return json({ error: "not_connected" }, 401);
   if (!conn.folderId) return json({ error: "no_folder" }, 409);
 
@@ -360,7 +389,7 @@ export async function handleUpload(req: Request, d: Deps) {
           : code === "rate_limited"
             ? 429
             : 502,
-      code === "revoked" ? [clear(c, CONN)] : [],
+      code === "revoked" ? await store.clear(req) : [],
     );
   }
 }

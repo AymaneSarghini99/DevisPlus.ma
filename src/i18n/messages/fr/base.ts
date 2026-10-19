@@ -117,6 +117,10 @@ export const meta = {
     title: "Créer un compte | DevisPlus.ma",
     description: "Créez votre compte DevisPlus gratuitement.",
   },
+  waiting: {
+    title: "Compte en attente | DevisPlus.ma",
+    description: "Votre compte est en cours de validation par l'équipe DevisPlus.",
+  },
   admin: {
     title: "Administration — DevisPlus.ma",
     description: "Registre des clients et des paiements DevisPlus.",

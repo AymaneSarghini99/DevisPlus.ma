@@ -22,6 +22,8 @@ import { useFormat } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
 import { AppearanceSection } from "@/components/AppearanceSection";
 import { GoogleDriveSection } from "@/components/GoogleDriveSection";
+import { NumberingSection } from "@/components/NumberingSection";
+import { numberingError } from "@/lib/numbering";
 import { LegalLink } from "@/components/LegalPage";
 import { LEGAL_DOCS } from "@/legal/documents";
 
@@ -59,6 +61,8 @@ function SettingsPage() {
     errors["company.rib"] = "rib";
   if (!s.vatRates.length) errors["vat"] = "vatList";
   if (!s.vatRates.includes(s.defaultVat)) errors["vat"] = "vatDefault";
+  const numbering = numberingError(s.numbering);
+  if (numbering) errors["numbering"] = numbering;
   const err = (k: string) =>
     tried && errors[k] ? t(`validation.${errors[k]}` as never) : undefined;
   const missing = missingInvoiceMentions({
@@ -97,6 +101,7 @@ function SettingsPage() {
     ["company", t("editor.sectionCompany")],
     ["bank", t("doc.bank")],
     ["quotes", t("settings.preferences")],
+    ["numbering", t("account.docs.title")],
     ["appearance", t("settings.appearance")],
     ["google-drive", t("drive.title")],
     ["legal", t("settings.legalTitle")],
@@ -355,6 +360,8 @@ function SettingsPage() {
               <p className="mt-2 text-xs text-muted-foreground">{t("settings.ratesHint")}</p>
             </div>
           </Card>
+
+          <NumberingSection s={s} update={update} tried={tried} />
 
           <AppearanceSection s={s} update={update} />
 

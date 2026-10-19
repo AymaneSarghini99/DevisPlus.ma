@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AcceptableUseRouteImport } from './routes/acceptable-use'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AttenteRouteImport } from './routes/attente'
 import { Route as CatalogueRouteImport } from './routes/catalogue'
 import { Route as ClientsRouteImport } from './routes/clients'
 import { Route as ConnexionRouteImport } from './routes/connexion'
@@ -33,11 +34,14 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ApiAppConfigRouteImport } from './routes/api/app-config'
 import { Route as DevisIdRouteImport } from './routes/devis.$id'
 import { Route as FacturesIndexRouteImport } from './routes/factures.index'
 import { Route as FacturesIdRouteImport } from './routes/factures.$id'
 import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
+import { Route as ApiAdminAccountsRouteImport } from './routes/api/admin/accounts'
+import { Route as ApiAdminDataRouteImport } from './routes/api/admin/data'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiGoogleCallbackRouteImport } from './routes/api/google/callback'
 import { Route as ApiGoogleConnectRouteImport } from './routes/api/google/connect'
@@ -45,6 +49,8 @@ import { Route as ApiGoogleDisconnectRouteImport } from './routes/api/google/dis
 import { Route as ApiGoogleFoldersRouteImport } from './routes/api/google/folders'
 import { Route as ApiGoogleStatusRouteImport } from './routes/api/google/status'
 import { Route as ApiGoogleUploadRouteImport } from './routes/api/google/upload'
+import { Route as ApiWorkspaceIndexRouteImport } from './routes/api/workspace/index'
+import { Route as ApiWorkspaceStatusRouteImport } from './routes/api/workspace/status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -59,6 +65,11 @@ const AcceptableUseRoute = AcceptableUseRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AttenteRoute = AttenteRouteImport.update({
+  id: '/attente',
+  path: '/attente',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogueRoute = CatalogueRouteImport.update({
@@ -166,6 +177,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAppConfigRoute = ApiAppConfigRouteImport.update({
+  id: '/api/app-config',
+  path: '/api/app-config',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevisIdRoute = DevisIdRouteImport.update({
   id: '/devis/$id',
   path: '/devis/$id',
@@ -189,6 +205,16 @@ const GuidesIndexRoute = GuidesIndexRouteImport.update({
 const GuidesSlugRoute = GuidesSlugRouteImport.update({
   id: '/guides/$slug',
   path: '/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminAccountsRoute = ApiAdminAccountsRouteImport.update({
+  id: '/api/admin/accounts',
+  path: '/api/admin/accounts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminDataRoute = ApiAdminDataRouteImport.update({
+  id: '/api/admin/data',
+  path: '/api/admin/data',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -226,11 +252,22 @@ const ApiGoogleUploadRoute = ApiGoogleUploadRouteImport.update({
   path: '/api/google/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWorkspaceIndexRoute = ApiWorkspaceIndexRouteImport.update({
+  id: '/api/workspace/',
+  path: '/api/workspace/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWorkspaceStatusRoute = ApiWorkspaceStatusRouteImport.update({
+  id: '/api/workspace/status',
+  path: '/api/workspace/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acceptable-use': typeof AcceptableUseRoute
   '/admin': typeof AdminRoute
+  '/attente': typeof AttenteRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/connexion': typeof ConnexionRoute
@@ -252,11 +289,14 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
+  '/api/app-config': typeof ApiAppConfigRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/api/admin/accounts': typeof ApiAdminAccountsRoute
+  '/api/admin/data': typeof ApiAdminDataRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
@@ -264,11 +304,14 @@ export interface FileRoutesByFullPath {
   '/api/google/folders': typeof ApiGoogleFoldersRoute
   '/api/google/status': typeof ApiGoogleStatusRoute
   '/api/google/upload': typeof ApiGoogleUploadRoute
+  '/api/workspace/status': typeof ApiWorkspaceStatusRoute
+  '/api/workspace/': typeof ApiWorkspaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acceptable-use': typeof AcceptableUseRoute
   '/admin': typeof AdminRoute
+  '/attente': typeof AttenteRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/connexion': typeof ConnexionRoute
@@ -290,11 +333,14 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
+  '/api/app-config': typeof ApiAppConfigRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures': typeof FacturesIndexRoute
   '/guides': typeof GuidesIndexRoute
+  '/api/admin/accounts': typeof ApiAdminAccountsRoute
+  '/api/admin/data': typeof ApiAdminDataRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
@@ -302,12 +348,15 @@ export interface FileRoutesByTo {
   '/api/google/folders': typeof ApiGoogleFoldersRoute
   '/api/google/status': typeof ApiGoogleStatusRoute
   '/api/google/upload': typeof ApiGoogleUploadRoute
+  '/api/workspace/status': typeof ApiWorkspaceStatusRoute
+  '/api/workspace': typeof ApiWorkspaceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/acceptable-use': typeof AcceptableUseRoute
   '/admin': typeof AdminRoute
+  '/attente': typeof AttenteRoute
   '/catalogue': typeof CatalogueRoute
   '/clients': typeof ClientsRoute
   '/connexion': typeof ConnexionRoute
@@ -329,11 +378,14 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
+  '/api/app-config': typeof ApiAppConfigRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
   '/guides/': typeof GuidesIndexRoute
+  '/api/admin/accounts': typeof ApiAdminAccountsRoute
+  '/api/admin/data': typeof ApiAdminDataRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
@@ -341,6 +393,8 @@ export interface FileRoutesById {
   '/api/google/folders': typeof ApiGoogleFoldersRoute
   '/api/google/status': typeof ApiGoogleStatusRoute
   '/api/google/upload': typeof ApiGoogleUploadRoute
+  '/api/workspace/status': typeof ApiWorkspaceStatusRoute
+  '/api/workspace/': typeof ApiWorkspaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -348,6 +402,7 @@ export interface FileRouteTypes {
     | '/'
     | '/acceptable-use'
     | '/admin'
+    | '/attente'
     | '/catalogue'
     | '/clients'
     | '/connexion'
@@ -369,11 +424,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
+    | '/api/app-config'
     | '/devis/$id'
     | '/factures/$id'
     | '/guides/$slug'
     | '/factures/'
     | '/guides/'
+    | '/api/admin/accounts'
+    | '/api/admin/data'
     | '/api/auth/$'
     | '/api/google/callback'
     | '/api/google/connect'
@@ -381,11 +439,14 @@ export interface FileRouteTypes {
     | '/api/google/folders'
     | '/api/google/status'
     | '/api/google/upload'
+    | '/api/workspace/status'
+    | '/api/workspace/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/acceptable-use'
     | '/admin'
+    | '/attente'
     | '/catalogue'
     | '/clients'
     | '/connexion'
@@ -407,11 +468,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
+    | '/api/app-config'
     | '/devis/$id'
     | '/factures/$id'
     | '/guides/$slug'
     | '/factures'
     | '/guides'
+    | '/api/admin/accounts'
+    | '/api/admin/data'
     | '/api/auth/$'
     | '/api/google/callback'
     | '/api/google/connect'
@@ -419,11 +483,14 @@ export interface FileRouteTypes {
     | '/api/google/folders'
     | '/api/google/status'
     | '/api/google/upload'
+    | '/api/workspace/status'
+    | '/api/workspace'
   id:
     | '__root__'
     | '/'
     | '/acceptable-use'
     | '/admin'
+    | '/attente'
     | '/catalogue'
     | '/clients'
     | '/connexion'
@@ -445,11 +512,14 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
+    | '/api/app-config'
     | '/devis/$id'
     | '/factures/$id'
     | '/guides/$slug'
     | '/factures/'
     | '/guides/'
+    | '/api/admin/accounts'
+    | '/api/admin/data'
     | '/api/auth/$'
     | '/api/google/callback'
     | '/api/google/connect'
@@ -457,12 +527,15 @@ export interface FileRouteTypes {
     | '/api/google/folders'
     | '/api/google/status'
     | '/api/google/upload'
+    | '/api/workspace/status'
+    | '/api/workspace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcceptableUseRoute: typeof AcceptableUseRoute
   AdminRoute: typeof AdminRoute
+  AttenteRoute: typeof AttenteRoute
   CatalogueRoute: typeof CatalogueRoute
   ClientsRoute: typeof ClientsRoute
   ConnexionRoute: typeof ConnexionRoute
@@ -484,11 +557,14 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TarifsRoute: typeof TarifsRoute
   TermsRoute: typeof TermsRoute
+  ApiAppConfigRoute: typeof ApiAppConfigRoute
   DevisIdRoute: typeof DevisIdRoute
   FacturesIdRoute: typeof FacturesIdRoute
   GuidesSlugRoute: typeof GuidesSlugRoute
   FacturesIndexRoute: typeof FacturesIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
+  ApiAdminAccountsRoute: typeof ApiAdminAccountsRoute
+  ApiAdminDataRoute: typeof ApiAdminDataRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiGoogleCallbackRoute: typeof ApiGoogleCallbackRoute
   ApiGoogleConnectRoute: typeof ApiGoogleConnectRoute
@@ -496,6 +572,8 @@ export interface RootRouteChildren {
   ApiGoogleFoldersRoute: typeof ApiGoogleFoldersRoute
   ApiGoogleStatusRoute: typeof ApiGoogleStatusRoute
   ApiGoogleUploadRoute: typeof ApiGoogleUploadRoute
+  ApiWorkspaceStatusRoute: typeof ApiWorkspaceStatusRoute
+  ApiWorkspaceIndexRoute: typeof ApiWorkspaceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -519,6 +597,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/attente': {
+      id: '/attente'
+      path: '/attente'
+      fullPath: '/attente'
+      preLoaderRoute: typeof AttenteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalogue': {
@@ -668,6 +753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/app-config': {
+      id: '/api/app-config'
+      path: '/api/app-config'
+      fullPath: '/api/app-config'
+      preLoaderRoute: typeof ApiAppConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devis/$id': {
       id: '/devis/$id'
       path: '/devis/$id'
@@ -701,6 +793,20 @@ declare module '@tanstack/react-router' {
       path: '/guides/$slug'
       fullPath: '/guides/$slug'
       preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/accounts': {
+      id: '/api/admin/accounts'
+      path: '/api/admin/accounts'
+      fullPath: '/api/admin/accounts'
+      preLoaderRoute: typeof ApiAdminAccountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/data': {
+      id: '/api/admin/data'
+      path: '/api/admin/data'
+      fullPath: '/api/admin/data'
+      preLoaderRoute: typeof ApiAdminDataRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -752,6 +858,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGoogleUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/workspace/': {
+      id: '/api/workspace/'
+      path: '/api/workspace'
+      fullPath: '/api/workspace/'
+      preLoaderRoute: typeof ApiWorkspaceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/workspace/status': {
+      id: '/api/workspace/status'
+      path: '/api/workspace/status'
+      fullPath: '/api/workspace/status'
+      preLoaderRoute: typeof ApiWorkspaceStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -759,6 +879,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcceptableUseRoute: AcceptableUseRoute,
   AdminRoute: AdminRoute,
+  AttenteRoute: AttenteRoute,
   CatalogueRoute: CatalogueRoute,
   ClientsRoute: ClientsRoute,
   ConnexionRoute: ConnexionRoute,
@@ -780,11 +901,14 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TarifsRoute: TarifsRoute,
   TermsRoute: TermsRoute,
+  ApiAppConfigRoute: ApiAppConfigRoute,
   DevisIdRoute: DevisIdRoute,
   FacturesIdRoute: FacturesIdRoute,
   GuidesSlugRoute: GuidesSlugRoute,
   FacturesIndexRoute: FacturesIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,
+  ApiAdminAccountsRoute: ApiAdminAccountsRoute,
+  ApiAdminDataRoute: ApiAdminDataRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiGoogleCallbackRoute: ApiGoogleCallbackRoute,
   ApiGoogleConnectRoute: ApiGoogleConnectRoute,
@@ -792,6 +916,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGoogleFoldersRoute: ApiGoogleFoldersRoute,
   ApiGoogleStatusRoute: ApiGoogleStatusRoute,
   ApiGoogleUploadRoute: ApiGoogleUploadRoute,
+  ApiWorkspaceStatusRoute: ApiWorkspaceStatusRoute,
+  ApiWorkspaceIndexRoute: ApiWorkspaceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

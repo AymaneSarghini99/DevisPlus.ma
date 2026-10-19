@@ -2,6 +2,8 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { adminRedirect, deploymentFrom } from "./lib/deployment";
+import { readEnv } from "./lib/google/config";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -47,6 +49,9 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Admin portal on its own host (ADMIN_HOST, e.g. admin.devisplus.ma).
+      const to = adminRedirect(new URL(request.url), deploymentFrom(readEnv()));
+      if (to) return Response.redirect(to, 302);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

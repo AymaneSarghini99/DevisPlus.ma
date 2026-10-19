@@ -155,6 +155,76 @@ reset role;
 select t.eq((select count(*)::text from public.quotes where organization_id = :'org_a' and status = 'refuse'), '0', 'B''s updates did not touch A''s quotes');
 select t.eq((select count(*)::text from public.clients where organization_id = :'org_a'), '1', 'B''s deletes did not touch A''s clients');
 
+-- ------------------------------------------------------------------ approval and workspace data
+select t.eq((select approval_status::text from public.organizations where id = :'org_a'), 'pending', 'a new company waits for approval');
+select t.eq(public.apply_data_op('[{"id":"1","v":1},{"id":"2","v":2},{"id":"3","v":3}]', '{"t":"array","upsert":[{"id":"2","v":20}],"remove":["3"]}')::text,
+  '[{"v": 20, "id": "2"}, {"v": 1, "id": "1"}]', 'list changes: the changed record first, the removed one gone, the others kept');
+select t.eq(public.apply_data_op('{"a":1,"b":2}', '{"t":"map","set":{"c":3},"remove":["a"]}')::text, '{"b": 2, "c": 3}', 'map changes');
+select t.fails($$select public.apply_data_op('[]', '{"t":"nope"}')$$, 'bad data operation', 'an unknown change is refused');
+
+set role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', false) \gset claim_
+select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', false);
+select t.fails($$update public.organizations set approval_status = 'approved' where id = '$$ || :'org_a' || $$'$$,
+  'only the DevisPlus team', 'a company cannot approve itself');
+select t.fails($$update public.organizations set domain_state = 'active' where id = '$$ || :'org_a' || $$'$$,
+  'only the DevisPlus team', 'a company cannot activate its own domain');
+select t.fails($$insert into public.workspace_data (organization_id, key, value) values ('$$ || :'org_a' || $$', 'clients', '[]')$$,
+  'row-level security', 'a company waiting for approval cannot save data');
+reset role;
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
+update public.organizations set approval_status = 'approved', approval_changed_at = now() where id in (:'org_a', :'org_b');
+select t.eq((select count(*)::text from public.organizations where approval_status = 'approved' and id in (:'org_a', :'org_b')), '2', 'the server (DevisPlus team) can approve');
+
+set role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', false) \gset claim_
+select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', false);
+insert into public.workspace_data (organization_id, key, value) values
+  (:'org_a', 'clients', '[{"id":"c1","name":"Client A"}]'),
+  (:'org_a', 'invoices', '[{"id":"i1","status":"emise","number":"FA-2026-001","issueDate":"2026-10-01","client":{"name":"X"},"lines":[{"id":"l1"}],"payments":[]},{"id":"i2","status":"brouillon","number":"","lines":[]}]');
+select t.eq((select updated_by::text from public.workspace_data where organization_id = :'org_a' and key = 'clients'), '11111111-1111-4111-8111-111111111111', 'who saved is recorded');
+update public.workspace_data set value = public.apply_data_op(value, '{"t":"array","upsert":[{"id":"i1","status":"emise","number":"FA-2026-001","issueDate":"2026-10-01","client":{"name":"X"},"lines":[{"id":"l1"}],"payments":[{"id":"p1","amount":100}]}]}')
+  where organization_id = :'org_a' and key = 'invoices';
+select t.eq((select jsonb_array_length(value -> 0 -> 'payments')::text from public.workspace_data where organization_id = :'org_a' and key = 'invoices'), '1', 'a payment can be recorded on an issued invoice');
+update public.workspace_data set value = public.apply_data_op(value, '{"t":"array","remove":["i2"]}')
+  where organization_id = :'org_a' and key = 'invoices';
+select t.eq((select jsonb_array_length(value)::text from public.workspace_data where organization_id = :'org_a' and key = 'invoices'), '1', 'a draft invoice can be removed');
+select t.fails($$update public.workspace_data set value = public.apply_data_op(value, '{"t":"array","remove":["i1"]}') where key = 'invoices'$$,
+  'issued invoice', 'an issued invoice cannot be removed');
+select t.fails($$update public.workspace_data set value = '[{"id":"i1","status":"emise","number":"FA-2026-009","issueDate":"2026-10-01","client":{"name":"X"},"lines":[{"id":"l1"}]}]' where key = 'invoices'$$,
+  'issued invoice', 'an issued invoice keeps its number');
+select t.fails($$delete from public.workspace_data where key = 'invoices'$$, 'issued invoice', 'the invoice list cannot be deleted while it holds issued invoices');
+select t.eq((select count(*)::text from public.platform_data), '0', 'a company sees no back-office data');
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+select t.eq((select count(*)::text from public.workspace_data), '0', 'B cannot see A''s workspace data');
+select t.fails($$insert into public.workspace_data (organization_id, key, value) values ('$$ || :'org_a' || $$', 'quotes', '[]')$$,
+  'row-level security', 'B cannot write into A''s workspace');
+update public.workspace_data set value = '[]';
+reset role;
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
+select t.eq((select value -> 0 ->> 'name' from public.workspace_data where organization_id = :'org_a' and key = 'clients'), 'Client A', 'B''s update did not touch A''s data');
+
+update public.organizations set approval_status = 'suspended' where id = :'org_a';
+set role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', false) \gset claim_
+select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', false);
+select t.eq((select count(*)::text from public.workspace_data), '0', 'a suspended company no longer reaches its data');
+reset role;
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
+update public.organizations set approval_status = 'approved' where id = :'org_a';
+
+insert into auth.users (id, email) values ('44444444-4444-4444-8444-444444444444', 'team@devisplus.test');
+insert into public.platform_admins (user_id) values ('44444444-4444-4444-8444-444444444444');
+set role authenticated;
+select set_config('request.jwt.claim.role', 'authenticated', false) \gset claim_
+select set_config('request.jwt.claim.sub', '44444444-4444-4444-8444-444444444444', false);
+insert into public.platform_data (key, value) values ('customers', '[]');
+select t.eq((select count(*)::text from public.platform_data), '1', 'a platform admin manages the back-office data');
+select t.eq((select count(*)::text from public.workspace_data), '0', 'a platform admin does not read the companies'' data through the app');
+reset role;
+select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', '', false) \gset trusted_
+
 -- ------------------------------------------------------------------ visitor not signed in
 set role anon;
 select set_config('request.jwt.claim.sub', '', false);

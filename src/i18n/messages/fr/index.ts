@@ -1,3 +1,4 @@
+import * as account from "./account";
 import * as admin from "./admin";
 import * as base from "./base";
 import * as drive from "./drive";
@@ -23,5 +24,6 @@ export const fr = {
   ...pricing,
   ...onboarding,
   ...admin,
+  ...account,
   ...drive,
 };

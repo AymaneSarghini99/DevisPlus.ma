@@ -5,7 +5,7 @@ export const admin: M["admin"] = {
   title: "Administration",
   subtitle: "Your DevisPlus customers, their payments and their domains.",
   notice:
-    "This register is kept by hand: without a server, sign-ups and payments do not arrive here automatically. The data is saved in this browser, so export a backup regularly.",
+    "This register (sales, payments, domains) is kept by hand and saved online. Registered accounts are in the “Sign-ups” tab.",
   kpi: {
     customers: "Customers",
     leads: "Leads",

@@ -4,10 +4,9 @@ import { Check, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher, Logo } from "@/components/Brand";
 import { LegalLink } from "@/components/LegalPage";
-import { useLocale } from "@/i18n/LocaleProvider";
-import { authClient, linkLocalWorkspace } from "@/lib/account/client";
-import type { AccountUser } from "@/lib/account/link";
-import { accessDecision, hasLock, safeNext } from "@/lib/auth";
+import { authClient } from "@/lib/account/client";
+import { hasLock, safeNext } from "@/lib/auth";
+import type { SignupMode } from "@/lib/deployment";
 import { loadTenant, MIN_PASSWORD, type Tenant } from "@/lib/tenant";
 
 export type AuthMode = "signin" | "signup";
@@ -50,8 +49,9 @@ function GoogleG() {
 }
 
 /**
- * Sign-up and sign-in pages. Accounts use an email + password (hashed) or a Google identity
- * verified by the server; both are stored in this browser for now.
+ * Sign-up and sign-in pages. Accounts are server accounts (Better Auth): an email + password
+ * (hashed) or Google. After signing in, the page guard (AdminGate) loads the company's workspace
+ * from the server, or shows the approval waiting page.
  */
 export function AuthPage({
   mode,
@@ -63,7 +63,6 @@ export function AuthPage({
   google?: string | undefined;
 }) {
   const { t } = useTranslation();
-  const { locale } = useLocale();
   const navigate = useNavigate();
   const signup = mode === "signup";
   const page = signup ? "/inscription" : "/connexion";
@@ -74,20 +73,12 @@ export function AuthPage({
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState<"" | "form" | "google" | "session">("session");
   const [error, setError] = useState("");
-  // Signed in, but this browser's workspace belongs to another account.
-  const [otherAccount, setOtherAccount] = useState(false);
+  // One deployment per customer: accounts are created by the DevisPlus team.
+  const [signupMode, setSignupMode] = useState<SignupMode>("approval");
 
-  /** After sign-up / sign-in: link this browser's workspace, then the wizard or the page asked for. */
-  const finish = (user: AccountUser) => {
-    const tn = linkLocalWorkspace(user, locale);
-    if (!tn) {
-      setOtherAccount(true);
-      setError(t("auth.otherAccount"));
-      return;
-    }
-    const target = safeNext(next) ?? "/dashboard";
-    const d = accessDecision(target, tn, true);
-    navigate({ to: d === "setup" ? "/onboarding" : target, replace: true } as never);
+  /** After sign-up / sign-in: the page asked for (the page guard opens the workspace). */
+  const finish = () => {
+    navigate({ to: safeNext(next) ?? "/dashboard", replace: true } as never);
   };
   const failWith = (code: string | undefined) =>
     setError(t((ERRORS[code ?? ""] ?? "auth.failed") as never));
@@ -109,11 +100,18 @@ export function AuthPage({
         next ? `${page}?next=${encodeURIComponent(next)}` : page,
       );
     }
+    if (signup)
+      fetch("/api/app-config")
+        .then((r) => (r.ok ? r.json() : null))
+        .then(
+          (c: { signupMode?: SignupMode } | null) => c?.signupMode && setSignupMode(c.signupMode),
+        )
+        .catch(() => {});
     // Already signed in (e.g. just back from Google): go on.
     authClient
       .getSession()
       .then(({ data }) => {
-        if (data?.user) finish(data.user);
+        if (data?.user) finish();
       })
       .catch(() => {})
       .finally(() => setBusy(""));
@@ -138,7 +136,7 @@ export function AuthPage({
         if (!signup) setPassword("");
         return;
       }
-      finish(res.data.user);
+      finish();
     } catch {
       failWith(undefined);
     } finally {
@@ -169,12 +167,6 @@ export function AuthPage({
     }
   };
 
-  const signOut = async () => {
-    await authClient.signOut().catch(() => {});
-    setOtherAccount(false);
-    setError("");
-  };
-
   const exists = signup && tenant !== undefined && hasLock(tenant);
   const field = "field h-11";
 
@@ -194,14 +186,16 @@ export function AuthPage({
               {signup ? t("auth.signupIntro") : t("auth.intro")}
             </p>
 
-            {otherAccount ? (
+            {signup && signupMode === "closed" ? (
               <div className="mt-8 rounded-[var(--radius)] border bg-card p-5 text-sm">
-                <p id="auth-error" role="alert">
-                  {error}
-                </p>
-                <button type="button" className="btn btn-primary mt-4 w-full" onClick={signOut}>
-                  {t("auth.logout")}
-                </button>
+                <p>{t("account.signupClosed")}</p>
+                <Link
+                  to="/connexion"
+                  search={next ? { next } : {}}
+                  className="btn btn-primary mt-4 w-full"
+                >
+                  {t("auth.toSignin")}
+                </Link>
               </div>
             ) : exists ? (
               <div className="mt-8 rounded-[var(--radius)] border bg-card p-5 text-sm">

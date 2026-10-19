@@ -9,6 +9,7 @@ import { Pool } from "@neondatabase/serverless";
 import { betterAuth } from "better-auth";
 import { PostgresDialect, type PostgresPool } from "kysely";
 import { readEnv } from "@/lib/google/config";
+import { deploymentFrom, type SignupMode } from "@/lib/deployment";
 import { hashPassword, verifyPassword } from "./password";
 
 type Env = Record<string, string | undefined>;
@@ -17,6 +18,9 @@ export type AuthSettings = {
   secret: string;
   appUrl: string;
   google: { clientId: string; clientSecret: string } | null;
+  signupMode: SignupMode;
+  /** Every origin this deployment answers on (APP_URL first). */
+  origins: string[];
 };
 
 /** Settings from the environment, or the names of the missing ones. */
@@ -30,12 +34,16 @@ export function authSettings(env: Env): { settings: AuthSettings } | { missing: 
   if (missing.length) return { missing };
   const id = env["GOOGLE_CLIENT_ID"]?.trim();
   const secret = env["GOOGLE_CLIENT_SECRET"]?.trim();
+  const d = deploymentFrom(env);
+  const appUrl = new URL(env["APP_URL"]!.trim()).origin;
   return {
     settings: {
       databaseUrl: env["DATABASE_URL"]!.trim(),
       secret: env["BETTER_AUTH_SECRET"]!.trim(),
-      appUrl: new URL(env["APP_URL"]!.trim()).origin,
+      appUrl,
       google: id && secret ? { clientId: id, clientSecret: secret } : null,
+      signupMode: d.signupMode,
+      origins: [appUrl, ...d.origins.filter((o) => o !== appUrl)],
     },
   };
 }
@@ -43,8 +51,11 @@ export function authSettings(env: Env): { settings: AuthSettings } | { missing: 
 /** Column names of the auth tables (db/migrations/*_better_auth.sql). */
 const stamps = { createdAt: "created_at", updatedAt: "updated_at" } as const;
 
-/** Creates the signed-up user's company workspace (owner), as that user (RLS applies). */
-async function createWorkspace(pool: Pool, userId: string) {
+/**
+ * Creates the signed-up user's company workspace (owner), as that user (RLS applies). It waits
+ * for the DevisPlus team's approval, except in SIGNUP_MODE=open.
+ */
+async function createWorkspace(pool: Pool, userId: string, mode: SignupMode) {
   const client = await pool.connect();
   try {
     await client.query("begin");
@@ -53,8 +64,16 @@ async function createWorkspace(pool: Pool, userId: string) {
       [userId],
     );
     await client.query("set local role authenticated");
-    await client.query("select public.create_organization('', 'fr')");
+    const { rows } = await client.query<{ id: string }>(
+      "select public.create_organization('', 'fr') as id",
+    );
     await client.query("commit");
+    if (mode === "open")
+      // As the server (database owner): companies cannot approve themselves.
+      await pool.query(
+        "update public.organizations set approval_status = 'approved', approval_changed_at = now() where id = $1",
+        [rows[0]!.id],
+      );
   } catch (e) {
     await client.query("rollback").catch(() => {});
     throw e;
@@ -63,13 +82,29 @@ async function createWorkspace(pool: Pool, userId: string) {
   }
 }
 
-export function createAuth(pool: Pool, s: AuthSettings) {
+/**
+ * Origin a request is served on, when this deployment answers there: one of its configured
+ * origins, or a customer's own domain activated by the DevisPlus team.
+ */
+export async function requestOrigin(pool: Pool, s: AuthSettings, request: Request) {
+  const origin = new URL(request.url).origin;
+  if (s.origins.includes(origin)) return origin;
+  const host = new URL(request.url).hostname.toLowerCase();
+  const { rows } = await pool.query(
+    "select 1 from public.organizations where custom_domain = $1 and domain_state = 'active' limit 1",
+    [host],
+  );
+  return rows.length && origin.startsWith("https:") ? origin : s.appUrl;
+}
+
+export function createAuth(pool: Pool, s: AuthSettings, origin = s.appUrl) {
+  const closed = s.signupMode === "closed";
   return betterAuth({
     appName: "DevisPlus.ma",
-    baseURL: s.appUrl,
+    baseURL: origin,
     basePath: "/api/auth",
     secret: s.secret,
-    trustedOrigins: [s.appUrl],
+    trustedOrigins: [...new Set([origin, ...s.origins])],
     // A failed or forged Google return lands on the sign-in page with a readable message.
     onAPIError: { errorURL: "/connexion?google=error" },
     database: {
@@ -82,7 +117,7 @@ export function createAuth(pool: Pool, s: AuthSettings) {
       // The schema comes from db/migrations (checked by npm run db:test); introspecting it on
       // every request would add a database round trip to each call.
       database: { generateId: "uuid", validateSchema: false },
-      useSecureCookies: s.appUrl.startsWith("https:"),
+      useSecureCookies: origin.startsWith("https:"),
     },
     user: {
       modelName: "users",
@@ -123,6 +158,8 @@ export function createAuth(pool: Pool, s: AuthSettings) {
       enabled: true,
       minPasswordLength: 8,
       autoSignIn: true,
+      // One deployment per customer: the DevisPlus team creates the accounts (admin portal).
+      disableSignUp: closed,
       password: { hash: hashPassword, verify: verifyPassword },
     },
     socialProviders: s.google
@@ -132,14 +169,15 @@ export function createAuth(pool: Pool, s: AuthSettings) {
             clientSecret: s.google.clientSecret,
             // Same callback address as the Google Drive connection (already registered in
             // Google Cloud); /api/google/callback hands sign-in returns over to Better Auth.
-            redirectURI: `${s.appUrl}/api/google/callback`,
+            redirectURI: `${origin}/api/google/callback`,
             prompt: "select_account",
+            disableImplicitSignUp: closed,
           },
         }
       : {},
     databaseHooks: {
       user: {
-        create: { after: async (user) => createWorkspace(pool, user.id) },
+        create: { after: async (user) => createWorkspace(pool, user.id, s.signupMode) },
       },
     },
   });
@@ -152,10 +190,26 @@ export async function handleAuth(request: Request) {
     return Response.json({ code: "NOT_CONFIGURED", missing: parsed.missing }, { status: 503 });
   const pool = new Pool({ connectionString: parsed.settings.databaseUrl });
   try {
-    return await createAuth(pool, parsed.settings).handler(request);
+    const origin = await requestOrigin(pool, parsed.settings, request);
+    return await createAuth(pool, parsed.settings, origin).handler(request);
   } finally {
     await pool.end();
   }
+}
+
+export type SessionUser = { id: string; email: string; name: string; emailVerified: boolean };
+
+/** Signed-in user for a server request on an open pool, or null. */
+export async function sessionUserOn(pool: Pool, request: Request): Promise<SessionUser | null> {
+  const parsed = authSettings(readEnv());
+  if ("missing" in parsed) return null;
+  const origin = await requestOrigin(pool, parsed.settings, request);
+  const s = await createAuth(pool, parsed.settings, origin).api.getSession({
+    headers: request.headers,
+  });
+  if (!s?.user) return null;
+  const u = s.user;
+  return { id: u.id, email: u.email ?? "", name: u.name ?? "", emailVerified: !!u.emailVerified };
 }
 
 /** Signed-in user for a server request, or null. */
@@ -164,8 +218,7 @@ export async function sessionUser(request: Request) {
   if ("missing" in parsed) return null;
   const pool = new Pool({ connectionString: parsed.settings.databaseUrl });
   try {
-    const s = await createAuth(pool, parsed.settings).api.getSession({ headers: request.headers });
-    return s?.user ?? null;
+    return await sessionUserOn(pool, request);
   } finally {
     await pool.end();
   }

@@ -183,7 +183,7 @@ export const auth = {
   checking: "Vérification…",
   wrong: "E-mail ou mot de passe incorrect.",
   localNote:
-    "Votre compte est en ligne ; vos devis restent enregistrés sur cet appareil pour le moment.",
+    "Votre compte et vos données sont enregistrés en ligne, séparément pour chaque entreprise.",
   logout: "Se déconnecter",
   loggedOut: "Vous êtes déconnecté.",
   signupTitle: "Créez votre compte",

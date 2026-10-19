@@ -79,23 +79,6 @@ describe("linking this browser's workspace to the signed-in account", () => {
   });
 });
 
-describe("owner access", () => {
-  it("is separate from the workspace admin", async () => {
-    const { loadOwner, saveOwner, isOwnerSignedIn, signInOwner, signOutOwner } =
-      await import("./auth");
-    localStorage.clear();
-    expect(loadOwner()).toBeNull();
-    const a = await createAdmin("owner@devisplus.ma", "proprietaire1");
-    saveOwner(a);
-    expect(loadOwner()?.email).toBe("owner@devisplus.ma");
-    expect(isOwnerSignedIn(a)).toBe(false);
-    signInOwner(a);
-    expect(isOwnerSignedIn(a)).toBe(true);
-    signOutOwner();
-    expect(isOwnerSignedIn(a)).toBe(false);
-  });
-});
-
 describe("access to the app pages", () => {
   it("sends visitors to sign up or sign in, then the setup wizard", async () => {
     const { accessDecision, safeNext } = await import("./auth");

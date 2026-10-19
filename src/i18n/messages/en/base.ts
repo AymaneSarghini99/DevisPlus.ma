@@ -119,6 +119,10 @@ export const meta: M["meta"] = {
     title: "Create an account | DevisPlus.ma",
     description: "Create your DevisPlus account for free.",
   },
+  waiting: {
+    title: "Account pending | DevisPlus.ma",
+    description: "Your account is being reviewed by the DevisPlus team.",
+  },
   admin: {
     title: "Administration — DevisPlus.ma",
     description: "DevisPlus customer and payment register.",

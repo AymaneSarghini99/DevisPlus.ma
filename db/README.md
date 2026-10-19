@@ -2,8 +2,7 @@
 
 The database for DevisPlus.ma, hosted on Neon (project "Devis Plus", branch `production`,
 Frankfurt). See `docs/database-prompt.md` for the full plan.
-Accounts (sign-up, sign-in, Google) already use it. Quotes, invoices and the other business data
-still live in the browser until the data layer moves here.
+Accounts (sign-up, sign-in, Google), each company's data and the owner's admin portal use it.
 
 Local development uses the Neon branch `dev` (`.neon` + `.env.local`), so test sign-ups never
 reach `production`.
@@ -16,8 +15,13 @@ reach `production`.
   - `rls`: who can read and write what.
   - `better_auth`: sessions, linked sign-in methods (password, Google) and verification values
     used by Better Auth (`src/lib/account/server.ts`). Server only.
+  - `workspace_approval`: approval of new companies (`organizations.approval_status`: pending →
+    approved / rejected / suspended, changed only by the DevisPlus team), `workspace_data` (each
+    company's data, one JSON value per kind, in the shape the app uses; only members of an
+    approved company reach it; issued invoices stay locked), `platform_data` (the owner's
+    customer register, platform admins only) and the Cloudflare custom hostname of a company.
 - `seed.sql`: a demo company for the **local** test database only.
-- `test/rules.test.sql`: 51 checks of the rules and access rules.
+- `test/rules.test.sql`: checks of the rules and access rules (approval and company separation included).
 - `test/smoke.sql`: a short check that runs on Neon in a transaction that is rolled back.
 
 ## Commands
@@ -34,10 +38,14 @@ reach `production`.
 Applied migrations are recorded in `migrations.applied`. Never edit a migration that is already
 applied: add a new file instead.
 
+    npm run admin:grant -- contact@devisplus.ma   # makes an existing account a platform admin
+
 ## Settings for a deployment
 
 `DATABASE_URL` (pooled), `APP_URL`, `BETTER_AUTH_SECRET` (random, at least 32 characters, different
 per environment), plus `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` for "Continuer avec Google".
+`SIGNUP_MODE`, `ADMIN_HOST` and the other deployment settings: see `docs/client-setup.md` and
+`.env.example`.
 
 ## For the app (next steps)
 
