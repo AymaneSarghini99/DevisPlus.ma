@@ -38,8 +38,7 @@ import { Route as FacturesIndexRouteImport } from './routes/factures.index'
 import { Route as FacturesIdRouteImport } from './routes/factures.$id'
 import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
-import { Route as ApiAuthGoogleIdentityRouteImport } from './routes/api/auth/google-identity'
-import { Route as ApiAuthGoogleStartRouteImport } from './routes/api/auth/google-start'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiGoogleCallbackRouteImport } from './routes/api/google/callback'
 import { Route as ApiGoogleConnectRouteImport } from './routes/api/google/connect'
 import { Route as ApiGoogleDisconnectRouteImport } from './routes/api/google/disconnect'
@@ -192,14 +191,9 @@ const GuidesSlugRoute = GuidesSlugRouteImport.update({
   path: '/guides/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthGoogleIdentityRoute = ApiAuthGoogleIdentityRouteImport.update({
-  id: '/api/auth/google-identity',
-  path: '/api/auth/google-identity',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAuthGoogleStartRoute = ApiAuthGoogleStartRouteImport.update({
-  id: '/api/auth/google-start',
-  path: '/api/auth/google-start',
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGoogleCallbackRoute = ApiGoogleCallbackRouteImport.update({
@@ -263,8 +257,7 @@ export interface FileRoutesByFullPath {
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
   '/guides/': typeof GuidesIndexRoute
-  '/api/auth/google-identity': typeof ApiAuthGoogleIdentityRoute
-  '/api/auth/google-start': typeof ApiAuthGoogleStartRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
   '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
@@ -302,8 +295,7 @@ export interface FileRoutesByTo {
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures': typeof FacturesIndexRoute
   '/guides': typeof GuidesIndexRoute
-  '/api/auth/google-identity': typeof ApiAuthGoogleIdentityRoute
-  '/api/auth/google-start': typeof ApiAuthGoogleStartRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
   '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
@@ -342,8 +334,7 @@ export interface FileRoutesById {
   '/guides/$slug': typeof GuidesSlugRoute
   '/factures/': typeof FacturesIndexRoute
   '/guides/': typeof GuidesIndexRoute
-  '/api/auth/google-identity': typeof ApiAuthGoogleIdentityRoute
-  '/api/auth/google-start': typeof ApiAuthGoogleStartRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/google/callback': typeof ApiGoogleCallbackRoute
   '/api/google/connect': typeof ApiGoogleConnectRoute
   '/api/google/disconnect': typeof ApiGoogleDisconnectRoute
@@ -383,8 +374,7 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/factures/'
     | '/guides/'
-    | '/api/auth/google-identity'
-    | '/api/auth/google-start'
+    | '/api/auth/$'
     | '/api/google/callback'
     | '/api/google/connect'
     | '/api/google/disconnect'
@@ -422,8 +412,7 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/factures'
     | '/guides'
-    | '/api/auth/google-identity'
-    | '/api/auth/google-start'
+    | '/api/auth/$'
     | '/api/google/callback'
     | '/api/google/connect'
     | '/api/google/disconnect'
@@ -461,8 +450,7 @@ export interface FileRouteTypes {
     | '/guides/$slug'
     | '/factures/'
     | '/guides/'
-    | '/api/auth/google-identity'
-    | '/api/auth/google-start'
+    | '/api/auth/$'
     | '/api/google/callback'
     | '/api/google/connect'
     | '/api/google/disconnect'
@@ -501,8 +489,7 @@ export interface RootRouteChildren {
   GuidesSlugRoute: typeof GuidesSlugRoute
   FacturesIndexRoute: typeof FacturesIndexRoute
   GuidesIndexRoute: typeof GuidesIndexRoute
-  ApiAuthGoogleIdentityRoute: typeof ApiAuthGoogleIdentityRoute
-  ApiAuthGoogleStartRoute: typeof ApiAuthGoogleStartRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiGoogleCallbackRoute: typeof ApiGoogleCallbackRoute
   ApiGoogleConnectRoute: typeof ApiGoogleConnectRoute
   ApiGoogleDisconnectRoute: typeof ApiGoogleDisconnectRoute
@@ -716,18 +703,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuidesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/google-identity': {
-      id: '/api/auth/google-identity'
-      path: '/api/auth/google-identity'
-      fullPath: '/api/auth/google-identity'
-      preLoaderRoute: typeof ApiAuthGoogleIdentityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/auth/google-start': {
-      id: '/api/auth/google-start'
-      path: '/api/auth/google-start'
-      fullPath: '/api/auth/google-start'
-      preLoaderRoute: typeof ApiAuthGoogleStartRouteImport
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/google/callback': {
@@ -805,8 +785,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuidesSlugRoute: GuidesSlugRoute,
   FacturesIndexRoute: FacturesIndexRoute,
   GuidesIndexRoute: GuidesIndexRoute,
-  ApiAuthGoogleIdentityRoute: ApiAuthGoogleIdentityRoute,
-  ApiAuthGoogleStartRoute: ApiAuthGoogleStartRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiGoogleCallbackRoute: ApiGoogleCallbackRoute,
   ApiGoogleConnectRoute: ApiGoogleConnectRoute,
   ApiGoogleDisconnectRoute: ApiGoogleDisconnectRoute,

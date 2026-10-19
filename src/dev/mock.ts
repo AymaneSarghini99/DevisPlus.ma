@@ -1,7 +1,7 @@
 /** Fictional test data for local testing only (never shipped: imported by dev code only). */
 import { emptyParty, newLine, uid, type Line, type Party } from "@/lib/quotes";
 import type { OnboardingStep } from "@/onboarding/config";
-import type { Tenant } from "@/lib/tenant";
+import { hasAccount, type Tenant } from "@/lib/tenant";
 
 export const MOCK_EMAIL = "test@atlas-test.ma";
 export const MOCK_PASSWORD = "Test2026!";
@@ -84,9 +84,7 @@ export function mockStep(t: Tenant, step: OnboardingStep): Tenant {
           website: "www.atlas-test.ma",
         },
         // Never change the sign-in email of an existing account.
-        ...(t.admin.passwordHash || t.admin.googleSub
-          ? {}
-          : { admin: { ...t.admin, email: MOCK_EMAIL } }),
+        ...(hasAccount(t.admin) ? {} : { admin: { ...t.admin, email: MOCK_EMAIL } }),
       };
     case "logo":
       return { ...t, branding: { ...t.branding, logo: mockLogo() } };

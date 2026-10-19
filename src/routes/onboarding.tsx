@@ -13,7 +13,7 @@ import { ProfileStep } from "@/components/onboarding/steps/ProfileStep";
 import { QuotesStep } from "@/components/onboarding/steps/QuotesStep";
 import { ReviewStep } from "@/components/onboarding/steps/ReviewStep";
 import type { Secret, StepProps } from "@/components/onboarding/steps/shared";
-import { createAdmin, unlock } from "@/lib/auth";
+import { createAdmin } from "@/lib/auth";
 import { useDevFill } from "@/dev/devFill";
 import type { Locale } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
@@ -23,6 +23,7 @@ import { errorMessage } from "@/lib/storage";
 import { hasProfile, loadSettings } from "@/lib/store";
 import {
   completeStep,
+  hasAccount,
   incompleteSteps,
   loadTenant,
   newTenant,
@@ -65,7 +66,8 @@ function startTenant(locale: Locale): Tenant {
       phone: c.phone,
       email: c.email,
     },
-    admin: { ...t.admin, email: c.email.trim() },
+    // The sign-in email of an existing account never follows the business email.
+    ...(hasAccount(t.admin) ? {} : { admin: { ...t.admin, email: c.email.trim() } }),
   };
 }
 
@@ -87,7 +89,7 @@ function Onboarding() {
       void import("@/dev/mock").then(({ mockStep, MOCK_PASSWORD }) => {
         setTenant((tn) => (tn ? mockStep(tn, tn.onboarding.current) : tn));
         // Only a wizard without an account gets the test password (never replace a real one).
-        if (!(tenant?.admin.passwordHash || tenant?.admin.googleSub))
+        if (!(tenant && hasAccount(tenant.admin)))
           setSecret({ password: MOCK_PASSWORD, confirm: MOCK_PASSWORD });
       });
     }
@@ -180,7 +182,13 @@ function Onboarding() {
       let current = tenant;
       if (step === "profile" && secret.password) {
         // Only the salted hash is kept; the typed password is dropped right away.
-        current = { ...current, admin: await createAdmin(current.admin.email, secret.password) };
+        current = {
+          ...current,
+          admin: {
+            ...(await createAdmin(current.admin.email, secret.password)),
+            userId: current.admin.userId,
+          },
+        };
         setSecret({ password: "", confirm: "" });
       } else if (step === "profile") {
         current = {
@@ -189,7 +197,6 @@ function Onboarding() {
         };
       }
       const next = completeStep(current, step);
-      if (step === "profile") unlock(next); // the person who set the password is signed in
       setDirection(1);
       setTried(false);
       setTenant(next);

@@ -5,23 +5,24 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher, Logo } from "@/components/Brand";
 import { LegalLink } from "@/components/LegalPage";
 import { useLocale } from "@/i18n/LocaleProvider";
-import {
-  accessDecision,
-  createAdmin,
-  googleMatches,
-  hasLock,
-  safeNext,
-  unlock,
-  verifyAdmin,
-} from "@/lib/auth";
-import { loadTenant, MIN_PASSWORD, newTenant, saveTenant, type Tenant } from "@/lib/tenant";
+import { authClient, linkLocalWorkspace } from "@/lib/account/client";
+import type { AccountUser } from "@/lib/account/link";
+import { accessDecision, hasLock, safeNext } from "@/lib/auth";
+import { loadTenant, MIN_PASSWORD, type Tenant } from "@/lib/tenant";
 
 export type AuthMode = "signin" | "signup";
+/** Result of the return from Google (?google=…, plus Better Auth's ?error=…). */
 const GOOGLE_RESULTS: Record<string, string> = {
   denied: "auth.gDenied",
   not_configured: "auth.gNotConfigured",
-  unverified: "auth.gUnverified",
-  state: "auth.gState",
+};
+/** Better Auth error codes shown with the app's own messages. */
+const ERRORS: Record<string, string> = {
+  INVALID_EMAIL_OR_PASSWORD: "auth.wrong",
+  USER_ALREADY_EXISTS: "auth.exists",
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: "auth.exists",
+  INVALID_EMAIL: "validation.email",
+  PASSWORD_TOO_SHORT: "validation.passwordShort",
 };
 
 /** Google "G" mark (official colours). */
@@ -65,66 +66,56 @@ export function AuthPage({
   const { locale } = useLocale();
   const navigate = useNavigate();
   const signup = mode === "signup";
+  const page = signup ? "/inscription" : "/connexion";
   const [tenant, setTenant] = useState<Tenant | null | undefined>(undefined);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [show, setShow] = useState(false);
-  const [busy, setBusy] = useState<"" | "form" | "google">("");
+  const [busy, setBusy] = useState<"" | "form" | "google" | "session">("session");
   const [error, setError] = useState("");
+  // Signed in, but this browser's workspace belongs to another account.
+  const [otherAccount, setOtherAccount] = useState(false);
 
-  /** After a successful sign-up / sign-in: the wizard if setup is unfinished, else the page asked for. */
-  const proceed = (tn: Tenant) => {
-    unlock(tn);
+  /** After sign-up / sign-in: link this browser's workspace, then the wizard or the page asked for. */
+  const finish = (user: AccountUser) => {
+    const tn = linkLocalWorkspace(user, locale);
+    if (!tn) {
+      setOtherAccount(true);
+      setError(t("auth.otherAccount"));
+      return;
+    }
     const target = safeNext(next) ?? "/dashboard";
     const d = accessDecision(target, tn, true);
     navigate({ to: d === "setup" ? "/onboarding" : target, replace: true } as never);
   };
+  const failWith = (code: string | undefined) =>
+    setError(t((ERRORS[code ?? ""] ?? "auth.failed") as never));
 
   useEffect(() => {
-    let tn: Tenant | null = null;
     try {
-      tn = loadTenant();
+      setTenant(loadTenant());
     } catch {
-      tn = null;
+      setTenant(null);
     }
-    setTenant(tn);
-    if (!google) return;
-    // Clean the address bar, then use the result of the Google redirect.
-    window.history.replaceState(null, "", window.location.pathname);
-    if (google !== "ok") {
-      setError(t((GOOGLE_RESULTS[google] ?? "auth.gError") as never));
-      return;
+    // Back from Google: show the result, then clean the address bar.
+    const params = new URLSearchParams(window.location.search);
+    if (google || params.get("error")) {
+      const code = params.get("error") === "access_denied" ? "denied" : (google ?? "error");
+      if (code !== "ok") setError(t((GOOGLE_RESULTS[code] ?? "auth.gError") as never));
+      window.history.replaceState(
+        null,
+        "",
+        next ? `${page}?next=${encodeURIComponent(next)}` : page,
+      );
     }
-    setBusy("google");
-    fetch("/api/auth/google-identity", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "{}",
-      credentials: "same-origin",
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("none"))))
-      .then((id: { sub: string; email: string }) => {
-        if (hasLock(tn)) {
-          if (googleMatches(tn, id.sub)) return proceed(tn!);
-          setError(t(tn!.admin.googleSub ? "auth.googleWrong" : "auth.googleNone"));
-          return;
-        }
-        if (!signup) {
-          setError(t("auth.noAccountHere"));
-          return;
-        }
-        // New account linked to the Google identity.
-        const base = tn ?? newTenant(locale);
-        const created: Tenant = {
-          ...base,
-          admin: { email: id.email, passwordHash: "", salt: "", googleSub: id.sub },
-          profile: { ...base.profile, email: base.profile.email || id.email },
-        };
-        saveTenant(created);
-        proceed(created);
+    // Already signed in (e.g. just back from Google): go on.
+    authClient
+      .getSession()
+      .then(({ data }) => {
+        if (data?.user) finish(data.user);
       })
-      .catch(() => setError(t("auth.gError")))
+      .catch(() => {})
       .finally(() => setBusy(""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -136,33 +127,52 @@ export function AuthPage({
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError(t("validation.email"));
       if (password.length < MIN_PASSWORD) return setError(t("validation.passwordShort"));
       if (password !== confirm) return setError(t("validation.passwordMatch"));
-      setBusy("form");
-      try {
-        const base = tenant ?? newTenant(locale);
-        const admin = await createAdmin(email, password);
-        const created: Tenant = {
-          ...base,
-          admin,
-          profile: { ...base.profile, email: base.profile.email || admin.email },
-        };
-        saveTenant(created);
-        proceed(created);
-      } finally {
-        setBusy("");
-      }
-      return;
     }
-    if (!tenant || !hasLock(tenant)) return setError(t("auth.noAccountHere"));
     setBusy("form");
     try {
-      if (await verifyAdmin(tenant.admin, email, password)) proceed(tenant);
-      else {
-        setError(t("auth.wrong"));
-        setPassword("");
+      const res = signup
+        ? await authClient.signUp.email({ email: email.trim(), password, name: "" })
+        : await authClient.signIn.email({ email: email.trim(), password });
+      if (res.error || !res.data?.user) {
+        failWith(res.error?.code);
+        if (!signup) setPassword("");
+        return;
       }
+      finish(res.data.user);
+    } catch {
+      failWith(undefined);
     } finally {
       setBusy("");
     }
+  };
+
+  const withGoogle = async () => {
+    setError("");
+    setBusy("google");
+    const back = next ? `${page}?next=${encodeURIComponent(next)}` : page;
+    const sep = back.includes("?") ? "&" : "?";
+    try {
+      const res = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: back,
+        newUserCallbackURL: back,
+        errorCallbackURL: `${back}${sep}google=error`,
+      });
+      // On success the browser is already on its way to Google.
+      if (res.error) {
+        setError(t("auth.gNotConfigured"));
+        setBusy("");
+      }
+    } catch {
+      setError(t("auth.gError"));
+      setBusy("");
+    }
+  };
+
+  const signOut = async () => {
+    await authClient.signOut().catch(() => {});
+    setOtherAccount(false);
+    setError("");
   };
 
   const exists = signup && tenant !== undefined && hasLock(tenant);
@@ -184,7 +194,16 @@ export function AuthPage({
               {signup ? t("auth.signupIntro") : t("auth.intro")}
             </p>
 
-            {exists ? (
+            {otherAccount ? (
+              <div className="mt-8 rounded-[var(--radius)] border bg-card p-5 text-sm">
+                <p id="auth-error" role="alert">
+                  {error}
+                </p>
+                <button type="button" className="btn btn-primary mt-4 w-full" onClick={signOut}>
+                  {t("auth.logout")}
+                </button>
+              </div>
+            ) : exists ? (
               <div className="mt-8 rounded-[var(--radius)] border bg-card p-5 text-sm">
                 <p>{t("auth.existing")}</p>
                 <Link
@@ -197,14 +216,15 @@ export function AuthPage({
               </div>
             ) : (
               <>
-                <a
-                  href={`/api/auth/google-start?intent=${mode}`}
-                  aria-disabled={!!busy}
-                  className="mt-8 flex h-11 w-full items-center justify-center gap-3 rounded-[var(--radius)] border bg-card font-medium transition hover:bg-muted"
+                <button
+                  type="button"
+                  onClick={withGoogle}
+                  disabled={!!busy}
+                  className="mt-8 flex h-11 w-full items-center justify-center gap-3 rounded-[var(--radius)] border bg-card font-medium transition hover:bg-muted disabled:opacity-60"
                 >
                   {busy === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleG />}
                   {t("auth.google")}
-                </a>
+                </button>
 
                 <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
                   <span className="h-px flex-1 bg-border" />

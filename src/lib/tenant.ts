@@ -57,16 +57,22 @@ export type DomainSettings = {
 };
 
 /**
- * Administrator access to this workspace. Only a salted PBKDF2 hash of the password is stored
- * (see lib/auth.ts), never the password itself.
+ * The account that owns this browser's workspace. Accounts live on the server (Better Auth):
+ * `userId` links this local workspace to it. `passwordHash`, `salt` and `googleSub` only exist
+ * on workspaces created before server accounts (browser-only lock); they are cleared on linking.
  */
 export type AdminAccount = {
   email: string;
   passwordHash: string;
   salt: string;
-  /** Google account id ("sub") when the account signs in with Google. */
+  /** Google account id ("sub") of an older browser-only Google lock. */
   googleSub: string;
+  /** Server account id (Better Auth user). */
+  userId: string;
 };
+
+/** True once this workspace belongs to an account (server account, or an older browser lock). */
+export const hasAccount = (a: AdminAccount) => !!(a.userId || a.passwordHash || a.googleSub);
 
 export type Tenant = {
   id: string;
@@ -142,7 +148,7 @@ export function newTenant(language: Locale = "fr", s: Settings = loadSettings())
     branding: brandingFrom(s),
     quotes: { ...quotesFrom(s), docLang: language },
     domain: emptyDomain(),
-    admin: { email: "", passwordHash: "", salt: "", googleSub: "" },
+    admin: { email: "", passwordHash: "", salt: "", googleSub: "", userId: "" },
     onboarding: {
       current: "profile",
       completed: [],
@@ -252,8 +258,7 @@ export const MIN_PASSWORD = 8;
  * both fields empty keeps it.
  */
 export function passwordErrors(admin: AdminAccount, password: string, confirm: string): StepErrors {
-  if (!password && !confirm)
-    return admin.passwordHash || admin.googleSub ? {} : { password: "required" };
+  if (!password && !confirm) return hasAccount(admin) ? {} : { password: "required" };
   const e: StepErrors = {};
   if (password.length < MIN_PASSWORD) e.password = "passwordShort";
   if (confirm !== password) e.confirm = "passwordMatch";
@@ -312,7 +317,7 @@ export function stepErrors(t: Tenant, step: OnboardingStep): StepErrors {
       const email = t.admin.email.trim();
       if (!email) e.adminEmail = "required";
       else if (!EMAIL_RE.test(email)) e.adminEmail = "email";
-      if (!t.admin.passwordHash && !t.admin.googleSub) e.password = "required";
+      if (!hasAccount(t.admin)) e.password = "required";
       return e;
     }
     case "logo":

@@ -183,7 +183,7 @@ export const auth: M["auth"] = {
   submit: "Sign in",
   checking: "Checking…",
   wrong: "Incorrect email or password.",
-  localNote: "Your account is saved on this device.",
+  localNote: "Your account is online; your quotes stay saved on this device for now.",
   logout: "Sign out",
   loggedOut: "You are signed out.",
   signupTitle: "Create your account",
@@ -201,10 +201,6 @@ export const auth: M["auth"] = {
   show: "Show the password",
   hide: "Hide the password",
   existing: "An account already exists on this device.",
-  noAccountHere: "There is no account on this device yet.",
-  googleWrong: "This Google account is not the one linked to this workspace.",
-  googleNone:
-    "This workspace is not linked to a Google account: sign in with your email and password.",
   termsBefore: "By creating an account, you accept the",
   termsAnd: "and the",
   sideTitle: "Professional quotes, in minutes.",
@@ -213,7 +209,9 @@ export const auth: M["auth"] = {
   side3: "VAT at 20% and 10% calculated for you",
   gDenied: "Google sign-in cancelled.",
   gNotConfigured: "Sign-in with Google is not available on this installation yet.",
-  gUnverified: "This Google account has no verified email address.",
-  gState: "Google sign-in expired. Please try again.",
+  exists: "An account already exists with this email: please sign in.",
+  failed: "Unable to sign in right now. Check your internet connection and try again.",
+  otherAccount:
+    "This browser holds another account's workspace. Sign out, then sign in with that workspace's account.",
   gError: "Signing in with Google failed. Please try again.",
 };

@@ -12,8 +12,16 @@ function typeInto(id: string, value: string) {
   el.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-/** Deletes the local test account and setup, then reloads (the app sends you to the wizard). */
-function resetAccount() {
+/**
+ * Signs out and deletes this browser's workspace (setup, local data link), then reloads. The
+ * account itself stays in the dev database: sign in with it again, or sign up with another email.
+ */
+async function resetAccount() {
+  await fetch("/api/auth/sign-out", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: "{}",
+  }).catch(() => {});
   localStorage.removeItem("devisplus.tenant");
   sessionStorage.clear();
   window.location.reload();
@@ -60,7 +68,7 @@ export default function DevToolbar() {
   if (!scope) return null;
   const send = (action: DevAction) => {
     if (scope === "login") {
-      if (action === "clear") resetAccount();
+      if (action === "clear") void resetAccount();
       else {
         typeInto("auth-email", MOCK_EMAIL);
         typeInto("auth-password", MOCK_PASSWORD);
@@ -69,7 +77,7 @@ export default function DevToolbar() {
       return;
     }
     // Restarting the wizard does not need the page (it may be behind the sign-in screen).
-    if (scope === "onboarding" && action === "clear") return resetAccount();
+    if (scope === "onboarding" && action === "clear") return void resetAccount();
     window.dispatchEvent(new CustomEvent(DEV_EVENT, { detail: { scope, action } }));
   };
 

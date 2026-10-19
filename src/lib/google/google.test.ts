@@ -2,13 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { parseConfig, type GoogleConfig } from "./config";
 import { cleanFolderName } from "./google";
 import {
-  handleIdentity,
-  handleSignInStart,
   handleCallback,
   handleConnect,
   handleDisconnect,
   handleFolders,
   handleStatus,
+  isDriveCallback,
   type Connection,
   type Deps,
 } from "./handlers";
@@ -415,87 +414,19 @@ describe("folders and disconnect", () => {
   });
 });
 
-describe("Google sign-in / sign-up (identity only)", () => {
-  const start = (intent: string) =>
-    handleSignInStart(new Request(`${ORIGIN}/api/auth/google-start?intent=${intent}`), {
-      config,
-      fetch: fakeGoogle().fetchFn,
-    });
-
-  it("asks only for the identity (no Drive, no refresh token)", async () => {
-    const res = await start("signup");
-    const url = new URL(res.headers.get("location")!);
-    expect(url.searchParams.get("scope")).toBe("openid email profile");
-    expect(url.searchParams.get("access_type")).toBeNull();
-    expect(url.searchParams.get("code_challenge_method")).toBe("S256");
-    expect(url.searchParams.get("redirect_uri")).toBe(config.redirectUri);
-  });
-
-  async function signInFlow(intent: string, userinfo: object) {
-    const g = fakeGoogle({
-      "openidconnect.googleapis.com/v1/userinfo": () => new Response(JSON.stringify(userinfo)),
-    });
-    const s = await handleSignInStart(
-      new Request(`${ORIGIN}/api/auth/google-start?intent=${intent}`),
-      deps(g.fetchFn),
-    );
-    const state = new URL(s.headers.get("location")!).searchParams.get("state")!;
-    const cb = await handleCallback(
-      new Request(`${ORIGIN}/api/google/callback?state=${state}&code=c`, {
-        headers: { cookie: cookieHeader(s) },
-      }),
-      deps(g.fetchFn),
-    );
-    return { cb, g };
-  }
-
-  it("hands a verified identity to the right page once", async () => {
-    const { cb, g } = await signInFlow("signup", {
-      sub: "g-1",
-      email: "Owner@Atlas.ma",
-      email_verified: true,
-      name: "Owner",
-    });
-    expect(cb.headers.get("location")).toBe("/inscription?google=ok");
-    expect(g.calls.some((c) => c.url.includes("/revoke"))).toBe(true); // access token not kept
-    const idReq = (cookie: string) =>
-      new Request(`${ORIGIN}/api/auth/google-identity`, {
-        method: "POST",
-        headers: { origin: ORIGIN, "content-type": "application/json", cookie },
-        body: "{}",
-      });
-    const first = await handleIdentity(idReq(cookieHeader(cb)), deps(g.fetchFn));
-    expect(await first.json()).toEqual({ sub: "g-1", email: "owner@atlas.ma", name: "Owner" });
-    expect(cookiesOf(first).some((c) => c.startsWith("__Host-dp_gid=;"))).toBe(true);
-    const again = await handleIdentity(idReq(""), deps(g.fetchFn));
-    expect(again.status).toBe(404);
-    const forged = await handleIdentity(idReq("__Host-dp_gid=v1.forged"), deps(g.fetchFn));
-    expect(forged.status).toBe(404);
-  });
-
-  it("refuses unverified emails, other sites and a cancelled consent", async () => {
-    const { cb } = await signInFlow("signin", {
-      sub: "g-2",
-      email: "x@y.ma",
-      email_verified: false,
-    });
-    expect(cb.headers.get("location")).toBe("/connexion?google=unverified");
-    const s = await start("signin");
-    const denied = await handleCallback(
-      new Request(`${ORIGIN}/api/google/callback?error=access_denied`, {
-        headers: { cookie: cookieHeader(s) },
-      }),
+describe("shared callback with Google sign-in", () => {
+  it("recognizes a Drive connection's return, and hands any other return to sign-in", async () => {
+    const res = await handleConnect(
+      new Request(`${ORIGIN}/api/google/connect`),
       deps(fakeGoogle().fetchFn),
     );
-    expect(denied.headers.get("location")).toBe("/connexion?google=denied");
-    const other = await handleIdentity(
-      new Request(`${ORIGIN}/api/auth/google-identity`, {
-        method: "POST",
-        headers: { origin: "https://evil.example", "content-type": "application/json" },
-        body: "{}",
-      }),
-      deps(fakeGoogle().fetchFn),
-    );
-    expect(other.status).toBe(403);
+    const state = new URL(res.headers.get("location")!).searchParams.get("state")!;
+    const cookie = cookieHeader(res);
+    const at = (query: string, c: string) =>
+      new Request(`${ORIGIN}/api/google/callback?${query}`, { headers: { cookie: c } });
+    const d = deps(fakeGoogle().fetchFn);
+    expect(await isDriveCallback(at(`state=${state}&code=x`, cookie), d)).toBe(true);
+    expect(await isDriveCallback(at("state=other&code=x", cookie), d)).toBe(false);
+    expect(await isDriveCallback(at(`state=${state}&code=x`, ""), d)).toBe(false);
   });
 });

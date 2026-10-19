@@ -52,22 +52,6 @@ export function authUrl(c: GoogleConfig, state: string, codeChallenge: string, l
   return u.toString();
 }
 
-/** Google sign-in (identity only: name and email, no Drive access, no refresh token). */
-export function signInUrl(c: GoogleConfig, state: string, codeChallenge: string) {
-  const u = new URL(AUTH_URL);
-  u.search = new URLSearchParams({
-    client_id: c.clientId,
-    redirect_uri: c.redirectUri,
-    response_type: "code",
-    scope: "openid email profile",
-    prompt: "select_account",
-    state,
-    code_challenge: codeChallenge,
-    code_challenge_method: "S256",
-  }).toString();
-  return u.toString();
-}
-
 async function tokenRequest(fetchFn: Fetch, body: Record<string, string>) {
   let res: Response;
   try {

@@ -127,6 +127,7 @@ const ADMIN = {
   passwordHash: "ab".repeat(32),
   salt: "cd".repeat(16),
   googleSub: "",
+  userId: "",
 };
 
 describe("steps 2–6", () => {

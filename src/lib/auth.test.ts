@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createAdmin, hasLock, isUnlocked, lock, unlock, verifyAdmin } from "./auth";
+import { createAdmin, hasLock, verifyAdmin } from "./auth";
+import { linkTenant } from "./account/link";
+import { hashPassword, verifyPassword } from "./account/password";
 import { newTenant } from "./tenant";
 
 beforeEach(() => sessionStorage.clear());
@@ -22,15 +24,58 @@ describe("admin lock", () => {
     expect(await verifyAdmin(a, "other@atlas.ma", "motdepasse1")).toBe(false);
   });
 
-  it("unlocks for the browser session only", async () => {
-    const t = { ...newTenant(), admin: await createAdmin("admin@atlas.ma", "motdepasse1") };
-    expect(hasLock(t)).toBe(true);
+  it("counts a browser workspace as having an account once linked or locked", async () => {
     expect(hasLock(newTenant())).toBe(false);
-    expect(isUnlocked(t)).toBe(false);
-    unlock(t);
-    expect(isUnlocked(t)).toBe(true);
-    lock();
-    expect(isUnlocked(t)).toBe(false);
+    expect(hasLock({ ...newTenant(), admin: await createAdmin("a@b.ma", "motdepasse1") })).toBe(
+      true,
+    );
+    expect(hasLock({ ...newTenant(), admin: { ...newTenant().admin, userId: "u1" } })).toBe(true);
+  });
+});
+
+describe("server account passwords", () => {
+  it("are stored as a salted PBKDF2 hash and verified", async () => {
+    const h = await hashPassword("motdepasse1");
+    expect(h).toMatch(/^pbkdf2\$150000\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+    expect(h).not.toContain("motdepasse1");
+    expect(await hashPassword("motdepasse1")).not.toBe(h);
+    expect(await verifyPassword({ hash: h, password: "motdepasse1" })).toBe(true);
+    expect(await verifyPassword({ hash: h, password: "motdepasse2" })).toBe(false);
+    expect(await verifyPassword({ hash: "garbage", password: "motdepasse1" })).toBe(false);
+  });
+});
+
+describe("linking this browser's workspace to the signed-in account", () => {
+  const user = { id: "user-1", email: "Admin@Atlas.ma" };
+
+  it("creates a workspace for a new device", () => {
+    const r = linkTenant(null, user, "fr");
+    expect("tenant" in r && r.tenant.admin.userId).toBe("user-1");
+    expect("tenant" in r && r.tenant.admin.email).toBe("admin@atlas.ma");
+    expect("tenant" in r && r.tenant.onboarding.finishedAt).toBeNull();
+  });
+
+  it("keeps the account's own workspace and refuses another account's", () => {
+    const mine = { ...newTenant(), admin: { ...newTenant().admin, userId: "user-1" } };
+    expect(linkTenant(mine, user, "fr")).toEqual({ tenant: mine, changed: false });
+    expect(linkTenant(mine, { id: "user-2", email: "x@y.ma" }, "fr")).toEqual({ other: true });
+  });
+
+  it("links an older browser-only workspace with the same email, never another email's", async () => {
+    const legacy = { ...newTenant(), admin: await createAdmin("admin@atlas.ma", "motdepasse1") };
+    const r = linkTenant(legacy, user, "fr");
+    expect("tenant" in r && r.tenant.admin).toEqual({
+      email: "admin@atlas.ma",
+      passwordHash: "",
+      salt: "",
+      googleSub: "",
+      userId: "user-1",
+    });
+    expect(linkTenant(legacy, { id: "user-2", email: "other@atlas.ma" }, "fr")).toEqual({
+      other: true,
+    });
+    // A wizard started before any account (no lock) simply becomes this account's.
+    expect("tenant" in linkTenant(newTenant(), user, "fr")).toBe(true);
   });
 });
 
@@ -52,18 +97,17 @@ describe("owner access", () => {
 });
 
 describe("access to the app pages", () => {
-  it("sends visitors to sign up, sign in, then the setup wizard", async () => {
-    const { accessDecision, safeNext, googleMatches } = await import("./auth");
-    const admin = await createAdmin("a@b.ma", "motdepasse1");
-    const started = { ...newTenant(), admin };
+  it("sends visitors to sign up or sign in, then the setup wizard", async () => {
+    const { accessDecision, safeNext } = await import("./auth");
+    const started = { ...newTenant(), admin: { ...newTenant().admin, userId: "user-1" } };
     const finished = {
       ...started,
       onboarding: { ...started.onboarding, finishedAt: "2026-10-19T10:00:00Z" },
     };
-    // No account in this browser: sign-up first, for every app page and the wizard.
+    // Not signed in, no account's workspace in this browser: sign-up.
     expect(accessDecision("/devis/nouveau", null, false)).toBe("signup");
     expect(accessDecision("/onboarding", newTenant(), false)).toBe("signup");
-    // Account, not signed in: sign-in.
+    // Not signed in, this browser has an account's workspace: sign-in.
     expect(accessDecision("/devis/nouveau", finished, false)).toBe("login");
     expect(accessDecision("/onboarding", started, false)).toBe("login");
     // Signed in, setup unfinished: the wizard (which itself is open).
@@ -71,15 +115,6 @@ describe("access to the app pages", () => {
     expect(accessDecision("/onboarding", started, true)).toBe("open");
     // Signed in and set up.
     expect(accessDecision("/devis/nouveau", finished, true)).toBe("open");
-    // A Google-only account also counts as an account.
-    const g = {
-      ...newTenant(),
-      admin: { ...newTenant().admin, email: "g@b.ma", googleSub: "123" },
-    };
-    expect(accessDecision("/dashboard", g, false)).toBe("login");
-    expect(googleMatches(g, "123")).toBe(true);
-    expect(googleMatches(g, "999")).toBe(false);
-    expect(googleMatches(newTenant(), "")).toBe(false);
     // Return paths stay inside the app.
     expect(safeNext("/devis/nouveau")).toBe("/devis/nouveau");
     expect(safeNext("//evil.example")).toBeUndefined();

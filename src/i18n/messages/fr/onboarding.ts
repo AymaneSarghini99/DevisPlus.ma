@@ -182,7 +182,8 @@ export const auth = {
   submit: "Se connecter",
   checking: "Vérification…",
   wrong: "E-mail ou mot de passe incorrect.",
-  localNote: "Votre compte est enregistré sur cet appareil.",
+  localNote:
+    "Votre compte est en ligne ; vos devis restent enregistrés sur cet appareil pour le moment.",
   logout: "Se déconnecter",
   loggedOut: "Vous êtes déconnecté.",
   signupTitle: "Créez votre compte",
@@ -200,10 +201,6 @@ export const auth = {
   show: "Afficher le mot de passe",
   hide: "Masquer le mot de passe",
   existing: "Un compte existe déjà sur cet appareil.",
-  noAccountHere: "Aucun compte n'existe encore sur cet appareil.",
-  googleWrong: "Ce compte Google n'est pas celui de cet espace.",
-  googleNone:
-    "Cet espace n'est pas relié à un compte Google : connectez-vous avec votre e-mail et votre mot de passe.",
   termsBefore: "En créant un compte, vous acceptez les",
   termsAnd: "et la",
   sideTitle: "Vos devis professionnels, en quelques minutes.",
@@ -212,7 +209,9 @@ export const auth = {
   side3: "TVA 20 % et 10 % calculée pour vous",
   gDenied: "Connexion Google annulée.",
   gNotConfigured: "La connexion avec Google n'est pas encore disponible sur cette installation.",
-  gUnverified: "Ce compte Google n'a pas d'adresse e-mail vérifiée.",
-  gState: "La connexion Google a expiré. Réessayez.",
+  exists: "Un compte existe déjà avec cet e-mail : connectez-vous.",
+  failed: "Connexion impossible pour le moment. Vérifiez votre connexion internet et réessayez.",
+  otherAccount:
+    "Ce navigateur contient l'espace d'un autre compte. Déconnectez-vous, puis connectez-vous avec le compte de cet espace.",
   gError: "La connexion avec Google a échoué. Réessayez.",
 };

@@ -1,14 +1,10 @@
-import type { AdminAccount, Tenant } from "./tenant";
+import { hasAccount, type AdminAccount, type Tenant } from "./tenant";
 
 /**
- * Simple administrator lock for this workspace.
- *
- * The password is hashed with PBKDF2-SHA-256 (random salt) and only the hash is saved. Because
- * all data still lives in this browser, this lock keeps other people using the same device out
- * of the app; it is not a server-side account. Real accounts need the backend.
+ * Browser-side helpers around accounts. Workspace accounts are server accounts (Better Auth,
+ * see lib/account); the PBKDF2 helpers below remain for the DevisPlus owner's /admin lock.
  */
 const ITERATIONS = 150_000;
-const SESSION_KEY = "devisplus.session";
 
 const hex = (b: ArrayBuffer | Uint8Array) =>
   [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -38,6 +34,7 @@ export async function createAdmin(email: string, password: string): Promise<Admi
     salt: hex(salt),
     passwordHash: await derive(password, salt),
     googleSub: "",
+    userId: "",
   };
 }
 
@@ -55,32 +52,8 @@ export async function verifyAdmin(admin: AdminAccount, email: string, password: 
   return same(await derive(password, fromHex(admin.salt)), admin.passwordHash);
 }
 
-/** An account exists once it has a password or a Google identity. */
-export const hasLock = (t: Tenant | null) => !!(t?.admin.passwordHash || t?.admin.googleSub);
-
-/** The session lasts until the browser tab is closed. */
-const token = (t: Tenant) => `${t.id}:${(t.admin.passwordHash || t.admin.googleSub).slice(0, 16)}`;
-export function isUnlocked(t: Tenant) {
-  try {
-    return sessionStorage.getItem(SESSION_KEY) === token(t);
-  } catch {
-    return false;
-  }
-}
-export function unlock(t: Tenant) {
-  try {
-    sessionStorage.setItem(SESSION_KEY, token(t));
-  } catch {
-    // Session storage unavailable: the user will simply be asked again.
-  }
-}
-export function lock() {
-  try {
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch {
-    // ignore
-  }
-}
+/** This browser's workspace already belongs to an account (sign-in rather than sign-up). */
+export const hasLock = (t: Tenant | null) => !!t && hasAccount(t.admin);
 
 // ---------- platform owner (/admin) ----------
 // Separate from the workspace admin: the owner of DevisPlus manages the customer register.
@@ -129,8 +102,7 @@ export const AUTH_PATHS = ["/inscription", "/connexion"];
 
 /**
  * What an app page shows:
- * - "signup": no account in this browser yet (sign-up page, then the setup wizard);
- * - "login": an account exists but nobody signed in during this browser session;
+ * - not signed in: "login" when this browser already has an account's workspace, else "signup";
  * - "setup": signed in but the setup wizard is not finished;
  * - "open": the page.
  * Public pages, the sign-up/sign-in pages and the owner's /admin page are not concerned.
@@ -139,19 +111,14 @@ export type AccessDecision = "open" | "login" | "setup" | "signup";
 export function accessDecision(
   path: string,
   tenant: Tenant | null,
-  unlocked: boolean,
+  signedIn: boolean,
 ): AccessDecision {
   const p = path.replace(/\/$/, "") || "/";
-  if (!hasLock(tenant)) return "signup";
-  if (!unlocked) return "login";
+  if (!signedIn) return hasLock(tenant) ? "login" : "signup";
   if (p === "/onboarding") return "open";
   if (!tenant?.onboarding.finishedAt) return "setup";
   return "open";
 }
-
-/** True when a Google identity (verified by the server) matches this account. */
-export const googleMatches = (t: Tenant | null, sub: string) =>
-  !!t?.admin.googleSub && !!sub && t.admin.googleSub === sub;
 
 /** Safe in-app return path after sign-in (never another site). */
 export const safeNext = (next: unknown) =>

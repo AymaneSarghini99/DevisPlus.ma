@@ -7,7 +7,7 @@ import { F } from "@/components/Form";
 import { LOCALES, NATIVE_NAME, type Locale } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { CURRENCIES, SECTORS, type Currency } from "@/onboarding/config";
-import { PLATFORM_DOMAIN, slugify, type BusinessProfile } from "@/lib/tenant";
+import { hasAccount, PLATFORM_DOMAIN, slugify, type BusinessProfile } from "@/lib/tenant";
 import { FIELD, FormSection, type StepProps } from "./shared";
 
 export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProps) {
@@ -18,7 +18,7 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
     update((tn) => {
       // Before an account exists, the admin email follows the business email. Once the account
       // exists (sign-up page), its sign-in email is never changed from here.
-      const account = !!(tn.admin.passwordHash || tn.admin.googleSub);
+      const account = hasAccount(tn.admin);
       const follow =
         !account &&
         patch.email !== undefined &&
@@ -31,7 +31,7 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
     });
   const [show, setShow] = useState(false);
   // Account created on the sign-up page: no need to ask for a password again.
-  const hasAccount = !!(tenant.admin.passwordHash || tenant.admin.googleSub);
+  const accountExists = hasAccount(tenant.admin);
   const slug = tenant.domain.subdomain || slugify(p.companyName);
 
   const chooseLanguage = (l: Locale) => {
@@ -124,7 +124,7 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
         })}
       </FormSection>
 
-      {hasAccount ? (
+      {accountExists ? (
         <p className="ob-enter flex flex-wrap items-center gap-x-2 rounded-[var(--radius)] border border-dashed px-4 py-3 text-sm">
           <span className="font-medium">{t("onboarding.profile.account")}</span>
           <bdi dir="ltr" className="text-muted-foreground">
