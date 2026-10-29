@@ -4,15 +4,15 @@ import { useTranslation } from "react-i18next";
 import { INTRO_VIDEO } from "@/onboarding/config";
 
 /**
- * "How the app works" video. Plays the file or YouTube video set in onboarding/config.ts;
- * until one is set, shows an honest placeholder. YouTube is only loaded after a click
- * (youtube-nocookie), so no third-party request happens before the visitor asks for it.
+ * "How the app works" video. Plays the file, Loom or YouTube video set in onboarding/config.ts;
+ * until one is set, shows an honest placeholder. Loom and YouTube (youtube-nocookie) are only
+ * loaded after a click, so no third-party request happens before the visitor asks for it.
  */
 export function VideoGuide() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(true);
   const [playing, setPlaying] = useState(false);
-  const hasVideo = !!INTRO_VIDEO.src || !!INTRO_VIDEO.youtubeId;
+  const hasVideo = !!INTRO_VIDEO.src || !!INTRO_VIDEO.youtubeId || !!INTRO_VIDEO.loomId;
 
   return (
     <section className="ob-enter overflow-hidden border bg-card" aria-labelledby="ob-video-title">
@@ -57,6 +57,14 @@ export function VideoGuide() {
                   controls
                   preload="metadata"
                   playsInline
+                />
+              ) : INTRO_VIDEO.loomId && playing ? (
+                <iframe
+                  className="size-full"
+                  src={`https://www.loom.com/embed/${INTRO_VIDEO.loomId}?autoplay=1&hideEmbedTopBar=true`}
+                  title={t("onboarding.video.title")}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
                 />
               ) : INTRO_VIDEO.youtubeId && playing ? (
                 <iframe

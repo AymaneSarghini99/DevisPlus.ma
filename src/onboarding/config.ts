@@ -4,14 +4,20 @@
  * INTRO_VIDEO: put your explainer video here and it appears at the top of the onboarding.
  *  - a file:  copy it to /public/onboarding/ and set `src: "/onboarding/intro.mp4"`
  *  - YouTube: set `youtubeId: "dQw4w9WgXcQ"` (the id from the video URL)
- * Leave both null to show the "video coming soon" placeholder.
+ *  - Loom:    set `loomId` to the id from the share URL (loom.com/share/<id>)
+ * Leave all null to show the "video coming soon" placeholder.
  */
-export const INTRO_VIDEO: { src: string | null; poster: string | null; youtubeId: string | null } =
-  {
-    src: null,
-    poster: null,
-    youtubeId: null,
-  };
+export const INTRO_VIDEO: {
+  src: string | null;
+  poster: string | null;
+  youtubeId: string | null;
+  loomId: string | null;
+} = {
+  src: null,
+  poster: null,
+  youtubeId: null,
+  loomId: "36d9236c28c44bb985b6e2c16580f054",
+};
 
 /**
  * Workspace addresses (name.devisplus.ma) and customers' own domains are not served yet: the
