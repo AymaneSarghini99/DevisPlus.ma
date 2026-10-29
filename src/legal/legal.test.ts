@@ -68,7 +68,9 @@ describe("legal documents", () => {
     for (const id of LEGAL_DOCS) {
       expect(LEGAL_VERSIONS[id].length).toBeGreaterThan(0);
       const v = currentVersion(id);
-      if (LAST_LEGAL_REVIEW === null) expect(v.status).toBe("draft");
+      // The privacy policy is published ahead of the legal review (required by Google's app
+      // verification); the other documents stay drafts until reviewed.
+      if (LAST_LEGAL_REVIEW === null && id !== "privacy") expect(v.status).toBe("draft");
       if (v.status === "published") expect(v.effective).not.toBeNull();
     }
   });

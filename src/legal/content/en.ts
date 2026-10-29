@@ -141,119 +141,138 @@ export const en: LegalContent = {
   privacy: {
     title: "Privacy Policy",
     summary:
-      "What personal data DevisPlus.ma processes, where it is kept, and how to exercise your rights.",
+      "What data DevisPlus.ma collects, why, where it is kept, what we do with your Google account data, and how to exercise your rights.",
     sections: [
       {
         id: "controller",
         title: "Data controller",
         body: [
-          "The controller for the processing described here is {{legalName}}, {{address}}. Contact for any personal data question: {{email}}.",
-          "CNDP declaration: {{cndp}}.",
+          "The controller of the processing described here is {{legalName}}, {{address}}. For any question about your personal data, write to {{email}}.",
         ],
-        review:
-          "Check whether the processing must be declared to the CNDP (Law 09-08) and give the reference obtained.",
       },
       {
-        id: "two-kinds",
-        title: "Two kinds of data",
+        id: "data",
+        title: "Data we collect",
         body: [
           {
             list: [
-              "data about you as a user of the platform (your business, your language preference, technical connection data);",
-              "data you enter about your own clients (names, ICE, addresses, phone numbers, emails, quotes, invoices, payments). Your business decides how that data is used: see the “Data processing and responsibilities” page.",
+              "Account: your email address, your name and your password (stored only in hashed form, never in plain text). If you sign in with Google: your name, email address, profile picture and Google account identifier.",
+              "Your company workspace: your company details (name, ICE, IF, RC, address, bank details, logo), your settings, and what you enter: clients, catalogue, quotes, invoices, credit notes, delivery notes and payments.",
+              "Online acceptance: when your client accepts a quote through its link, the name they type and the date of acceptance.",
+              "Technical data: IP address, browser, dates and pages requested (the host's technical logs), and the cookies described below.",
+              "Exchanges with us: the messages you send us (email, WhatsApp).",
             ],
           },
+          "Your own clients' data is entered by your company, which decides how it is used: see the “Data processing and responsibilities” page.",
         ],
       },
       {
-        id: "where",
-        title: "Where your data is stored",
+        id: "google",
+        title: "Your Google account data",
         body: [
-          "In the current version, your company information, logo, clients, catalogue, quotes, invoices and payments are stored only in your browser's local storage, on your device. They are not sent to the operator's servers, so the operator can neither view, restore nor back them up.",
-          "The platform does not encrypt this data: its protection depends on the security of your device and browser.",
-        ],
-      },
-      {
-        id: "collected",
-        title: "Data processed by the operator",
-        body: [
+          "DevisPlus.ma uses Google services only if you choose to, for two functions:",
           {
             list: [
-              "your language choice, stored in a cookie on your device and sent to the site with each page so it can be shown in the right language;",
-              "technical data received by the hosting provider on each visit (IP address, date, page requested, browser), in its technical logs;",
-              "the information you send us if you contact us (email, phone).",
+              "Sign in with Google: we receive your name, email address, profile picture and Google account identifier (“openid”, “email” and “profile” permissions), to create your account and sign you in.",
+              "Saving to Google Drive: if you connect Google Drive in Settings, we request only the “drive.file” permission. It lets DevisPlus.ma create a folder in your Drive, save the PDFs of your quotes and invoices there, and update those same files. DevisPlus.ma can only access the files it created itself: it cannot see, read, change or delete your other Google Drive files.",
             ],
           },
-          "The platform uses no audience measurement, no advertising and no advertising trackers.",
+          "Google access tokens are stored on our servers, encrypted, and used only for these two functions. We do not sell your Google data, use it for advertising, share it with anyone else, or use it to train artificial intelligence models. No one on our team reads the content of your Drive.",
+          "DevisPlus.ma's use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy, including the Limited Use requirements.",
+          "You can disconnect Google Drive at any time in Settings → Google Drive, and remove DevisPlus.ma's access from your Google account (myaccount.google.com/permissions). The tokens are then deleted from our servers; the PDFs already saved stay in your Drive and remain yours.",
         ],
       },
       {
         id: "purposes",
-        title: "Purposes and legal grounds",
+        title: "Why we use this data",
         body: [
           {
             list: [
-              "providing the site and showing it in your language (performance of the service);",
-              "ensuring security and proper technical operation (legitimate interest / hosting obligations);",
-              "answering your requests (your request).",
+              "to provide the service: your account, your workspace, your documents, their numbering and saving (performance of the contract);",
+              "to let your clients view and accept a quote through its link (performance of the contract);",
+              "to approve sign-ups, manage your subscription and support you (performance of the contract);",
+              "to keep the service secure and working (legitimate interest);",
+              "to meet our legal obligations.",
             ],
           },
+          "We do no advertising, no resale of data and no commercial profiling.",
         ],
-        review: "Lawful grounds under Law 09-08 (consent and the exceptions in Article 4).",
+      },
+      {
+        id: "storage",
+        title: "Where your data is kept",
+        body: [
+          "Your data is saved on our servers, no longer only in your browser:",
+          {
+            list: [
+              "the website is hosted by Cloudflare, Inc. (Cloudflare Workers), on its worldwide server network;",
+              "the database is hosted by Neon, Inc., on servers located in Frankfurt (Germany, European Union).",
+            ],
+          },
+          "Exchanges with the website are encrypted (HTTPS). Each company can only access its own data: the database itself enforces it.",
+        ],
       },
       {
         id: "recipients",
-        title: "Recipients and providers",
+        title: "Who receives your data",
         body: [
-          "Website hosting: {{host}}, servers located in {{hostLocation}}.",
-          "Fonts: on each visit, your browser downloads fonts from Google's servers (Google Fonts), which therefore receive your IP address. This can be avoided by hosting the fonts on the site.",
-          "WhatsApp: when you click “WhatsApp” or “Prepare the reminder”, the message text and the client's number are sent to WhatsApp (Meta) to open the conversation. Nothing is sent until you click.",
+          "Your data is accessible only to you, to the members of your company and, for support and account approval, to the DevisPlus.ma team. It is also processed by our technical providers, only to run the service:",
+          {
+            list: [
+              "Cloudflare (website hosting) and Neon (database);",
+              "Google, if you use Sign in with Google or Google Drive, and for the website's fonts (Google Fonts, which receives your IP address);",
+              "WhatsApp (Meta), only when you click a WhatsApp button: the message text and the chosen number are passed on to open the conversation.",
+            ],
+          },
+          "We do not sell or rent your data.",
         ],
-        review:
-          "Identity of the hosting provider and transfers outside Morocco (Articles 43 and 44 of Law 09-08).",
       },
       {
         id: "transfers",
         title: "Transfers outside Morocco",
         body: [
-          "The providers mentioned (hosting provider, Google, WhatsApp) may process data outside Morocco. Law 09-08 regulates such transfers and may require CNDP authorisation depending on the destination country.",
+          "Our providers process data outside Morocco, notably in the European Union and the United States. These transfers are limited to what the service needs, in accordance with Law 09-08 on the protection of individuals with regard to the processing of personal data.",
         ],
-        review: "Analysis of the transfers and any steps required with the CNDP.",
       },
       {
         id: "retention",
-        title: "Retention periods",
+        title: "How long we keep data",
         body: [
-          "Data entered in the platform stays in your browser until you delete it or clear the site's data. The language cookie expires after 12 months. How long technical logs are kept depends on the hosting provider: {{host}}.",
+          {
+            list: [
+              "Account and workspace: as long as your account is active. On request, your account and all your workspace data are erased.",
+              "Issued invoices and credit notes: your company must keep them for the period required by law; export them before asking for your account to be erased.",
+              "Google tokens: until you disconnect Google Drive or remove access.",
+              "Sign-in session: 30 days at most; language cookie: 12 months.",
+              "Technical logs: according to the host's retention periods.",
+            ],
+          },
         ],
-        review: "Retention period for logs and support exchanges to be set.",
       },
       {
-        id: "security",
-        title: "Security",
+        id: "cookies",
+        title: "Cookies",
         body: [
-          "The site is designed not to send your business data to the operator. As no system is perfectly secure, protect access to your device and export your data regularly.",
+          "We only use necessary cookies: a session cookie to keep you signed in and a cookie that remembers your language. No advertising cookies, no audience measurement tools.",
         ],
       },
       {
         id: "rights",
         title: "Your rights",
         body: [
-          "Under Law 09-08 you have, in particular, rights of information, access, rectification and objection on legitimate grounds. For data that stays on your device, you can view, edit, export (Reports page) and delete it yourself at any time.",
-          "For any other request, write to {{email}} describing your request. You can also contact the National Commission for the Control of Personal Data Protection (CNDP, www.cndp.ma).",
+          "Under Law 09-08, you can ask to access your data, correct it, erase it, and object to its processing on legitimate grounds. You can also export your data yourself (Reports page) and disconnect Google Drive at any time.",
+          "Write to {{email}}: we reply within one month at most. You can also contact Morocco's data protection authority (CNDP, www.cndp.ma).",
         ],
-        review: "Exact list of rights and response times to be checked against Law 09-08.",
       },
       {
         id: "updates",
         title: "Updates",
         body: [
-          "This policy will be updated if the processing changes, in particular if accounts, online storage, payments or emails are added. The date and version are shown at the top of the page.",
+          "We will update this policy if our processing changes. The version and date are shown at the top of the page; for an important change, we will inform you in the app.",
         ],
       },
     ],
   },
-
   cookies: {
     title: "Cookie Policy",
     summary: "The cookies and local storage actually used by DevisPlus.ma.",

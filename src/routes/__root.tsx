@@ -15,7 +15,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { createIsomorphicFn } from "@tanstack/react-start";
-import { getCookie } from "@tanstack/react-start/server";
+import { getCookie, getRequest } from "@tanstack/react-start/server";
 import { useTranslation } from "react-i18next";
 import {
   DEFAULT_LOCALE,
@@ -120,13 +120,20 @@ function ErrorContent({ error, reset }: ErrorComponentProps) {
 }
 
 /** Interface language from the cookie: read from the request on the server, from document.cookie
- *  in the browser. Both renders agree, so Arabic pages are RTL from the first paint. */
+ *  in the browser. Both renders agree, so Arabic pages are RTL from the first paint. A `?lang=`
+ *  parameter (fr, en, ar) wins, so a page can be linked in a given language (e.g. the English
+ *  privacy policy given to Google). */
 const readLocale = createIsomorphicFn()
   .server((): Locale => {
+    const q = new URL(getRequest().url).searchParams.get("lang");
+    if (isLocale(q)) return q;
     const v = getCookie(LOCALE_COOKIE);
     return isLocale(v) ? v : DEFAULT_LOCALE;
   })
-  .client((): Locale => localeFromCookie(document.cookie));
+  .client((): Locale => {
+    const q = new URLSearchParams(window.location.search).get("lang");
+    return isLocale(q) ? q : localeFromCookie(document.cookie);
+  });
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: () => ({ locale: readLocale() }),

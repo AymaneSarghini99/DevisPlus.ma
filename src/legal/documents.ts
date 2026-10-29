@@ -33,6 +33,15 @@ export const LEGAL_VERSIONS: Record<LegalDocId, LegalVersion[]> = {
   ],
   privacy: [
     { version: "0.1", status: "draft", updated: "2026-10-18", effective: null, material: true },
+    // Rewritten for online accounts and Google sign-in / Drive (Google verification), and
+    // published at the owner's request before a legal review.
+    {
+      version: "1.0",
+      status: "published",
+      updated: "2026-10-29",
+      effective: "2026-10-29",
+      material: true,
+    },
   ],
   cookies: [
     { version: "0.1", status: "draft", updated: "2026-10-18", effective: null, material: true },

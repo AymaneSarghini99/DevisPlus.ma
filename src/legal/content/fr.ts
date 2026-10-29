@@ -143,120 +143,138 @@ export const fr: LegalContent = {
   privacy: {
     title: "Politique de confidentialité",
     summary:
-      "Quelles données personnelles DevisPlus.ma traite, où elles se trouvent, et comment exercer vos droits.",
+      "Quelles données DevisPlus.ma collecte, pourquoi, où elles sont conservées, ce que nous faisons des données de votre compte Google, et comment exercer vos droits.",
     sections: [
       {
         id: "controller",
         title: "Responsable du traitement",
         body: [
-          "Le responsable des traitements décrits ici est {{legalName}}, {{address}}. Contact pour toute question relative aux données personnelles : {{email}}.",
-          "Déclaration auprès de la CNDP : {{cndp}}.",
+          "Le responsable des traitements décrits ici est {{legalName}}, {{address}}. Pour toute question sur vos données personnelles, écrivez à {{email}}.",
         ],
-        review:
-          "Vérifier si les traitements doivent être déclarés à la CNDP (loi 09-08) et indiquer la référence obtenue.",
       },
       {
-        id: "two-kinds",
-        title: "Deux catégories de données",
+        id: "data",
+        title: "Données que nous collectons",
         body: [
           {
             list: [
-              "les données qui vous concernent en tant qu'utilisateur de la plateforme (votre entreprise, votre préférence de langue, les données techniques de connexion) ;",
-              "les données que vous saisissez au sujet de vos propres clients (noms, ICE, adresses, téléphones, e-mails, devis, factures, paiements). Pour celles-ci, c'est votre entreprise qui décide de leur usage : voir la page « Traitement des données et responsabilités ».",
+              "Compte : votre adresse e-mail, votre nom et votre mot de passe (conservé uniquement sous forme chiffrée, jamais en clair). Si vous vous connectez avec Google : votre nom, votre adresse e-mail, votre photo de profil et l'identifiant de votre compte Google.",
+              "Espace de votre entreprise : les informations de votre entreprise (nom, ICE, IF, RC, adresse, coordonnées bancaires, logo), vos réglages, et ce que vous saisissez : clients, catalogue, devis, factures, avoirs, bons de livraison et paiements.",
+              "Acceptation en ligne : quand votre client accepte un devis par son lien, le nom qu'il saisit et la date d'acceptation.",
+              "Données techniques : adresse IP, navigateur, dates et pages demandées (journaux techniques de l'hébergeur), et les cookies décrits plus bas.",
+              "Échanges avec nous : les messages que vous nous envoyez (e-mail, WhatsApp).",
             ],
           },
+          "Les données de vos propres clients sont saisies par votre entreprise, qui décide de leur usage : voir la page « Traitement des données et responsabilités ».",
         ],
       },
       {
-        id: "where",
-        title: "Où sont stockées vos données",
+        id: "google",
+        title: "Données de votre compte Google",
         body: [
-          "Dans la version actuelle, les informations de votre entreprise, votre logo, vos clients, votre catalogue, vos devis, vos factures et vos paiements sont enregistrés uniquement dans le stockage local de votre navigateur, sur votre appareil. Ils ne sont pas envoyés aux serveurs de l'exploitant, qui ne peut donc ni les consulter, ni les restaurer, ni les sauvegarder.",
-          "Ces données ne sont pas chiffrées par la plateforme : leur protection dépend de la sécurité de votre appareil et de votre navigateur.",
-        ],
-      },
-      {
-        id: "collected",
-        title: "Données traitées par l'exploitant",
-        body: [
+          "DevisPlus.ma utilise les services Google uniquement si vous le choisissez, pour deux fonctions :",
           {
             list: [
-              "votre choix de langue, enregistré dans un cookie sur votre appareil et transmis au site à chaque page pour l'afficher dans la bonne langue ;",
-              "les données techniques reçues par l'hébergeur lors de chaque visite (adresse IP, date, page demandée, navigateur), dans ses journaux techniques ;",
-              "les informations que vous nous transmettez si vous nous contactez (e-mail, téléphone).",
+              "Connexion avec Google : nous recevons votre nom, votre adresse e-mail, votre photo de profil et l'identifiant de votre compte Google (autorisations « openid », « email » et « profile »), pour créer votre compte et vous connecter.",
+              "Enregistrement dans Google Drive : si vous connectez Google Drive dans les Paramètres, nous demandons uniquement l'autorisation « drive.file ». Elle permet à DevisPlus.ma de créer un dossier dans votre Drive et d'y enregistrer les PDF de vos devis et factures, puis de mettre à jour ces mêmes fichiers. DevisPlus.ma n'a accès qu'aux fichiers qu'il a lui-même créés : il ne peut ni voir, ni lire, ni modifier, ni supprimer vos autres fichiers Google Drive.",
             ],
           },
-          "La plateforme n'utilise aucun outil de mesure d'audience, aucune publicité et aucun traceur publicitaire.",
+          "Les jetons d'accès Google sont conservés sur nos serveurs, chiffrés, et ne servent qu'à ces deux fonctions. Nous ne vendons pas vos données Google, nous ne les utilisons pas pour de la publicité, nous ne les transmettons à personne d'autre et nous ne les utilisons pas pour entraîner des modèles d'intelligence artificielle. Aucune personne de notre équipe ne lit le contenu de votre Drive.",
+          "L'utilisation et le transfert à toute autre application des informations reçues des API Google par DevisPlus.ma respectent la politique « Google API Services User Data Policy », y compris les exigences d'utilisation limitée (Limited Use).",
+          "Vous pouvez déconnecter Google Drive à tout moment dans Paramètres → Google Drive, et retirer l'accès de DevisPlus.ma depuis votre compte Google (myaccount.google.com/permissions). Les jetons sont alors supprimés de nos serveurs ; les PDF déjà enregistrés restent dans votre Drive, à vous.",
         ],
       },
       {
         id: "purposes",
-        title: "Finalités et fondements",
+        title: "Pourquoi nous utilisons ces données",
         body: [
           {
             list: [
-              "fournir le site et l'afficher dans votre langue (exécution du service) ;",
-              "assurer la sécurité et le bon fonctionnement technique (intérêt légitime / obligations de l'hébergeur) ;",
-              "répondre à vos demandes (votre demande).",
+              "fournir le service : votre compte, votre espace, vos documents, leur numérotation et leur enregistrement (exécution du contrat) ;",
+              "permettre à vos clients de consulter et d'accepter un devis par son lien (exécution du contrat) ;",
+              "valider les inscriptions, gérer votre abonnement et vous assister (exécution du contrat) ;",
+              "assurer la sécurité et le bon fonctionnement du service (intérêt légitime) ;",
+              "respecter nos obligations légales.",
             ],
           },
+          "Nous ne faisons aucune publicité, aucune revente de données et aucun profilage commercial.",
         ],
-        review:
-          "Fondements de licéité au sens de la loi 09-08 (consentement et exceptions de l'article 4).",
+      },
+      {
+        id: "storage",
+        title: "Où sont conservées vos données",
+        body: [
+          "Vos données sont enregistrées sur nos serveurs, et non plus seulement dans votre navigateur :",
+          {
+            list: [
+              "le site est hébergé par Cloudflare, Inc. (Cloudflare Workers), sur son réseau de serveurs dans le monde ;",
+              "la base de données est hébergée par Neon, Inc., sur des serveurs situés à Francfort (Allemagne, Union européenne).",
+            ],
+          },
+          "Les échanges avec le site sont chiffrés (HTTPS). Chaque entreprise n'accède qu'à ses propres données : la base de données l'impose elle-même.",
+        ],
       },
       {
         id: "recipients",
-        title: "Destinataires et prestataires",
+        title: "Qui reçoit vos données",
         body: [
-          "Hébergement du site : {{host}}, serveurs situés {{hostLocation}}.",
-          "Polices de caractères : à chaque visite, votre navigateur télécharge des polices depuis les serveurs de Google (Google Fonts), qui reçoivent donc votre adresse IP. Ce point pourra être supprimé en hébergeant les polices sur le site.",
-          "WhatsApp : lorsque vous cliquez sur « WhatsApp » ou « Préparer la relance », le texte du message et le numéro du client sont transmis à WhatsApp (Meta) pour ouvrir la conversation. Rien n'est envoyé tant que vous ne cliquez pas.",
+          "Vos données ne sont accessibles qu'à vous, aux membres de votre entreprise et, pour l'assistance et la validation des comptes, à l'équipe DevisPlus.ma. Elles sont aussi traitées par nos prestataires techniques, uniquement pour faire fonctionner le service :",
+          {
+            list: [
+              "Cloudflare (hébergement du site) et Neon (base de données) ;",
+              "Google, si vous utilisez la connexion avec Google ou Google Drive, et pour les polices de caractères du site (Google Fonts, qui reçoit votre adresse IP) ;",
+              "WhatsApp (Meta), seulement quand vous cliquez sur un bouton WhatsApp : le texte du message et le numéro choisi sont transmis pour ouvrir la conversation.",
+            ],
+          },
+          "Nous ne vendons ni ne louons vos données.",
         ],
-        review:
-          "Identité de l'hébergeur et transferts hors du Maroc (articles 43 et 44 de la loi 09-08).",
       },
       {
         id: "transfers",
         title: "Transferts hors du Maroc",
         body: [
-          "Les prestataires cités (hébergeur, Google, WhatsApp) peuvent traiter des données hors du Maroc. La loi 09-08 encadre ces transferts et peut exiger une autorisation de la CNDP selon le pays de destination.",
+          "Nos prestataires traitent des données hors du Maroc, notamment dans l'Union européenne et aux États-Unis. Ces transferts sont limités à ce qui est nécessaire au service, conformément à la loi 09-08 relative à la protection des personnes physiques à l'égard du traitement des données à caractère personnel.",
         ],
-        review: "Analyse des transferts et démarches éventuelles auprès de la CNDP.",
       },
       {
         id: "retention",
         title: "Durées de conservation",
         body: [
-          "Les données saisies dans la plateforme restent dans votre navigateur jusqu'à ce que vous les supprimiez ou que vous effaciez les données du site. Le cookie de langue expire après 12 mois. La durée de conservation des journaux techniques dépend de l'hébergeur : {{host}}.",
+          {
+            list: [
+              "Compte et espace : tant que votre compte est actif. À votre demande, votre compte et toutes les données de votre espace sont effacés.",
+              "Factures et avoirs émis : votre entreprise doit les conserver pendant la durée prévue par la loi ; exportez-les avant de demander l'effacement de votre compte.",
+              "Jetons Google : jusqu'à ce que vous déconnectiez Google Drive ou retiriez l'accès.",
+              "Session de connexion : 30 jours au plus ; cookie de langue : 12 mois.",
+              "Journaux techniques : selon les durées de l'hébergeur.",
+            ],
+          },
         ],
-        review: "Durée de conservation des journaux et des échanges de support à fixer.",
       },
       {
-        id: "security",
-        title: "Sécurité",
+        id: "cookies",
+        title: "Cookies",
         body: [
-          "Le site est conçu pour ne pas transmettre vos données métier à l'exploitant. Aucun système n'étant parfaitement sûr, protégez l'accès à votre appareil et exportez régulièrement vos données.",
+          "Nous utilisons seulement des cookies nécessaires : un cookie de session pour rester connecté et un cookie qui retient votre langue. Aucun cookie publicitaire, aucun outil de mesure d'audience.",
         ],
       },
       {
         id: "rights",
         title: "Vos droits",
         body: [
-          "Conformément à la loi 09-08, vous disposez notamment d'un droit d'information, d'accès, de rectification et d'opposition pour motif légitime. Pour les données qui restent sur votre appareil, vous pouvez les consulter, les modifier, les exporter (page Rapports) et les supprimer vous-même à tout moment.",
-          "Pour toute autre demande, écrivez à {{email}} en précisant votre demande. Vous pouvez également saisir la Commission nationale de contrôle de la protection des données à caractère personnel (CNDP, www.cndp.ma).",
+          "Conformément à la loi 09-08, vous pouvez demander l'accès à vos données, leur rectification, leur effacement, et vous opposer à leur traitement pour un motif légitime. Vous pouvez aussi exporter vos données vous-même (page Rapports) et déconnecter Google Drive à tout moment.",
+          "Écrivez à {{email}} : nous répondons dans un délai d'un mois au plus. Vous pouvez également saisir la Commission nationale de contrôle de la protection des données à caractère personnel (CNDP, www.cndp.ma).",
         ],
-        review: "Liste exacte des droits et délais de réponse à vérifier dans la loi 09-08.",
       },
       {
         id: "updates",
         title: "Mises à jour",
         body: [
-          "Cette politique sera mise à jour si les traitements changent, en particulier si des comptes, un stockage en ligne, des paiements ou des e-mails sont ajoutés. La date et la version figurent en tête de page.",
+          "Nous mettrons cette politique à jour si nos traitements changent. La version et la date figurent en tête de page ; en cas de changement important, nous vous en informerons dans l'application.",
         ],
       },
     ],
   },
-
   cookies: {
     title: "Politique relative aux cookies",
     summary: "Les cookies et le stockage local réellement utilisés par DevisPlus.ma.",
