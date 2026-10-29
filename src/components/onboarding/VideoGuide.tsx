@@ -5,8 +5,8 @@ import { INTRO_VIDEO } from "@/onboarding/config";
 
 /**
  * "How the app works" video. Plays the file, Loom or YouTube video set in onboarding/config.ts;
- * until one is set, shows an honest placeholder. Loom and YouTube (youtube-nocookie) are only
- * loaded after a click, so no third-party request happens before the visitor asks for it.
+ * until one is set, shows an honest placeholder. YouTube is only loaded after a click
+ * (youtube-nocookie), so no third-party request happens before the visitor asks for it.
  */
 export function VideoGuide() {
   const { t } = useTranslation();
@@ -58,10 +58,12 @@ export function VideoGuide() {
                   preload="metadata"
                   playsInline
                 />
-              ) : INTRO_VIDEO.loomId && playing ? (
+              ) : INTRO_VIDEO.loomId ? (
+                // Loom ignores autoplay and shows a black frame until its own player is clicked,
+                // so its player (with its thumbnail) is shown straight away.
                 <iframe
                   className="size-full"
-                  src={`https://www.loom.com/embed/${INTRO_VIDEO.loomId}?autoplay=1&hideEmbedTopBar=true`}
+                  src={`https://www.loom.com/embed/${INTRO_VIDEO.loomId}?hideEmbedTopBar=true`}
                   title={t("onboarding.video.title")}
                   allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen
