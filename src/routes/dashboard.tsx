@@ -24,6 +24,7 @@ import { QuotePdfDialog } from "@/components/QuotePdfDialog";
 import { errorMessage } from "@/lib/storage";
 import { Dropdown } from "@/components/Dropdown";
 import { OnboardingBanner } from "@/components/onboarding/OnboardingBanner";
+import { ProductTour } from "@/components/ProductTour";
 
 export const Route = createFileRoute("/dashboard")({
   head: ({ match }) => pageMeta(match, "dashboard"),
@@ -94,7 +95,13 @@ function Dashboard() {
   };
 
   const create = (
-    <Link to="/devis/$id" params={{ id: "nouveau" }} search={{}} className="btn btn-accent">
+    <Link
+      to="/devis/$id"
+      params={{ id: "nouveau" }}
+      search={{}}
+      className="btn btn-accent"
+      data-tour="newQuote"
+    >
       <Plus className="size-4" /> {t("dashboard.create")}
     </Link>
   );
@@ -102,6 +109,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <ProductTour tour="dashboard" />
       <main className="mx-auto max-w-6xl px-4 py-8">
         <PageTitle title={t("dashboard.title")}>{create}</PageTitle>
         <OnboardingBanner />

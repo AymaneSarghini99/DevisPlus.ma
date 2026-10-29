@@ -88,6 +88,7 @@ export function AppHeader({
               <Link
                 key={n.to}
                 to={n.to}
+                data-tour={`nav${n.key.charAt(0).toUpperCase()}${n.key.slice(1)}`}
                 className="flex items-center whitespace-nowrap border-b-2 border-transparent text-muted-foreground hover:text-foreground"
                 activeProps={{
                   className:

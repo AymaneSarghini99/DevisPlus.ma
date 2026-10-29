@@ -12,6 +12,7 @@ import * as legal from "./legal";
 import * as onboarding from "./onboarding";
 import * as pricing from "./pricing";
 import * as screens from "./screens";
+import * as tour from "./tour";
 
 export const fr = {
   ...base,
@@ -28,4 +29,5 @@ export const fr = {
   ...admin,
   ...account,
   ...drive,
+  ...tour,
 };

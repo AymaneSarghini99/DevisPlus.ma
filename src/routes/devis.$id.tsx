@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { DownloadPdfButton } from "@/components/DownloadPdfButton";
+import { ProductTour } from "@/components/ProductTour";
 import { MobileViewSwitch, useEditorView } from "@/components/MobileViewSwitch";
 import { SaveBar } from "@/components/SaveBar";
 import { useDevFill, type DevAction } from "@/dev/devFill";
@@ -419,6 +420,7 @@ function Editor() {
   return (
     <div className="min-h-screen">
       <AppHeader />
+      <ProductTour tour="editor" />
 
       <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:pt-6">
         <MobileViewSwitch view={editorView.view} onChange={editorView.setView} />
@@ -430,7 +432,7 @@ function Editor() {
                 <bdi>{q.number}</bdi>
               </h1>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" data-tour="share">
               <button
                 className="btn btn-ghost w-10 px-0"
                 onClick={async () => {
@@ -589,7 +591,7 @@ function Editor() {
             </div>
           </Section>
 
-          <Section title={t("editor.sectionClient")}>
+          <Section title={t("editor.sectionClient")} tour="client">
             <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
               <F label={t("editor.pickClient")} id="client-pick">
                 <Dropdown
@@ -643,7 +645,7 @@ function Editor() {
             />
           </Section>
 
-          <Section title={t("editor.sectionLines")}>
+          <Section title={t("editor.sectionLines")} tour="lines">
             {err("lines") && <p className="mb-2 text-xs text-destructive">{err("lines")}</p>}
             <LinesEditor
               lines={q.lines}
@@ -712,7 +714,7 @@ function Editor() {
                 />
               </F>
             )}
-            <dl className="mt-1 space-y-1 border-t pt-3 text-sm">
+            <dl className="mt-1 space-y-1 border-t pt-3 text-sm" data-tour="totals">
               {tot.discount > 0 && (
                 <TotalRow k={t("doc.discounts")} v={"− " + fmt.money(tot.discount)} />
               )}
@@ -808,7 +810,10 @@ function Editor() {
           </SaveBar>
         </div>
 
-        <div className={`min-w-0 lg:sticky lg:top-6 lg:self-start ${editorView.previewClass}`}>
+        <div
+          className={`min-w-0 lg:sticky lg:top-6 lg:self-start ${editorView.previewClass}`}
+          data-tour="preview"
+        >
           <p className="no-print mb-2 text-xs text-muted-foreground">{t("common.previewA4")}</p>
           <A4Preview
             d={{ ...q, kind: "devis", secondDate: q.validUntil, logo: settings.logo }}

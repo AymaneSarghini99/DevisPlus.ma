@@ -109,6 +109,7 @@ export function Section({
   children,
   collapsible = false,
   forceOpen = false,
+  tour,
 }: {
   title: string;
   aside?: ReactNode;
@@ -117,11 +118,16 @@ export function Section({
   collapsible?: boolean;
   /** Keeps a folded section open, e.g. when it holds a field with an error. */
   forceOpen?: boolean;
+  /** Target of a guided tour step (onboarding/tours.ts). */
+  tour?: string;
 }) {
   const [open, setOpen] = useState(false);
   const shown = !collapsible || open || forceOpen;
   return (
-    <section className={`border-t ${shown ? "space-y-3 pt-6" : "pt-6 max-lg:pb-0"} lg:space-y-3`}>
+    <section
+      className={`border-t ${shown ? "space-y-3 pt-6" : "pt-6 max-lg:pb-0"} lg:space-y-3`}
+      data-tour={tour}
+    >
       <div className="flex items-baseline justify-between gap-4">
         {collapsible ? (
           <button

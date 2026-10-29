@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { AlertTriangle, Check, CheckCircle2, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Compass, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/Brand";
 import { F, PartyFields } from "@/components/Form";
@@ -25,6 +25,7 @@ import { GoogleDriveSection } from "@/components/GoogleDriveSection";
 import { NumberingSection } from "@/components/NumberingSection";
 import { DomainSection } from "@/components/DomainSection";
 import { DOMAINS_ENABLED } from "@/onboarding/config";
+import { resetTours } from "@/lib/tenant";
 import { numberingError } from "@/lib/numbering";
 import { LegalLink } from "@/components/LegalPage";
 import { LEGAL_DOCS } from "@/legal/documents";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/parametres")({
 
 function SettingsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const fmt = useFormat();
   const [s, setS] = useState<Settings>(defaultSettings);
   const [loaded, setLoaded] = useState(false);
@@ -108,6 +110,7 @@ function SettingsPage() {
     ...(DOMAINS_ENABLED ? ([["domain", t("onboarding.domain.title")]] as const) : []),
     ["google-drive", t("drive.title")],
     ["password", t("account.password.changeTitle")],
+    ["guide", t("tour.replayTitle")],
     ["legal", t("settings.legalTitle")],
   ] as const;
 
@@ -381,6 +384,23 @@ function SettingsPage() {
             <Link to="/mot-de-passe" className="btn btn-ghost border">
               {t("account.password.changeTitle")}
             </Link>
+          </Card>
+
+          <Card id="guide" title={t("tour.replayTitle")} intro={t("tour.replayText")}>
+            <button
+              type="button"
+              className="btn btn-ghost border"
+              onClick={() => {
+                try {
+                  resetTours();
+                  navigate({ to: "/dashboard" });
+                } catch (e) {
+                  toast.error(errorMessage(e, t));
+                }
+              }}
+            >
+              <Compass className="size-4" /> {t("tour.replay")}
+            </button>
           </Card>
 
           <Card id="legal" title={t("settings.legalTitle")} intro={t("legal.settingsText")}>

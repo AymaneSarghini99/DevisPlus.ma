@@ -89,6 +89,8 @@ export type Tenant = {
     startedAt: string;
     updatedAt: string;
     finishedAt: string | null;
+    /** Guided tours of the app (onboarding/tours.ts) the user finished or skipped. */
+    toursDone: string[];
   };
 };
 
@@ -155,6 +157,7 @@ export function newTenant(language: Locale = "fr", s: Settings = loadSettings())
       startedAt: now,
       updatedAt: now,
       finishedAt: null,
+      toursDone: [],
     },
   };
 }
@@ -429,3 +432,26 @@ export function completeStep(t: Tenant, step: OnboardingStep): Tenant {
 
 /** Step 1 (kept for callers and tests). */
 export const completeProfileStep = (t: Tenant) => completeStep(t, "profile");
+
+/** Whether a guided tour should start: setup finished, tour neither finished nor skipped. */
+export function tourPending(id: string): boolean {
+  try {
+    const t = loadTenant();
+    return !!t?.onboarding.finishedAt && !t.onboarding.toursDone.includes(id);
+  } catch {
+    return false;
+  }
+}
+
+/** Records a finished or skipped tour, so it does not come back on any device. */
+export function markTourDone(id: string) {
+  const t = loadTenant();
+  if (!t || t.onboarding.toursDone.includes(id)) return;
+  saveTenant({ ...t, onboarding: { ...t.onboarding, toursDone: [...t.onboarding.toursDone, id] } });
+}
+
+/** "Revoir le guide": every tour starts again on its page. */
+export function resetTours() {
+  const t = loadTenant();
+  if (t) saveTenant({ ...t, onboarding: { ...t.onboarding, toursDone: [] } });
+}
