@@ -22,7 +22,8 @@ change another's: the database refuses it (row-level security, checked by `npm r
 ## Deploying (Cloudflare Workers)
 
 The shared app runs on Cloudflare Workers as the Worker `devisplus`
-(https://devisplus.aymansarghini7.workers.dev until devisplus.ma points to it).
+on the Cloudflare account aymanesarghini.dev, at https://www.devisplus.ma (devisplus.ma redirects there).
+- Server settings: `./scripts/cloudflare-secrets.sh` sets the addresses and asks for the private values.
 
 - Redeploy after changes: `npm run deploy` (build, then upload). The compatibility date is set in
   the command because the build writes today's date, which Cloudflare may refuse.

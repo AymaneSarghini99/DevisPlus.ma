@@ -15,7 +15,7 @@
     "db:test": "./scripts/db-test.sh",
     "db:migrate": "./scripts/db-migrate.sh",
     "admin:grant": "./scripts/admin-grant.sh",
-    "deploy": "npm run build && npx --yes wrangler@4.151.2 deploy --config .output/server/wrangler.json --name devisplus --compatibility-date 2026-10-01"
+    "deploy": "npm run build && CLOUDFLARE_ACCOUNT_ID=5b3bf110986c26736e94fa82bfc987cc npx --yes wrangler@4.151.2 deploy --config .output/server/wrangler.json --name devisplus --compatibility-date 2026-10-01 --domain devisplus.ma --domain www.devisplus.ma"
   },
   "overrides": {
     "rolldown": "1.2.1"

@@ -62,6 +62,19 @@ const isAsset = (path: string) =>
   path.startsWith("/@") ||
   /\.[a-z0-9]+$/i.test(path);
 
+/**
+ * Main-address routing: when APP_URL is the www host (www.devisplus.ma), page visits on the bare
+ * domain (devisplus.ma) move there for good. Server routes are left alone so form posts and
+ * OAuth returns are never lost. Returns the address to redirect to, or null.
+ */
+export function canonicalRedirect(url: URL, method: string, appUrl: string): string | null {
+  const main = originOf(appUrl);
+  if (!main || (method !== "GET" && method !== "HEAD") || isAsset(url.pathname)) return null;
+  const mainHost = new URL(main).host;
+  if (!mainHost.startsWith("www.") || url.host.toLowerCase() !== mainHost.slice(4)) return null;
+  return new URL(url.pathname + url.search, main).toString();
+}
+
 /** Account pages also served on the admin host (sign-in, password). */
 const ADMIN_HOST_PAGES = ["/connexion", "/mot-de-passe-oublie", "/reinitialiser", "/mot-de-passe"];
 

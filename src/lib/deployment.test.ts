@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adminRedirect, deploymentFrom } from "./deployment";
+import { adminRedirect, canonicalRedirect, deploymentFrom } from "./deployment";
 import { cleanHostname, stateOf } from "./domains/cloudflare";
 
 describe("deployment settings", () => {
@@ -83,5 +83,25 @@ describe("customer domains (Cloudflare custom hostnames)", () => {
     );
     expect(active.state).toBe("active");
     expect(active.records).toHaveLength(1);
+  });
+});
+
+describe("main-address routing", () => {
+  const app = "https://www.devisplus.ma";
+  const go = (u: string, method = "GET") => canonicalRedirect(new URL(u), method, app);
+
+  it("moves page visits on the bare domain to www, keeping path and query", () => {
+    expect(go("https://devisplus.ma/")).toBe("https://www.devisplus.ma/");
+    expect(go("https://devisplus.ma/tarifs?x=1")).toBe("https://www.devisplus.ma/tarifs?x=1");
+  });
+
+  it("leaves www, other hosts, server routes, files and posts alone", () => {
+    expect(go("https://www.devisplus.ma/tarifs")).toBeNull();
+    expect(go("https://atlas.devisplus.ma/")).toBeNull();
+    expect(go("https://devisplus.ma/api/auth/session")).toBeNull();
+    expect(go("https://devisplus.ma/og-image.png")).toBeNull();
+    expect(go("https://devisplus.ma/connexion", "POST")).toBeNull();
+    expect(canonicalRedirect(new URL("https://devisplus.ma/"), "GET", "https://devisplus.ma")).toBeNull();
+    expect(canonicalRedirect(new URL("https://devisplus.ma/"), "GET", "")).toBeNull();
   });
 });

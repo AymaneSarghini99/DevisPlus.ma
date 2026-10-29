@@ -13,7 +13,7 @@ export const CONTACT = {
   phone: "+212 677846536",
   /** WhatsApp support (WhatsApp only, not for calls). */
   whatsapp: "+212 607202841",
-  website: "https://devisplus.ma",
+  website: "https://www.devisplus.ma",
 } as const;
 
 export const OPERATOR = {

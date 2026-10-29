@@ -2,7 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
-import { adminRedirect, deploymentFrom } from "./lib/deployment";
+import { adminRedirect, canonicalRedirect, deploymentFrom } from "./lib/deployment";
 import { readEnv } from "./lib/google/config";
 
 type ServerEntry = {
@@ -49,8 +49,13 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      const env = readEnv();
+      // Bare domain → www (APP_URL, e.g. https://www.devisplus.ma).
+      const main = canonicalRedirect(url, request.method, env["APP_URL"] ?? "");
+      if (main) return Response.redirect(main, 301);
       // Admin portal on its own host (ADMIN_HOST, e.g. admin.devisplus.ma).
-      const to = adminRedirect(new URL(request.url), deploymentFrom(readEnv()));
+      const to = adminRedirect(url, deploymentFrom(env));
       if (to) return Response.redirect(to, 302);
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

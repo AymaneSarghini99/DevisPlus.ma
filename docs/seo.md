@@ -85,7 +85,7 @@ URL), and the live domain itself.
 ## 6. Blocked / external steps (owner access needed)
 
 - **Google Search Console and Bing Webmaster Tools:** verify devisplus.ma, then submit
-  `https://devisplus.ma/sitemap.xml`.
+  `https://www.devisplus.ma/sitemap.xml`.
 - **Keyword research:** no keyword tool or Search Console data is available here, so no search
   volumes are claimed. Recommended: Google Keyword Planner (free with a Google Ads account),
   filtered to Morocco, French and English.

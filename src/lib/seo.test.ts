@@ -16,17 +16,17 @@ const get = (h: ReturnType<typeof seoHead>, key: string) =>
 
 describe("SEO", () => {
   it("builds absolute URLs on the production domain without trailing slashes", () => {
-    expect(SITE_URL).toBe("https://devisplus.ma");
-    expect(absoluteUrl("/")).toBe("https://devisplus.ma/");
-    expect(absoluteUrl("/tarifs/")).toBe("https://devisplus.ma/tarifs");
-    expect(absoluteUrl("privacy")).toBe("https://devisplus.ma/privacy");
+    expect(SITE_URL).toBe("https://www.devisplus.ma");
+    expect(absoluteUrl("/")).toBe("https://www.devisplus.ma/");
+    expect(absoluteUrl("/tarifs/")).toBe("https://www.devisplus.ma/tarifs");
+    expect(absoluteUrl("privacy")).toBe("https://www.devisplus.ma/privacy");
   });
 
   it("gives public pages a canonical URL and social previews", () => {
     const h = seoHead({ path: "/tarifs", title: "T", description: "D", locale: "fr", index: true });
-    expect(h.links).toEqual([{ rel: "canonical", href: "https://devisplus.ma/tarifs" }]);
-    expect(get(h, "og:url")).toBe("https://devisplus.ma/tarifs");
-    expect(get(h, "og:image")).toBe("https://devisplus.ma/og-image.png");
+    expect(h.links).toEqual([{ rel: "canonical", href: "https://www.devisplus.ma/tarifs" }]);
+    expect(get(h, "og:url")).toBe("https://www.devisplus.ma/tarifs");
+    expect(get(h, "og:image")).toBe("https://www.devisplus.ma/og-image.png");
     expect(get(h, "og:locale")).toBe("fr_MA");
     expect(get(h, "robots")).toMatch(/^index, follow/);
   });
@@ -55,7 +55,7 @@ describe("SEO", () => {
 
   it("points robots.txt to the sitemap and keeps the API out", () => {
     expect(robotsTxt()).toContain("Disallow: /api/");
-    expect(robotsTxt()).toContain("Sitemap: https://devisplus.ma/sitemap.xml");
+    expect(robotsTxt()).toContain("Sitemap: https://www.devisplus.ma/sitemap.xml");
     expect(robotsTxt()).not.toMatch(/Disallow: \/\s*$/m);
   });
 
