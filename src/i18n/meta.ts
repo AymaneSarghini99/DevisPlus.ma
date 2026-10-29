@@ -22,6 +22,7 @@ type PageKey =
   | "signin"
   | "signup"
   | "waiting"
+  | "share"
   | "password";
 
 /** Pages search engines should index; every other app page is "noindex". */

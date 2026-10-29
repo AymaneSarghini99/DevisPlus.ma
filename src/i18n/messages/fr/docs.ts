@@ -1,0 +1,95 @@
+/** Credit notes, pro formas, delivery notes, down-payment invoices and the accountant's export. */
+export const docs = {
+  kind: {
+    facture: "Facture",
+    acompte: "Facture d'acompte",
+    avoir: "Avoir",
+    proforma: "Facture proforma",
+    livraison: "Bon de livraison",
+  },
+  filter: {
+    all: "Tous les documents",
+    facture: "Factures",
+    avoir: "Avoirs",
+    proforma: "Proformas",
+    livraison: "Bons de livraison",
+  },
+  draftNote:
+    "Brouillon : pas encore de numéro. « Émettre » attribue le numéro définitif et verrouille le document.",
+  colType: "Type",
+  issued: "{{number}} émis.",
+  confirmIssue:
+    "Émettre ce document ? Il recevra un numéro définitif et ne pourra plus être modifié ni supprimé.",
+  creditOf: "Avoir sur la facture",
+  createCreditNote: "Créer un avoir",
+  createDeliveryNote: "Bon de livraison",
+  creditNoteCreated: "Brouillon d'avoir créé : réduisez les lignes pour un avoir partiel.",
+  deliveryNoteCreated: "Brouillon de bon de livraison créé.",
+  creditNotes: "Avoirs",
+  credited: "Déjà crédité par avoir",
+  fullyCredited: "Facture entièrement annulée par avoir.",
+  retention: "Retenue de garantie (%)",
+  retentionHint: "BTP : en général 7 à 10 %, rendue à la réception définitive.",
+  creditNoteNote:
+    "Un avoir annule tout ou partie d'une facture émise, qui elle reste inchangée. Il est compté en négatif dans vos rapports.",
+  proformaNote:
+    "Une facture proforma sert au client pour sa banque, un marché ou un paiement d'avance. Elle n'a pas de valeur comptable et n'est pas comptée dans vos rapports.",
+  deliveryNoteNote:
+    "Le bon de livraison liste les quantités livrées, sans prix. Faites-le signer par le client à la réception.",
+  depositNote: "Facture d'acompte : elle sera déduite de la facture finale du devis, TVA comprise.",
+  depositLine: "Acompte {{pct}} sur devis {{quote}} (TVA {{rate}})",
+  deductionLine: "Déduction acompte facture {{invoice}} (TVA {{rate}})",
+  create: "Créer…",
+  createFinal: "Facture finale",
+  createDeposit: "Facture d'acompte",
+  createProforma: "Facture proforma",
+  depositCreated: "Brouillon de facture d'acompte créé.",
+  proformaCreated: "Brouillon de facture proforma créé.",
+  depositInvalid: "Indiquez un pourcentage entre 1 et 99.",
+  finalExists: "La facture finale de ce devis existe déjà.",
+};
+
+export const journal = {
+  title: "Export pour votre comptable",
+  text: "Journal des ventes de la période : factures et avoirs émis, HT et TVA par taux, TTC. À ouvrir dans Excel ou à envoyer à votre fiduciaire.",
+  period: "Période",
+  month: "Mois",
+  quarter: "Trimestre",
+  year: "Année",
+  download: "Télécharger le journal (CSV)",
+  empty: "Aucune facture ni avoir émis sur cette période.",
+  summary: "{{count}} document(s) · TVA collectée {{vat}}",
+  col: {
+    date: "Date",
+    number: "N° pièce",
+    type: "Type",
+    client: "Client",
+    ice: "ICE client",
+    ht: "HT {{rate}}",
+    vat: "TVA {{rate}}",
+    totalHt: "Total HT",
+    totalVat: "Total TVA",
+    ttc: "Total TTC",
+    origin: "Pièce d'origine",
+  },
+};
+
+export const share = {
+  loading: "Chargement du devis…",
+  notFound: "Ce lien de devis n'existe pas ou n'est plus actif.",
+  intro: "{{company}} vous a envoyé ce devis. Lisez-le, puis acceptez-le en bas de la page.",
+  acceptTitle: "Accepter le devis",
+  acceptText:
+    "En acceptant, vous donnez votre accord pour le devis {{number}} d'un montant de {{amount}} TTC. {{company}} en est informé.",
+  name: "Votre nom et prénom",
+  accept: "J'accepte ce devis",
+  accepting: "Envoi…",
+  accepted: "Devis accepté le {{date}} par {{name}}. Merci !",
+  acceptedNow: "Merci, votre accord a été enregistré.",
+  expired: "Ce devis a expiré le {{date}}. Contactez {{company}} pour un devis à jour.",
+  refused: "Ce devis n'est plus disponible.",
+  failed: "L'envoi a échoué. Réessayez dans un instant.",
+  nameInvalid: "Indiquez votre nom (2 caractères au moins).",
+  print: "Imprimer ou enregistrer en PDF",
+  by: "Devis envoyé avec DevisPlus.ma",
+};

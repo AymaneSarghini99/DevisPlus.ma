@@ -111,7 +111,7 @@ async function withUser(
 }
 
 /** Quotes a company in free trial (signed up, not approved yet) can keep; see the free_trial migration. */
-export const TRIAL_QUOTES = 2;
+export const TRIAL_QUOTES = 10;
 
 /** Approved companies, and companies in free trial, use their workspace. */
 export const canUse = (o: Pick<OrgInfo, "approval">) =>

@@ -62,7 +62,7 @@ export const templates: M["templates"] = {
   currentLogo: "الشعار الحالي",
   replaceLogo: "تغيير الشعار",
   uploadLogo: "تحميل شعار",
-  logoHint: "PNG أو JPG أو WebP أو SVG. يُصغَّر تلقائيًا ويُحفظ في هذا المتصفح.",
+  logoHint: "PNG أو JPG أو WebP أو SVG. يُصغَّر تلقائيًا ويُحفظ مع إعداداتك.",
   defaultWatermark: "العلامة المائية الافتراضية",
   watermarkHint: "تُطبَّق على عروض الأسعار الجديدة، ويمكن تعديلها لكل عرض.",
   unsavedHint: "تغييرات غير محفوظة: انقر «تعيين كافتراضي».",

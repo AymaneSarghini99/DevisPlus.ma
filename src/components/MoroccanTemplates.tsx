@@ -10,7 +10,16 @@ import {
   type Line,
   type Totals,
 } from "@/lib/quotes";
-import { Contact, idList, Ltr, PartyLines, useDoc, type DocData } from "./QuoteDocument";
+import {
+  Contact,
+  idList,
+  Ltr,
+  PartyLines,
+  retentionOf,
+  useDoc,
+  wordsKey,
+  type DocData,
+} from "./QuoteDocument";
 
 /** Layouts common on Moroccan quotes and invoices: full-grid tables, boxed parties,
  *  "amount in words" box, stamp areas, zellige ornament and bilingual headings. */
@@ -228,6 +237,7 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
               v={fmt.date(d.secondDate)}
             />
             {d.quoteRef && <MetaRow k={<Bi on={bi} k="doc.quoteRef" />} v={d.quoteRef} />}
+            {d.relatedRef && <MetaRow k={<Bi on={bi} k="doc.invoiceRef" />} v={d.relatedRef} />}
             {d.delivery && (
               <MetaRow k={<Bi on={bi} k="doc.delivery.default" />} v={d.delivery} text />
             )}
@@ -254,7 +264,9 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
               [t("doc.delay"), d.delivery || "—", true],
               d.kind === "devis"
                 ? [t("doc.depositShortLabel"), fmt.percent(d.deposit), false]
-                : [t("doc.quoteRef"), d.quoteRef || "—", false],
+                : d.relatedRef
+                  ? [t("doc.invoiceRef"), d.relatedRef, false]
+                  : [t("doc.quoteRef"), d.quoteRef || "—", false],
             ] as const
           ).map(([k, v, text], i) => (
             <div key={i} className={`px-3 py-2 ${i ? "border-s" : ""}`}>
@@ -278,7 +290,7 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
       {st.showWords && (
         <div className="mt-4 border-2 px-3 py-2" style={{ borderColor: "var(--doc-accent)" }}>
           <span className="font-semibold">
-            {t(d.kind === "facture" ? "doc.wordsFacture" : "doc.wordsDevis")}
+            {t(wordsKey(d.kind))}
             {t("doc.colon")}
           </span>
           <span className={d.template === "marche" ? "uppercase" : ""}>
@@ -325,6 +337,7 @@ export function MoroccanDocument({ d, title, st }: { d: DocData; title: string; 
 
 function GridTable({ d, tot, showDiscount }: { d: DocData; tot: Totals; showDiscount: boolean }) {
   const { t, fmt } = useDoc();
+  const ret = retentionOf(d, tot.ttc);
   const marche = d.template === "marche";
   const bi = d.template === "bilingue";
   const filled = d.template === "commercial" || d.template === "zellige";
@@ -396,12 +409,19 @@ function GridTable({ d, tot, showDiscount }: { d: DocData; tot: Totals; showDisc
               light
             />
           )}
+          {d.kind === "facture" && ret.held > 0 && (
+            <>
+              <FootRow
+                cols={cols}
+                k={t("doc.retention", { pct: fmt.percent(ret.pct) })}
+                v={"− " + fmt.money(ret.held)}
+                light
+              />
+              <FootRow cols={cols} k={t("doc.netToPay")} v={fmt.money(ret.net)} />
+            </>
+          )}
           {d.kind === "facture" && d.paid ? (
-            <FootRow
-              cols={cols}
-              k={t("doc.remaining")}
-              v={fmt.money(Math.round((tot.ttc - d.paid) * 100) / 100)}
-            />
+            <FootRow cols={cols} k={t("doc.remaining")} v={fmt.money(ret.remaining)} />
           ) : null}
         </tfoot>
       )}
@@ -492,6 +512,7 @@ function FootRow({
 
 function TotalsBox({ d, tot, bi }: { d: DocData; tot: Totals; bi: boolean }) {
   const { fmt } = useDoc();
+  const ret = retentionOf(d, tot.ttc);
   const row = (key: string, k: ReactNode, v: string, strong = false) => (
     <tr
       key={key}
@@ -527,12 +548,18 @@ function TotalsBox({ d, tot, bi }: { d: DocData; tot: Totals; bi: boolean }) {
             <Bi on={bi} k="doc.depositShort" vars={{ pct: fmt.percent(d.deposit) }} />,
             fmt.money(tot.deposit),
           )}
+        {d.kind === "facture" &&
+          ret.held > 0 &&
+          row(
+            "ret",
+            <Bi on={bi} k="doc.retention" vars={{ pct: fmt.percent(ret.pct) }} />,
+            "− " + fmt.money(ret.held),
+          )}
+        {d.kind === "facture" &&
+          ret.held > 0 &&
+          row("net", <Bi on={bi} k="doc.netToPay" />, fmt.money(ret.net), true)}
         {d.kind === "facture" && d.paid
-          ? row(
-              "rest",
-              <Bi on={bi} k="doc.remaining" />,
-              fmt.money(Math.round((tot.ttc - d.paid) * 100) / 100),
-            )
+          ? row("rest", <Bi on={bi} k="doc.remaining" />, fmt.money(ret.remaining))
           : null}
       </tbody>
     </table>

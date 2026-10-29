@@ -2,6 +2,13 @@ import type { fr } from "../fr/index";
 type M = typeof fr;
 
 export const followups: M["followups"] = {
+  messageLang: "WhatsApp message language",
+  messageLangs: {
+    doc: "Quote's language",
+    latin: "Darija (Latin letters)",
+    arabic: "Darija (Arabic script)",
+  },
+
   title: "Follow-ups",
   intro:
     "Reminders are prepared in WhatsApp and sent by you. The history shows the reminders you noted, not whether the client received them.",
@@ -81,7 +88,7 @@ export const catalogue: M["catalogue"] = {
 export const reports: M["reports"] = {
   title: "Reports",
   intro:
-    "Calculated only from the quotes and invoices saved in this browser. A quoted amount is not revenue: only issued invoices and recorded payments are.",
+    "Calculated from the quotes and invoices in your workspace. A quoted amount is not revenue: only issued invoices and recorded payments are.",
   quotes: "Quotes",
   created: "Quotes created",
   createdSub: "Drafts: {{drafts}} · Awaiting reply: {{pending}}",

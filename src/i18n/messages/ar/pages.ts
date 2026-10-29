@@ -3,6 +3,13 @@ type M = typeof fr;
 
 // Arabic has six plural forms; the extra keys (zero, two, few, many) are added by spreading.
 export const followups: M["followups"] = {
+  messageLang: "لغة رسائل واتساب",
+  messageLangs: {
+    doc: "لغة عرض السعر",
+    latin: "الدارجة (حروف لاتينية)",
+    arabic: "الدارجة (حروف عربية)",
+  },
+
   title: "المتابعات",
   intro:
     "تُجهَّز رسائل التذكير في واتساب وتُرسلها أنت. يعرض السجل التذكيرات التي سجّلتها، لا ما إذا كان العميل قد استلمها.",
@@ -95,7 +102,7 @@ export const catalogue: M["catalogue"] = {
 export const reports: M["reports"] = {
   title: "التقارير",
   intro:
-    "تُحتسب فقط من عروض الأسعار والفواتير المحفوظة في هذا المتصفح. مبلغ عرض السعر ليس رقم معاملات: وحدها الفواتير الصادرة والدفعات المسجلة تُعدّ كذلك.",
+    "تُحتسب من عروض الأسعار والفواتير الموجودة في فضائك. مبلغ عرض السعر ليس رقم معاملات: وحدها الفواتير الصادرة والدفعات المسجلة تُعدّ كذلك.",
   quotes: "عروض الأسعار",
   created: "عروض الأسعار المُنشأة",
   createdSub: "المسودات: {{drafts}} · في انتظار الرد: {{pending}}",

@@ -78,6 +78,11 @@ export type Quote = {
   customTemplateId?: string; // set when the design came from one of the user's templates
   /** Language of the printed document and WhatsApp messages; French when absent (older quotes). */
   lang?: Locale;
+  /** Secret of the online link (/accepter/<token>) where the client reads and accepts the quote. */
+  shareToken?: string;
+  /** Set when the client accepted the quote online: when, and the name they typed. */
+  acceptedAt?: string;
+  acceptedBy?: string;
 };
 
 export const emptyParty = (): Party => ({
@@ -386,8 +391,10 @@ export function newQuote(existing: Quote[], d: Defaults = {}): Quote {
 export function duplicateQuote(q: Quote, existing: Quote[]): Quote {
   const issue = today();
   const span = Math.max(0, daysBetween(q.issueDate, q.validUntil)) || 30;
+  // The copy gets its own link, and nobody has accepted it yet.
+  const { shareToken: _s, acceptedAt: _a, acceptedBy: _b, ...rest } = structuredClone(q);
   return {
-    ...structuredClone(q),
+    ...rest,
     id: uid(),
     number: nextNumber(existing),
     status: "brouillon",
@@ -414,14 +421,15 @@ export function waPhone(phone: string) {
   return d;
 }
 /** WhatsApp messages, written in the quote's document language (t and fmt of that language). */
-export function whatsappText(q: Quote, t: TFunction, fmt: Format) {
-  return t("whatsapp.send", {
+export function whatsappText(q: Quote, t: TFunction, fmt: Format, link = "") {
+  const text = t("whatsapp.send", {
     greeting: greeting(q, t),
     number: q.number,
     amount: fmt.money(quoteTotals(q).ttc),
     date: fmt.date(q.validUntil),
     company: q.company.name,
   });
+  return link ? `${text}\n\n${t("whatsapp.link", { url: link })}` : text;
 }
 export function reminderText(q: Quote, t: TFunction, fmt: Format) {
   return t(q.sentAt ? "whatsapp.reminderSent" : "whatsapp.reminder", {
@@ -433,10 +441,38 @@ export function reminderText(q: Quote, t: TFunction, fmt: Format) {
     company: q.company.name,
   });
 }
+/**
+ * Reminder in Moroccan Darija, as most clients write on WhatsApp: in Latin letters ("3arabizi")
+ * or in Arabic script. Amounts and dates follow French or Arabic formatting accordingly.
+ */
+export type DarijaScript = "latin" | "arabic";
+export function darijaReminderText(q: Quote, script: DarijaScript) {
+  const fmt = makeFormat(script === "latin" ? "fr" : "ar");
+  const who = q.client.contact || q.client.name;
+  const v = {
+    number: q.number,
+    amount: fmt.money(quoteTotals(q).ttc),
+    date: fmt.date(q.validUntil),
+    company: q.company.name,
+  };
+  return script === "latin"
+    ? `${who ? `Salam ${who},` : "Salam,"}\n\nBghit nchouf m3ak 3la devis raqm ${v.number} b ${v.amount} TTC, li sali7 7ta l ${v.date}.\n\nWach tla3iti 3lih ? Ila kan 3ndek chi sou2al wla bghiti nbeddlou chi 7aja, ana mojoud.\n\nBslama,\n${v.company}`
+    : `${who ? `السلام ${who}،` : "السلام،"}\n\nبغيت نتبع معاك الدوفي رقم ${v.number} ديال ${v.amount} TTC، اللي صالح حتى ل ${v.date}.\n\nواش طلعتي عليه؟ إلا كان عندك شي سؤال ولا بغيتي نبدلو شي حاجة، أنا موجود.\n\nبسلامة،\n${v.company}`;
+}
+
 const greeting = (q: Quote, t: TFunction) => {
   const who = q.client.contact || q.client.name;
   return who ? t("whatsapp.helloName", { name: who }) : t("whatsapp.hello");
 };
+/** A new secret for the quote's online link: 24 random letters and digits. */
+export function newShareToken() {
+  const abc = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  return Array.from(bytes, (b) => abc[b % abc.length]).join("");
+}
+/** Address of the page where the client reads and accepts the quote. */
+export const shareUrl = (origin: string, token: string) => `${origin}/accepter/${token}`;
+
 /** wa.me link; with no phone WhatsApp asks the user to pick the contact. */
 export function whatsappUrl(phone: string, text: string) {
   return `https://wa.me/${waPhone(phone)}?text=${encodeURIComponent(text)}`;

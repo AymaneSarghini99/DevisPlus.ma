@@ -2,7 +2,13 @@ import type { fr } from "../fr/index";
 type M = typeof fr;
 
 export const doc: M["doc"] = {
-  title: { devis: "Quote", facture: "Invoice" },
+  title: {
+    devis: "Quote",
+    facture: "Invoice",
+    avoir: "Credit note",
+    proforma: "Pro forma invoice",
+    livraison: "Delivery note",
+  },
   draftBanner: "Draft — invoice not issued, no accounting value",
   addressedTo: "Addressed to",
   billedTo: "Billed to",
@@ -33,6 +39,17 @@ export const doc: M["doc"] = {
   depositShort: "Deposit ({{pct}})",
   depositShortLabel: "Deposit",
   balance: "Balance",
+  draftBannerOther: "Draft — document not issued",
+  proformaBanner: "Pro forma invoice — no accounting value",
+  invoiceRef: "Original invoice",
+  wordsAvoir: "This credit note amounts to",
+  wordsProforma: "This pro forma invoice amounts to",
+  retention: "Retention guarantee ({{pct}})",
+  netToPay: "Net to pay",
+  deliveredTo: "Delivered to",
+  deliveryDate: "Delivery date",
+  deliverySupplier: "Delivered by — stamp and signature",
+  deliveryReceived: "Received in good condition — client's name, date and signature",
   alreadyPaid: "Already paid",
   remaining: "Balance due",
   exemption: "VAT exemption",
@@ -78,6 +95,7 @@ export const defaults: M["defaults"] = {
 };
 
 export const whatsapp: M["whatsapp"] = {
+  link: "View and accept the quote online: {{url}}",
   hello: "Hello,",
   helloName: "Hello {{name}},",
   send: "{{greeting}}\n\nPlease find attached our quote no. {{number}} for {{amount}} including VAT, valid until {{date}}.\n\nWe remain at your disposal for any questions.\n\nKind regards,\n{{company}}",
@@ -116,6 +134,7 @@ export const csv: M["csv"] = {
   },
   invoice: {
     number: "Invoice no.",
+    type: "Type",
     status: "Status",
     date: "Date",
     due: "Due date",

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { authClient } from "@/lib/account/client";
 import { accessDecision, AUTH_PATHS } from "@/lib/auth";
-import { isPublicPath } from "@/lib/paths";
+import { isPublicPath, isSharedQuotePath } from "@/lib/paths";
 import { loadTenant, type Tenant } from "@/lib/tenant";
 import { showPaywall } from "@/lib/trial";
 import { Paywall } from "@/components/Paywall";
@@ -39,6 +39,8 @@ export function AdminGate({ children }: { children: ReactNode }) {
   const free =
     isPublicPath(path) ||
     path.startsWith("/admin") ||
+    // A client opening a quote's acceptance link has no account.
+    isSharedQuotePath(path) ||
     AUTH_PATHS.includes(path) ||
     path === WAITING_PATH;
   const { data: session, isPending } = authClient.useSession();

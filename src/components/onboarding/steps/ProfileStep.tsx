@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Dropdown } from "@/components/Dropdown";
 import { Flag } from "@/components/Flags";
 import { F } from "@/components/Form";
-import { LOCALES, NATIVE_NAME, type Locale } from "@/i18n/config";
+import { NATIVE_NAME, UI_LOCALES, type Locale } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { CURRENCIES, SECTORS, type Currency } from "@/onboarding/config";
 import { hasAccount, PLATFORM_DOMAIN, slugify, type BusinessProfile } from "@/lib/tenant";
@@ -224,9 +224,9 @@ export function ProfileStep({ tenant, update, err, secret, setSecret }: StepProp
           <div
             role="radiogroup"
             aria-labelledby="ob-lang-label"
-            className="grid gap-2 sm:grid-cols-3"
+            className="grid gap-2 sm:grid-cols-2"
           >
-            {LOCALES.map((l) => (
+            {UI_LOCALES.map((l) => (
               <button
                 key={l}
                 type="button"

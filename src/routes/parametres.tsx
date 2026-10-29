@@ -24,6 +24,7 @@ import { AppearanceSection } from "@/components/AppearanceSection";
 import { GoogleDriveSection } from "@/components/GoogleDriveSection";
 import { NumberingSection } from "@/components/NumberingSection";
 import { DomainSection } from "@/components/DomainSection";
+import { DOMAINS_ENABLED } from "@/onboarding/config";
 import { numberingError } from "@/lib/numbering";
 import { LegalLink } from "@/components/LegalPage";
 import { LEGAL_DOCS } from "@/legal/documents";
@@ -104,7 +105,7 @@ function SettingsPage() {
     ["quotes", t("settings.preferences")],
     ["numbering", t("account.docs.title")],
     ["appearance", t("settings.appearance")],
-    ["domain", t("onboarding.domain.title")],
+    ...(DOMAINS_ENABLED ? ([["domain", t("onboarding.domain.title")]] as const) : []),
     ["google-drive", t("drive.title")],
     ["password", t("account.password.changeTitle")],
     ["legal", t("settings.legalTitle")],
@@ -368,7 +369,7 @@ function SettingsPage() {
 
           <AppearanceSection s={s} update={update} />
 
-          <DomainSection />
+          {DOMAINS_ENABLED && <DomainSection />}
 
           <GoogleDriveSection />
 

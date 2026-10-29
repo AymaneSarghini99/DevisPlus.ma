@@ -31,7 +31,7 @@ export const account = {
     title: "Comptes inscrits",
     mode: {
       approval:
-        "Les nouveaux inscrits essaient l'application avec 2 devis gratuits ; validez-les une fois payés pour lever la limite.",
+        "Les nouveaux inscrits essaient l'application avec 10 devis gratuits ; validez-les une fois payés pour lever la limite.",
       open: "Les inscriptions sont acceptées automatiquement (SIGNUP_MODE=open).",
       closed: "Inscriptions fermées : vous créez vous-même les comptes de vos clients.",
     },
@@ -245,5 +245,6 @@ export const account = {
       "Imprimé en bas de chaque nouveau document (garantie, assurance, horaires…). Un modèle personnalisé peut le remplacer.",
     invalidPrefix: "Lettres, chiffres et tirets uniquement (8 caractères au plus).",
     samePrefix: "Les devis et les factures doivent avoir des préfixes différents.",
+    reservedPrefix: "AV, PF et BL sont réservés aux avoirs, proformas et bons de livraison.",
   },
 };

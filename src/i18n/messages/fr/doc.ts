@@ -1,5 +1,11 @@
 export const doc = {
-  title: { devis: "Devis", facture: "Facture" },
+  title: {
+    devis: "Devis",
+    facture: "Facture",
+    avoir: "Avoir",
+    proforma: "Facture proforma",
+    livraison: "Bon de livraison",
+  },
   draftBanner: "Brouillon — facture non émise, sans valeur comptable",
   addressedTo: "Adressé à",
   billedTo: "Facturé à",
@@ -34,6 +40,17 @@ export const doc = {
   depositShort: "Acompte ({{pct}})",
   depositShortLabel: "Acompte",
   balance: "Solde",
+  draftBannerOther: "Brouillon — document non émis",
+  proformaBanner: "Facture proforma — sans valeur comptable",
+  invoiceRef: "Facture d'origine",
+  wordsAvoir: "Arrêté le présent avoir à la somme de",
+  wordsProforma: "Arrêtée la présente facture proforma à la somme de",
+  retention: "Retenue de garantie ({{pct}})",
+  netToPay: "Net à payer",
+  deliveredTo: "Livré à",
+  deliveryDate: "Date de livraison",
+  deliverySupplier: "Livré par — cachet et signature",
+  deliveryReceived: "Reçu en bon état — nom, date et signature du client",
   alreadyPaid: "Déjà réglé",
   remaining: "Reste à payer",
   exemption: "Exonération de TVA",
@@ -79,6 +96,7 @@ export const defaults = {
 };
 
 export const whatsapp = {
+  link: "Consultez et acceptez le devis en ligne : {{url}}",
   hello: "Bonjour,",
   helloName: "Bonjour {{name}},",
   send: "{{greeting}}\n\nVeuillez trouver ci-joint notre devis n° {{number}} d'un montant de {{amount}} TTC, valable jusqu'au {{date}}.\n\nNous restons à votre disposition pour toute question.\n\nCordialement,\n{{company}}",
@@ -117,6 +135,7 @@ export const csv = {
   },
   invoice: {
     number: "N° facture",
+    type: "Type",
     status: "Statut",
     date: "Date",
     due: "Échéance",

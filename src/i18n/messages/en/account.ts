@@ -29,7 +29,7 @@ export const account = {
     title: "Registered accounts",
     mode: {
       approval:
-        "New sign-ups try the app with 2 free quotes; approve them once paid to lift the limit.",
+        "New sign-ups try the app with 10 free quotes; approve them once paid to lift the limit.",
       open: "Sign-ups are accepted automatically (SIGNUP_MODE=open).",
       closed: "Sign-ups are closed: you create your customers' accounts yourself.",
     },
@@ -235,5 +235,6 @@ export const account = {
       "Printed at the bottom of every new document (warranty, insurance, opening hours…). A custom template can replace it.",
     invalidPrefix: "Letters, digits and hyphens only (8 characters at most).",
     samePrefix: "Quotes and invoices need different prefixes.",
+    reservedPrefix: "AV, PF and BL are reserved for credit notes, pro formas and delivery notes.",
   },
 };

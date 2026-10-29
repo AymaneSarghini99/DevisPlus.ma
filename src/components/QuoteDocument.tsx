@@ -28,7 +28,8 @@ import { MOROCCAN_TEMPLATES, MoroccanDocument } from "./MoroccanTemplates";
 import { WatermarkLayer } from "./WatermarkLayer";
 
 export type DocData = {
-  kind: "devis" | "facture";
+  /** "devis", or one of the documents of the invoice list (lib/invoices InvoiceKind). */
+  kind: "devis" | "facture" | "avoir" | "proforma" | "livraison";
   number: string;
   issueDate: string;
   /** Validity date for quotes, due date for invoices. */
@@ -49,7 +50,11 @@ export type DocData = {
   /** Shown on draft invoices so a draft is never mistaken for an issued invoice. */
   draft?: boolean;
   quoteRef?: string;
+  /** Number of the invoice a credit note or a delivery note refers to. */
+  relatedRef?: string;
   paid?: number;
+  /** Retention guarantee (retenue de garantie) withheld on the TTC, in %. */
+  retention?: number;
   watermark?: Watermark;
   style?: DocStyle;
 };
@@ -61,6 +66,24 @@ export function useDoc(): DocCtx {
   const c = useContext(DocContext);
   if (!c) throw new Error("useDoc must be used inside QuoteDocument");
   return c;
+}
+
+/** "Arrêté le présent … à la somme de" for each kind of document. */
+export const wordsKey = (kind: DocData["kind"]) =>
+  kind === "devis"
+    ? "doc.wordsDevis"
+    : kind === "avoir"
+      ? "doc.wordsAvoir"
+      : kind === "proforma"
+        ? "doc.wordsProforma"
+        : "doc.wordsFacture";
+
+/** Retention guarantee and what is left to pay, from the TTC (all in DH). */
+export function retentionOf(d: Pick<DocData, "retention" | "paid">, ttc: number) {
+  const pct = Math.min(Math.max(Number(d.retention) || 0, 0), 100);
+  const held = Math.round(ttc * pct) / 100;
+  const net = Math.round((ttc - held) * 100) / 100;
+  return { pct, held, net, remaining: Math.round((net - (d.paid ?? 0)) * 100) / 100 };
 }
 
 /** Readable text colour (navy or white) on top of a given accent colour. */
@@ -103,6 +126,7 @@ export function QuoteDocument({
   const title = st.title.trim() || t(`doc.title.${d.kind}`);
   const showDiscount = d.lines.some((l) => Number(l.discount) > 0);
   const exemption = needsExemptionNote(d.lines);
+  const ret = retentionOf(d, tot.ttc);
   const vars = { "--doc-accent": d.accent, "--doc-on-accent": onAccent(d.accent) } as CSSProperties;
 
   return (
@@ -117,13 +141,21 @@ export function QuoteDocument({
         }}
         className={`doc print-area relative isolate flex flex-col overflow-hidden bg-paper p-8 text-[12.5px] leading-relaxed text-[#14213D] ${className}`}
       >
-        {d.draft && (
+        {(d.draft || d.kind === "proforma") && (
           <div className="mb-4 border border-dashed border-destructive px-3 py-2 text-center text-xs font-semibold uppercase tracking-widest text-destructive">
-            {t("doc.draftBanner")}
+            {t(
+              !d.draft
+                ? "doc.proformaBanner"
+                : d.kind === "facture"
+                  ? "doc.draftBanner"
+                  : "doc.draftBannerOther",
+            )}
           </div>
         )}
 
-        {(MOROCCAN_TEMPLATES as readonly string[]).includes(d.template) ? (
+        {d.kind === "livraison" ? (
+          <DeliveryNote d={d} title={title} />
+        ) : (MOROCCAN_TEMPLATES as readonly string[]).includes(d.template) ? (
           <MoroccanDocument d={d} title={title} st={st} />
         ) : (
           <>
@@ -143,6 +175,7 @@ export function QuoteDocument({
                   v={fmt.date(d.secondDate)}
                 />
                 {d.quoteRef && <Meta k={t("doc.quoteRef")} v={d.quoteRef} />}
+                {d.relatedRef && <Meta k={t("doc.invoiceRef")} v={d.relatedRef} />}
                 {d.delivery && (
                   <Meta
                     k={t(
@@ -168,7 +201,7 @@ export function QuoteDocument({
             <div className="mt-5 flex items-start justify-between gap-6">
               <div className={`max-w-sm text-[11.5px] ${st.showWords ? "" : "invisible"}`}>
                 <SmallLabel template={d.template} accent={d.accent}>
-                  {t(d.kind === "facture" ? "doc.wordsFacture" : "doc.wordsDevis")}
+                  {t(wordsKey(d.kind))}
                 </SmallLabel>
                 <p className="font-medium">
                   {t("doc.wordsInline", { words: amountInWords(tot.ttc, lang) })}
@@ -218,13 +251,19 @@ export function QuoteDocument({
                     <Row k={t("doc.balance")} v={fmt.money(tot.balance)} />
                   </>
                 )}
+                {d.kind === "facture" && ret.held > 0 && (
+                  <>
+                    <Row
+                      k={t("doc.retention", { pct: fmt.percent(ret.pct) })}
+                      v={"− " + fmt.money(ret.held)}
+                    />
+                    <Row k={t("doc.netToPay")} v={fmt.money(ret.net)} />
+                  </>
+                )}
                 {d.kind === "facture" && d.paid !== undefined && d.paid > 0 && (
                   <>
                     <Row k={t("doc.alreadyPaid")} v={"− " + fmt.money(d.paid)} />
-                    <Row
-                      k={t("doc.remaining")}
-                      v={fmt.money(Math.round((tot.ttc - d.paid) * 100) / 100)}
-                    />
+                    <Row k={t("doc.remaining")} v={fmt.money(ret.remaining)} />
                   </>
                 )}
               </dl>
@@ -644,6 +683,62 @@ function LegalLine({ c }: { c: Company }) {
 
 /** Lays the document out at true A4 width (794 px) and scales it to fit its column, so the
  *  screen preview matches the printed page. Printing ignores the scale. */
+/** Delivery note: who delivers what to whom, quantities only, and two signature boxes. */
+function DeliveryNote({ d, title }: { d: DocData; title: string }) {
+  const { t, fmt } = useDoc();
+  const lines = d.lines.filter((l) => l.description.trim());
+  return (
+    <>
+      <DocHeader d={d} title={title} />
+      <div className="mt-6 grid grid-cols-2 gap-6">
+        <div>
+          <SmallLabel template={d.template} accent={d.accent}>
+            {t("doc.deliveredTo")}
+          </SmallLabel>
+          <PartyLines p={d.client} />
+        </div>
+        <dl className="space-y-0.5 self-start text-end">
+          <Meta k={t("doc.deliveryDate")} v={fmt.date(d.issueDate)} />
+          {d.quoteRef && <Meta k={t("doc.quoteRef")} v={d.quoteRef} />}
+          {d.relatedRef && <Meta k={t("doc.invoiceRef")} v={d.relatedRef} />}
+        </dl>
+      </div>
+      <table className="mt-6 w-full border-collapse text-[12px]">
+        <thead>
+          <tr style={{ background: "var(--doc-accent)", color: "var(--doc-on-accent)" }}>
+            <th className="px-2 py-1.5 text-start font-semibold">{t("doc.col.designation")}</th>
+            <th className="w-24 px-2 py-1.5 text-end font-semibold">{t("doc.col.quantity")}</th>
+            <th className="w-24 px-2 py-1.5 text-start font-semibold">{t("doc.col.unit")}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map((l) => (
+            <tr key={l.id} className="border-b">
+              <td className="px-2 py-1.5">
+                <bdi dir="auto" className="whitespace-pre-wrap">
+                  {l.description}
+                </bdi>
+              </td>
+              <td className="num px-2 py-1.5 text-end">
+                <bdi>{fmt.number(l.qty)}</bdi>
+              </td>
+              <td className="px-2 py-1.5">{t(`units.${l.unit}` as never)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="h-8 shrink-0" />
+      <footer className="mt-auto space-y-3 border-t pt-4 text-[11px] text-[#5b6478]">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="h-24 border border-dashed p-2">{t("doc.deliverySupplier")}</div>
+          <div className="h-24 border border-dashed p-2">{t("doc.deliveryReceived")}</div>
+        </div>
+        <LegalLine c={d.company} />
+      </footer>
+    </>
+  );
+}
+
 export function A4Preview({
   d,
   className = "",

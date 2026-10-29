@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { A4Preview } from "@/components/QuoteDocument";
 import { NATIVE_NAME } from "@/i18n/config";
 import { useFormat } from "@/i18n/LocaleProvider";
-import type { OnboardingStep } from "@/onboarding/config";
+import { ONBOARDING_STEPS, type OnboardingStep } from "@/onboarding/config";
 import { stepErrors } from "@/lib/tenant";
 import { previewDoc, workspaceAddress } from "@/onboarding/preview";
 import type { StepProps } from "./shared";
@@ -97,42 +97,48 @@ export function ReviewStep({ tenant, goTo }: StepProps) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)]">
       <ul className="divide-y rounded-[var(--radius)] border">
-        {rows.map(({ step, body }, i) => {
-          const ok = Object.keys(stepErrors(tenant, step)).length === 0;
-          return (
-            <li
-              key={step}
-              className="ob-enter flex items-start gap-4 p-4"
-              style={{ animationDelay: `${180 + i * 60}ms` }}
-            >
-              {ok ? (
-                <CheckCircle2
-                  className="mt-0.5 size-5 shrink-0 text-emerald-600"
-                  aria-label={t("onboarding.review.complete")}
-                />
-              ) : (
-                <AlertCircle
-                  className="mt-0.5 size-5 shrink-0 text-destructive"
-                  aria-label={t("onboarding.review.incomplete")}
-                />
-              )}
-              <div className="min-w-0 flex-1 space-y-0.5 text-sm">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {t(`onboarding.steps.${step}`)}
-                  {!ok && (
-                    <span className="ms-2 normal-case tracking-normal text-destructive">
-                      {t("onboarding.review.incomplete")}
-                    </span>
-                  )}
-                </p>
-                {body}
-              </div>
-              <button type="button" className="btn btn-ghost h-8 px-2.5" onClick={() => goTo(step)}>
-                <Pencil className="size-3.5" /> {t("onboarding.review.edit")}
-              </button>
-            </li>
-          );
-        })}
+        {rows
+          .filter(({ step }) => ONBOARDING_STEPS.includes(step))
+          .map(({ step, body }, i) => {
+            const ok = Object.keys(stepErrors(tenant, step)).length === 0;
+            return (
+              <li
+                key={step}
+                className="ob-enter flex items-start gap-4 p-4"
+                style={{ animationDelay: `${180 + i * 60}ms` }}
+              >
+                {ok ? (
+                  <CheckCircle2
+                    className="mt-0.5 size-5 shrink-0 text-emerald-600"
+                    aria-label={t("onboarding.review.complete")}
+                  />
+                ) : (
+                  <AlertCircle
+                    className="mt-0.5 size-5 shrink-0 text-destructive"
+                    aria-label={t("onboarding.review.incomplete")}
+                  />
+                )}
+                <div className="min-w-0 flex-1 space-y-0.5 text-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {t(`onboarding.steps.${step}`)}
+                    {!ok && (
+                      <span className="ms-2 normal-case tracking-normal text-destructive">
+                        {t("onboarding.review.incomplete")}
+                      </span>
+                    )}
+                  </p>
+                  {body}
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost h-8 px-2.5"
+                  onClick={() => goTo(step)}
+                >
+                  <Pencil className="size-3.5" /> {t("onboarding.review.edit")}
+                </button>
+              </li>
+            );
+          })}
       </ul>
       <div className="ob-enter lg:self-start" style={{ animationDelay: "320ms" }}>
         <p className="label">{t("onboarding.branding.preview")}</p>

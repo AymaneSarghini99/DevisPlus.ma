@@ -24,6 +24,8 @@ export const common: M["common"] = {
   pdfPreparing: "Preparing the PDF…",
   pdfFailed: "The PDF could not be created. Use “PDF / Print” instead.",
   printHint: "Choose “Save as PDF” to download the file",
+  viewEdit: "Edit",
+  viewPreview: "Preview",
   previewA4: "A4 preview — what will be printed or saved as PDF",
   previewA4Short: "A4 preview",
   noClient: "No client",
@@ -119,6 +121,10 @@ export const meta: M["meta"] = {
     title: "Create an account | DevisPlus.ma",
     description: "Create your DevisPlus account for free.",
   },
+  share: {
+    title: "Your quote | DevisPlus.ma",
+    description: "Read the quote and accept it online.",
+  },
   waiting: {
     title: "Account pending | DevisPlus.ma",
     description: "Your account is being reviewed by the DevisPlus team.",
@@ -143,7 +149,12 @@ export const meta: M["meta"] = {
 
 export const status: M["status"] = {
   quote: { brouillon: "Draft", envoye: "Sent", accepte: "Accepted", refuse: "Declined" },
-  invoice: { brouillon: "Draft", emise: "Issued", paid: "Paid" },
+  invoice: {
+    brouillon: "Draft",
+    emise: "Issued",
+    paid: "Paid",
+    credited: "Cancelled (credit note)",
+  },
   all: "All statuses",
 };
 
@@ -206,10 +217,12 @@ export const errors: M["errors"] = {
   storage: "Could not save: the browser storage is full or blocked (logo too large?).",
   unexpected: "An unexpected error occurred.",
   quoteNotAccepted: "Only an accepted quote can be converted into an invoice.",
+  creditNoteSource: "A credit note is created from an issued invoice.",
+  creditNoteTooHigh: "The credit note exceeds what is left of the original invoice.",
   alreadyIssued: "This invoice has already been issued.",
   invoiceClient: "The client name is required.",
   invoiceLines: "The invoice has no lines.",
-  trialLimit: "Your free trial is limited to 2 quotes.",
+  trialLimit: "Your free trial is limited to 10 quotes.",
   issuedLocked: "An issued invoice cannot be deleted.",
   paymentDraft: "Payments are recorded on issued invoices.",
   paymentDate: "Enter the payment date.",

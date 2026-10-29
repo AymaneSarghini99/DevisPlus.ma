@@ -62,7 +62,7 @@ export const templates: M["templates"] = {
   currentLogo: "Current logo",
   replaceLogo: "Replace the logo",
   uploadLogo: "Upload a logo",
-  logoHint: "PNG, JPG, WebP or SVG. Resized automatically; kept in this browser.",
+  logoHint: "PNG, JPG, WebP or SVG. Resized automatically; saved with your settings.",
   defaultWatermark: "Default watermark",
   watermarkHint: "Applied to new quotes; each quote can change it.",
   unsavedHint: "Unsaved changes: click “Set as default”.",

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import logo from "@/assets/devisplus-logo.png";
-import { LOCALES, NATIVE_NAME } from "@/i18n/config";
+import { NATIVE_NAME, UI_LOCALES } from "@/i18n/config";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { useAppTheme } from "@/lib/appTheme";
 import { LogoutButton } from "./AdminGate";
@@ -34,7 +34,7 @@ export function LanguageSwitcher({ className = "" }: { className?: string }) {
       aria-label={t("nav.chooseLanguage")}
       className={`flex items-center gap-0.5 ${className}`}
     >
-      {LOCALES.map((l) => (
+      {UI_LOCALES.map((l) => (
         <button
           key={l}
           type="button"

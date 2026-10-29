@@ -1,9 +1,26 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Copy, Printer, Receipt, UserPlus } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Copy,
+  FileText,
+  Link2,
+  Printer,
+  Receipt,
+  Truck,
+  UserPlus,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { DownloadPdfButton } from "@/components/DownloadPdfButton";
+import { MobileViewSwitch, useEditorView } from "@/components/MobileViewSwitch";
 import { SaveBar } from "@/components/SaveBar";
 import { useDevFill, type DevAction } from "@/dev/devFill";
 import { DriveDocStatus } from "@/components/DriveDocStatus";
@@ -28,7 +45,9 @@ import {
   newLine,
   newQuote,
   quoteTotals,
+  newShareToken,
   saveQuote,
+  shareUrl,
   STATUSES,
   TEMPLATES,
   whatsappText,
@@ -55,7 +74,17 @@ import {
 } from "@/lib/store";
 import { isTrialLimit, showPaywall, trialQuotesLeft } from "@/lib/trial";
 import { errorMessage } from "@/lib/storage";
-import { invoiceFromQuote, loadInvoices, saveInvoice, type Invoice } from "@/lib/invoices";
+import {
+  deliveryNoteFromQuote,
+  depositInvoiceFromQuote,
+  finalInvoiceOf,
+  invoiceFromQuote,
+  loadInvoices,
+  proformaFromQuote,
+  saveInvoice,
+  type DocLabels,
+  type Invoice,
+} from "@/lib/invoices";
 import { Dropdown } from "@/components/Dropdown";
 import { DatePicker } from "@/components/DatePicker";
 import { WatermarkControls } from "@/components/WatermarkControls";
@@ -101,6 +130,7 @@ function Editor() {
   const [clients, setClients] = useState<Client[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const editorView = useEditorView();
   const [dirty, setDirtyState] = useState(false);
   // The blocker reads a ref so a save followed by navigate() is not blocked by a stale render.
   const dirtyRef = useRef(false);
@@ -274,34 +304,94 @@ function Editor() {
     }
   };
 
-  const invoice = invoices.find((x) => x.quoteId === q.id);
-  const convert = () => {
+  const invoice = finalInvoiceOf(q.id, invoices);
+  /** Creates an invoice-list document from the saved quote and opens it. */
+  const createDoc = (kind: "final" | "acompte" | "proforma" | "livraison") => {
     const stored = loadQuotes().find((x) => x.id === q.id);
     if (!stored || dirty) {
       toast.error(t("editor.saveBeforeConvert"));
       return;
     }
-    if (loadInvoices().some((x) => x.quoteId === q.id)) {
-      toast.error(t("editor.alreadyInvoiced"));
+    const all = loadInvoices();
+    if ((kind === "final" || kind === "acompte") && finalInvoiceOf(q.id, all)) {
+      toast.error(t("docs.finalExists"));
       return;
     }
+    // Line texts are written in the document language, like the rest of the document.
+    const lang = stored.lang ?? "fr";
+    const dt = tFor(lang);
+    const df = makeFormat(lang);
+    const labels: DocLabels = {
+      deposit: (pct, quote, rate) =>
+        dt("docs.depositLine", { pct: df.percent(pct), quote, rate: df.percent(rate) }),
+      deduction: (inv, rate) => dt("docs.deductionLine", { invoice: inv, rate: df.percent(rate) }),
+    };
     try {
-      const draft = invoiceFromQuote(stored);
+      if (kind === "acompte" && !(stored.deposit > 0 && stored.deposit < 100))
+        throw new Error(t("docs.depositInvalid"));
+      const draft =
+        kind === "final"
+          ? invoiceFromQuote(stored, all, labels)
+          : kind === "acompte"
+            ? depositInvoiceFromQuote(stored, stored.deposit, labels)
+            : kind === "proforma"
+              ? proformaFromQuote(stored)
+              : deliveryNoteFromQuote(stored);
       saveInvoice(draft);
-      toast.success(t("editor.invoiceCreated"));
+      toast.success(
+        t(
+          kind === "final"
+            ? "editor.invoiceCreated"
+            : kind === "acompte"
+              ? "docs.depositCreated"
+              : kind === "proforma"
+                ? "docs.proformaCreated"
+                : "docs.deliveryNoteCreated",
+        ),
+      );
       navigate({ to: "/factures/$id", params: { id: draft.id } });
     } catch (e) {
-      toast.error(errorMessage(e, t));
+      toast.error(e instanceof Error && !("code" in e) ? e.message : errorMessage(e, t));
+    }
+  };
+
+  /** Saves the quote with its online link (created once), and returns it with the link. */
+  const withShareLink = () => {
+    let s = dirty || id === "nouveau" ? save() : q;
+    if (!s) return null;
+    if (!s.shareToken) {
+      try {
+        s = saveQuote({ ...s, shareToken: newShareToken() });
+        setQ(s);
+      } catch (e) {
+        toast.error(errorMessage(e, t));
+        return null;
+      }
+    }
+    return { s, url: shareUrl(window.location.origin, s.shareToken!) };
+  };
+
+  const copyShareLink = async () => {
+    const r = withShareLink();
+    if (!r) return;
+    try {
+      await navigator.clipboard.writeText(r.url);
+      toast.success(t("editor.shareCopied"), { description: r.url });
+    } catch {
+      // Copy blocked by the browser: show the link so it can be copied by hand.
+      toast(t("editor.shareLink"), { description: r.url, duration: 30000 });
     }
   };
 
   const shareWhatsApp = () => {
-    const s = dirty || id === "nouveau" ? save() : q;
-    if (!s) return;
-    // The message is written in the document language, like the PDF it accompanies.
+    const r = withShareLink();
+    if (!r) return;
+    const { s } = r;
+    // The message is written in the document language, like the PDF it accompanies, and carries
+    // the link where the client reads and accepts the quote.
     const lang = s.lang ?? "fr";
     window.open(
-      whatsappUrl(s.client.phone, whatsappText(s, tFor(lang), makeFormat(lang))),
+      whatsappUrl(s.client.phone, whatsappText(s, tFor(lang), makeFormat(lang), r.url)),
       "_blank",
       "noopener",
     );
@@ -330,8 +420,9 @@ function Editor() {
     <div className="min-h-screen">
       <AppHeader />
 
-      <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="no-print min-w-0 space-y-8">
+      <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:pt-6">
+        <MobileViewSwitch view={editorView.view} onChange={editorView.setView} />
+        <div className={`no-print min-w-0 space-y-8 ${editorView.formClass}`}>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <span className="label">{t("editor.quoteLabel")}</span>
@@ -342,13 +433,30 @@ function Editor() {
             <div className="flex flex-wrap gap-2">
               <button
                 className="btn btn-ghost w-10 px-0"
-                onClick={() => window.print()}
+                onClick={async () => {
+                  await editorView.showPreview();
+                  window.print();
+                }}
                 aria-label={t("common.printPdf")}
                 title={`${t("common.printPdf")} — ${t("common.printHint")}`}
               >
                 <Printer className="size-4" />
               </button>
-              <DownloadPdfButton fileName={`${t("editor.quoteLabel")} ${q.number}`} />
+              <DownloadPdfButton
+                beforeRender={editorView.showPreview}
+                fileName={`${t("editor.quoteLabel")} ${q.number}`}
+              />
+              <button
+                className="btn btn-ghost w-10 px-0"
+                onClick={copyShareLink}
+                aria-label={t("editor.shareLink")}
+                title={t("editor.shareLinkHint")}
+              >
+                <Link2 className="size-4" />
+              </button>
+              <button className="btn btn-ghost" onClick={shareWhatsApp}>
+                <WhatsAppIcon className="size-4 text-[#25D366]" /> {t("editor.whatsapp")}
+              </button>
               {id !== "nouveau" && (
                 <button
                   className="btn btn-ghost w-10 px-0"
@@ -359,28 +467,45 @@ function Editor() {
                   <Copy className="size-4" />
                 </button>
               )}
-              <button className="btn btn-ghost" onClick={shareWhatsApp}>
-                <WhatsAppIcon className="size-4 text-[#25D366]" /> {t("editor.whatsapp")}
-              </button>
-              {invoice ? (
+              {invoice && (
                 <Link to="/factures/$id" params={{ id: invoice.id }} className="btn btn-ghost">
                   <Receipt className="size-4" />{" "}
                   {invoice.number
                     ? t("editor.invoiceLink", { number: invoice.number })
                     : t("editor.invoiceDraftLink")}
                 </Link>
-              ) : (
-                q.status === "accepte" &&
-                id !== "nouveau" && (
-                  <button
-                    className="btn btn-accent"
-                    onClick={convert}
+              )}
+              {id !== "nouveau" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className={`btn ${q.status === "accepte" && !invoice ? "btn-accent" : "btn-ghost"}`}
                     disabled={dirty}
                     title={dirty ? t("editor.saveFirst") : undefined}
                   >
-                    <Receipt className="size-4" /> {t("editor.convert")}
-                  </button>
-                )
+                    <Receipt className="size-4" /> {t("docs.create")}
+                    <ChevronDown className="size-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-52">
+                    {q.status === "accepte" && !invoice && (
+                      <>
+                        <DropdownMenuItem onSelect={() => createDoc("final")}>
+                          <Receipt /> {t("docs.createFinal")}
+                        </DropdownMenuItem>
+                        {q.deposit > 0 && (
+                          <DropdownMenuItem onSelect={() => createDoc("acompte")}>
+                            <Receipt /> {t("docs.createDeposit")} ({fmt.percent(q.deposit)})
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    )}
+                    <DropdownMenuItem onSelect={() => createDoc("proforma")}>
+                      <FileText /> {t("docs.createProforma")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => createDoc("livraison")}>
+                      <Truck /> {t("docs.createDeliveryNote")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {id !== "nouveau" && (
                 <DriveDocStatus
@@ -395,6 +520,16 @@ function Editor() {
               )}
             </div>
           </div>
+
+          {q.acceptedBy && q.acceptedAt && (
+            <p className="flex items-start gap-2 border border-primary bg-card p-3 text-sm">
+              <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />
+              {t("editor.acceptedOnline", {
+                name: q.acceptedBy,
+                date: fmt.date(q.acceptedAt.slice(0, 10)),
+              })}
+            </p>
+          )}
 
           {tried && invalid && (
             <div role="alert" className="border border-destructive bg-card p-3 text-sm">
@@ -487,6 +622,8 @@ function Editor() {
           </Section>
 
           <Section
+            collapsible
+            forceOpen={tried && !!errors["company.name"]}
             title={t("editor.sectionCompany")}
             aside={
               <Link
@@ -600,7 +737,7 @@ function Editor() {
             </dl>
           </Section>
 
-          <Section title={t("editor.sectionTerms")}>
+          <Section collapsible title={t("editor.sectionTerms")}>
             <F label={t("editor.terms")} id="terms">
               <textarea
                 id="terms"
@@ -623,7 +760,7 @@ function Editor() {
             </F>
           </Section>
 
-          <Section title={t("editor.sectionLayout")}>
+          <Section collapsible title={t("editor.sectionLayout")}>
             <div className="grid gap-3 sm:grid-cols-2">
               <F label={t("editor.template")} id="tpl">
                 <Dropdown
@@ -652,7 +789,7 @@ function Editor() {
             </div>
           </Section>
 
-          <Section title={t("editor.sectionWatermark")}>
+          <Section collapsible title={t("editor.sectionWatermark")}>
             <WatermarkControls
               value={normalizeWatermark(q.watermark)}
               onChange={(watermark) => update({ watermark })}
@@ -671,7 +808,7 @@ function Editor() {
           </SaveBar>
         </div>
 
-        <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
+        <div className={`min-w-0 lg:sticky lg:top-6 lg:self-start ${editorView.previewClass}`}>
           <p className="no-print mb-2 text-xs text-muted-foreground">{t("common.previewA4")}</p>
           <A4Preview
             d={{ ...q, kind: "devis", secondDate: q.validUntil, logo: settings.logo }}

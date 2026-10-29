@@ -20,8 +20,12 @@ export type Numbering = {
   pattern: Pattern;
   digits: number;
 };
-/** Document kinds as stored in the app ("DV" quotes, "FA" invoices). */
-export type DocKind = "DV" | "FA";
+/**
+ * Document kinds as stored in the app: "DV" quotes, "FA" invoices (down-payment invoices
+ * included), "AV" credit notes, "PF" pro forma invoices, "BL" delivery notes. Only quotes and
+ * invoices have a prefix in the settings; the others keep a fixed prefix.
+ */
+export type DocKind = "DV" | "FA" | "AV" | "PF" | "BL";
 
 export const defaultNumbering = (): Numbering => ({
   quotePrefix: "DV",
@@ -49,7 +53,7 @@ export function normalizeNumbering(n: Partial<Numbering> | undefined): Numbering
 }
 
 export const prefixOf = (n: Numbering, kind: DocKind) =>
-  kind === "FA" ? n.invoicePrefix : n.quotePrefix;
+  kind === "FA" ? n.invoicePrefix : kind === "DV" ? n.quotePrefix : kind;
 export const usesYear = (p: Pattern) => p.includes("{YY");
 
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
@@ -97,9 +101,14 @@ export function nextInFormat(
   return formatNumber(n, kind, year, max + 1);
 }
 
+/** Fixed prefixes of credit notes, pro forma invoices and delivery notes. */
+const RESERVED = ["AV", "PF", "BL"];
+
 /** What is wrong with typed prefixes (translated under account.docs), or null. */
 export function numberingError(n: Pick<Numbering, "quotePrefix" | "invoicePrefix">) {
   if (!validPrefix(n.quotePrefix) || !validPrefix(n.invoicePrefix)) return "invalidPrefix" as const;
   if (n.quotePrefix.toUpperCase() === n.invoicePrefix.toUpperCase()) return "samePrefix" as const;
+  if ([n.quotePrefix, n.invoicePrefix].some((p) => RESERVED.includes(p.toUpperCase())))
+    return "reservedPrefix" as const;
   return null;
 }

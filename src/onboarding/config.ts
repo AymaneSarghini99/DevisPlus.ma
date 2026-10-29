@@ -13,15 +13,17 @@ export const INTRO_VIDEO: { src: string | null; poster: string | null; youtubeId
     youtubeId: null,
   };
 
-export const ONBOARDING_STEPS = [
-  "profile",
-  "logo",
-  "branding",
-  "quotes",
-  "domain",
-  "review",
-] as const;
-export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
+/**
+ * Workspace addresses (name.devisplus.ma) and customers' own domains are not served yet: the
+ * setup step and the Settings section stay hidden until they are. Set to true to show them.
+ */
+export const DOMAINS_ENABLED = false;
+
+const ALL_STEPS = ["profile", "logo", "branding", "quotes", "domain", "review"] as const;
+export type OnboardingStep = (typeof ALL_STEPS)[number];
+export const ONBOARDING_STEPS: readonly OnboardingStep[] = DOMAINS_ENABLED
+  ? ALL_STEPS
+  : ALL_STEPS.filter((s) => s !== "domain");
 
 export const SECTORS = [
   "btp",

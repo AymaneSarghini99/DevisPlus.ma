@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { askConfirm } from "@/lib/confirm";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Lock, Printer, Trash2 } from "lucide-react";
+import { FileMinus, Lock, Printer, Trash2, Truck } from "lucide-react";
 import { DownloadPdfButton } from "@/components/DownloadPdfButton";
+import { MobileViewSwitch, useEditorView } from "@/components/MobileViewSwitch";
 import { SaveBar } from "@/components/SaveBar";
 import { DriveDocStatus } from "@/components/DriveDocStatus";
 import { driveFileName } from "@/lib/driveSync";
@@ -12,8 +13,13 @@ import { F, Section, TotalRow } from "@/components/Form";
 import { LinesEditor } from "@/components/LinesEditor";
 import { A4Preview } from "@/components/QuoteDocument";
 import {
+  creditNoteFromInvoice,
+  creditedOf,
   deleteDraftInvoice,
+  deliveryNoteFromInvoice,
   invoiceTotals,
+  isAccounting,
+  takesPayments,
   issueInvoice,
   loadInvoices,
   METHODS,
@@ -49,9 +55,13 @@ function draftErrors(inv: Invoice) {
   if (!inv.client.name.trim()) e["client"] = "clientName";
   if (!inv.lines.some((l) => l.description.trim())) e["lines"] = "lines";
   if (!inv.issueDate) e["issueDate"] = "date";
-  if (!inv.dueDate) e["dueDate"] = "date";
-  else if (inv.dueDate < inv.issueDate) e["dueDate"] = "dueDate";
-  if (needsExemptionNote(inv.lines) && !inv.exemptionNote.trim()) e["exemptionNote"] = "exemption";
+  // A delivery note has no due date (the field is hidden).
+  if (inv.kind !== "livraison") {
+    if (!inv.dueDate) e["dueDate"] = "date";
+    else if (inv.dueDate < inv.issueDate) e["dueDate"] = "dueDate";
+  }
+  if (inv.kind !== "livraison" && needsExemptionNote(inv.lines) && !inv.exemptionNote.trim())
+    e["exemptionNote"] = "exemption";
   return e;
 }
 
@@ -71,6 +81,7 @@ function InvoicePage() {
     setDirtyState(v);
   };
   const [tried, setTried] = useState(false);
+  const editorView = useEditorView();
 
   useEffect(() => {
     const found = loadInvoices().find((x) => x.id === id) ?? null;
@@ -89,6 +100,11 @@ function InvoicePage() {
   });
 
   const errors = useMemo(() => (inv ? draftErrors(inv) : {}), [inv]);
+  const credits = useMemo(
+    () => (inv && inv.kind === "facture" ? creditedOf(inv, loadInvoices()) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inv?.id, inv?.status],
+  );
   const tot = useMemo(() => (inv ? invoiceTotals(inv) : null), [inv]);
 
   if (missing)
@@ -107,6 +123,26 @@ function InvoicePage() {
     return <p className="p-8 text-sm text-muted-foreground">{t("common.loading")}</p>;
 
   const draft = inv.status === "brouillon";
+  const kindLabel = t(`docs.kind.${inv.depositPct ? "acompte" : inv.kind}`);
+  const kindNote =
+    inv.kind === "avoir"
+      ? t("docs.creditNoteNote")
+      : inv.kind === "proforma"
+        ? t("docs.proformaNote")
+        : inv.kind === "livraison"
+          ? t("docs.deliveryNoteNote")
+          : inv.depositPct
+            ? t("docs.depositNote")
+            : "";
+  const derive = (next: Invoice, message: string) => {
+    try {
+      saveInvoice(next);
+      toast.success(message);
+      navigate({ to: "/factures/$id", params: { id: next.id } });
+    } catch (e) {
+      toast.error(errorMessage(e, t));
+    }
+  };
   const err = (k: string) =>
     tried && errors[k] ? t(`validation.${errors[k]}` as never) : undefined;
   const update = (patch: Partial<Invoice>) => {
@@ -141,9 +177,9 @@ function InvoicePage() {
       toast.error(t("invoice.fixBeforeIssue"));
       return;
     }
-    const gaps = missingInvoiceMentions(inv);
+    const gaps = isAccounting(inv) ? missingInvoiceMentions(inv) : [];
     const ok = await askConfirm({
-      title: t("invoice.confirmIssue"),
+      title: inv.kind === "facture" ? t("invoice.confirmIssue") : t("docs.confirmIssue"),
       ...(gaps.length
         ? {
             description: `${t("invoice.missingMentions")}\n• ${gaps.map((g) => t(`invoice.mentions.${g}`)).join("\n• ")}`,
@@ -154,7 +190,7 @@ function InvoicePage() {
     if (!ok) return;
     try {
       const issued = issueInvoice(inv, loadInvoices());
-      if (save(issued)) toast.success(t("invoice.issued", { number: issued.number }));
+      if (save(issued)) toast.success(t("docs.issued", { number: issued.number }));
     } catch (e) {
       toast.error(errorMessage(e, t));
     }
@@ -176,12 +212,13 @@ function InvoicePage() {
     <div className="min-h-screen">
       <AppHeader />
 
-      <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="no-print min-w-0 space-y-8">
+      <main className="print-page mx-auto grid max-w-[1400px] gap-8 px-4 pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:pt-6">
+        <MobileViewSwitch view={editorView.view} onChange={editorView.setView} />
+        <div className={`no-print min-w-0 space-y-8 ${editorView.formClass}`}>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <span className="label">
-                {t("invoice.label")} · {t(`status.invoice.${inv.status}`)}
+                {kindLabel} · {t(`status.invoice.${inv.status}`)}
               </span>
               <h1 className="num text-xl font-semibold">
                 {inv.number ? <bdi>{inv.number}</bdi> : t("status.invoice.brouillon")}
@@ -199,19 +236,53 @@ function InvoicePage() {
                   </Link>
                 </p>
               )}
+              {inv.relatedInvoiceId && (
+                <p className="text-sm text-muted-foreground">
+                  {t("docs.creditOf")}{" "}
+                  <Link
+                    to="/factures/$id"
+                    params={{ id: inv.relatedInvoiceId }}
+                    className="num underline underline-offset-2"
+                  >
+                    <bdi>{inv.relatedNumber}</bdi>
+                  </Link>
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 className="btn btn-ghost w-10 px-0"
-                onClick={() => window.print()}
+                onClick={async () => {
+                  await editorView.showPreview();
+                  window.print();
+                }}
                 aria-label={t("common.printPdf")}
                 title={`${t("common.printPdf")} — ${t("common.printHint")}`}
               >
                 <Printer className="size-4" />
               </button>
               <DownloadPdfButton
-                fileName={`${t("invoice.label")} ${inv.number || t("status.invoice.brouillon")}`}
+                beforeRender={editorView.showPreview}
+                fileName={`${kindLabel} ${inv.number || t("status.invoice.brouillon")}`}
               />
+              {!draft && inv.kind === "facture" && (
+                <button
+                  className="btn btn-ghost"
+                  onClick={() =>
+                    derive(deliveryNoteFromInvoice(inv), t("docs.deliveryNoteCreated"))
+                  }
+                >
+                  <Truck className="size-4" /> {t("docs.createDeliveryNote")}
+                </button>
+              )}
+              {!draft && inv.kind === "facture" && credits && credits.credited < tot.ttc && (
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => derive(creditNoteFromInvoice(inv), t("docs.creditNoteCreated"))}
+                >
+                  <FileMinus className="size-4" /> {t("docs.createCreditNote")}
+                </button>
+              )}
               {draft && (
                 <button
                   className="btn btn-ghost"
@@ -235,9 +306,11 @@ function InvoicePage() {
             </div>
           </div>
 
+          {kindNote && <p className="border bg-card p-3 text-sm">{kindNote}</p>}
+
           {draft ? (
             <p className="border border-dashed p-3 text-sm text-muted-foreground">
-              {t("invoice.draftNote")}
+              {t(inv.kind === "facture" ? "invoice.draftNote" : "docs.draftNote")}
               {dirty && ` ${t("invoice.saveChangesFirst")}`}
             </p>
           ) : (
@@ -251,7 +324,11 @@ function InvoicePage() {
             <>
               <Section title={t("invoice.sectionDates")}>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <F label={t("invoice.issueDate")} id="idate" error={err("issueDate")}>
+                  <F
+                    label={t(inv.kind === "livraison" ? "doc.deliveryDate" : "invoice.issueDate")}
+                    id="idate"
+                    error={err("issueDate")}
+                  >
                     <DatePicker
                       id="idate"
                       value={inv.issueDate}
@@ -259,15 +336,17 @@ function InvoicePage() {
                       onChange={(v) => update({ issueDate: v })}
                     />
                   </F>
-                  <F label={t("doc.dueDate")} id="due" error={err("dueDate")}>
-                    <DatePicker
-                      id="due"
-                      value={inv.dueDate}
-                      min={inv.issueDate}
-                      invalid={!!err("dueDate")}
-                      onChange={(v) => update({ dueDate: v })}
-                    />
-                  </F>
+                  {inv.kind !== "livraison" && (
+                    <F label={t("doc.dueDate")} id="due" error={err("dueDate")}>
+                      <DatePicker
+                        id="due"
+                        value={inv.dueDate}
+                        min={inv.issueDate}
+                        invalid={!!err("dueDate")}
+                        onChange={(v) => update({ dueDate: v })}
+                      />
+                    </F>
+                  )}
                 </div>
               </Section>
               <Section title={t("editor.sectionLines")}>
@@ -281,76 +360,133 @@ function InvoicePage() {
                   showKind={inv.template === "btp"}
                 />
               </Section>
-              <Section title={t("invoice.sectionTerms")}>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <F label={t("editor.globalDiscount")} id="igdisc">
-                    <input
-                      id="igdisc"
-                      type="number"
-                      min={0}
-                      max={100}
-                      step="any"
-                      dir="ltr"
-                      className="field num text-end"
-                      value={inv.globalDiscount}
-                      onChange={(e) =>
-                        update({
-                          globalDiscount: Math.min(100, Math.max(0, Number(e.target.value) || 0)),
-                        })
-                      }
-                    />
-                  </F>
-                </div>
-                {(needsExemptionNote(inv.lines) || inv.exemptionNote) && (
-                  <F label={t("editor.exemption")} id="iexempt" error={err("exemptionNote")}>
-                    <input
-                      id="iexempt"
+              {inv.kind !== "livraison" && (
+                <Section title={t("invoice.sectionTerms")}>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {inv.kind === "facture" && !inv.depositPct && (
+                      <F label={t("docs.retention")} id="iret" hint={t("docs.retentionHint")}>
+                        <input
+                          id="iret"
+                          type="number"
+                          min={0}
+                          max={20}
+                          step="any"
+                          dir="ltr"
+                          className="field num text-end"
+                          value={inv.retention ?? 0}
+                          onChange={(e) =>
+                            update({
+                              retention: Math.min(20, Math.max(0, Number(e.target.value) || 0)),
+                            })
+                          }
+                        />
+                      </F>
+                    )}
+                    <F label={t("editor.globalDiscount")} id="igdisc">
+                      <input
+                        id="igdisc"
+                        type="number"
+                        min={0}
+                        max={100}
+                        step="any"
+                        dir="ltr"
+                        className="field num text-end"
+                        value={inv.globalDiscount}
+                        onChange={(e) =>
+                          update({
+                            globalDiscount: Math.min(100, Math.max(0, Number(e.target.value) || 0)),
+                          })
+                        }
+                      />
+                    </F>
+                  </div>
+                  {(needsExemptionNote(inv.lines) || inv.exemptionNote) && (
+                    <F label={t("editor.exemption")} id="iexempt" error={err("exemptionNote")}>
+                      <input
+                        id="iexempt"
+                        dir="auto"
+                        className="field"
+                        aria-invalid={!!err("exemptionNote")}
+                        value={inv.exemptionNote}
+                        onChange={(e) => update({ exemptionNote: e.target.value })}
+                      />
+                    </F>
+                  )}
+                  <F label={t("editor.terms")} id="iterms">
+                    <textarea
+                      id="iterms"
                       dir="auto"
-                      className="field"
-                      aria-invalid={!!err("exemptionNote")}
-                      value={inv.exemptionNote}
-                      onChange={(e) => update({ exemptionNote: e.target.value })}
+                      rows={2}
+                      className="field h-auto py-2"
+                      value={inv.terms}
+                      onChange={(e) => update({ terms: e.target.value })}
                     />
                   </F>
-                )}
-                <F label={t("editor.terms")} id="iterms">
-                  <textarea
-                    id="iterms"
-                    dir="auto"
-                    rows={2}
-                    className="field h-auto py-2"
-                    value={inv.terms}
-                    onChange={(e) => update({ terms: e.target.value })}
-                  />
-                </F>
-              </Section>
+                </Section>
+              )}
             </>
           )}
 
-          <Section title={t("invoice.sectionAmounts")}>
-            <dl className="space-y-1 text-sm">
-              <TotalRow k={t("doc.totalHt")} v={fmt.money(tot.ht)} />
-              {tot.byRate.map((r) => (
-                <TotalRow
-                  key={r.rate}
-                  k={t("doc.vat", { rate: fmt.percent(r.rate) })}
-                  v={fmt.money(r.tva)}
-                />
-              ))}
-              <TotalRow k={t("doc.totalTtc")} v={fmt.money(tot.ttc)} strong />
-              {!draft && (
-                <>
-                  <TotalRow k={t("invoice.received")} v={fmt.money(tot.paid)} />
-                  <TotalRow k={t("doc.remaining")} v={fmt.money(tot.outstanding)} strong />
-                </>
-              )}
-              <p className="pt-1 text-xs text-muted-foreground">
-                {t("doc.wordsInline", { words: amountInWords(tot.ttc, locale) })}
-              </p>
-            </dl>
-          </Section>
+          {inv.kind !== "livraison" && (
+            <Section title={t("invoice.sectionAmounts")}>
+              <dl className="space-y-1 text-sm">
+                <TotalRow k={t("doc.totalHt")} v={fmt.money(tot.ht)} />
+                {tot.byRate.map((r) => (
+                  <TotalRow
+                    key={r.rate}
+                    k={t("doc.vat", { rate: fmt.percent(r.rate) })}
+                    v={fmt.money(r.tva)}
+                  />
+                ))}
+                <TotalRow k={t("doc.totalTtc")} v={fmt.money(tot.ttc)} strong />
+                {tot.retention > 0 && (
+                  <>
+                    <TotalRow
+                      k={t("doc.retention", { pct: fmt.percent(inv.retention ?? 0) })}
+                      v={"− " + fmt.money(tot.retention)}
+                    />
+                    <TotalRow k={t("doc.netToPay")} v={fmt.money(tot.net)} strong />
+                  </>
+                )}
+                {credits && credits.credited > 0 && (
+                  <TotalRow k={t("docs.credited")} v={"− " + fmt.money(credits.credited)} />
+                )}
+                {!draft && takesPayments(inv) && (
+                  <>
+                    <TotalRow k={t("invoice.received")} v={fmt.money(tot.paid)} />
+                    <TotalRow k={t("doc.remaining")} v={fmt.money(tot.outstanding)} strong />
+                  </>
+                )}
+                <p className="pt-1 text-xs text-muted-foreground">
+                  {t("doc.wordsInline", { words: amountInWords(tot.ttc, locale) })}
+                </p>
+              </dl>
+            </Section>
+          )}
 
-          {!draft && <Payments inv={inv} onSave={(next) => save(next)} />}
+          {credits && credits.notes.length > 0 && (
+            <Section title={t("docs.creditNotes")}>
+              <ul className="divide-y border bg-card text-sm">
+                {credits.notes.map((n) => (
+                  <li key={n.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                    <Link
+                      to="/factures/$id"
+                      params={{ id: n.id }}
+                      className="num underline underline-offset-2"
+                    >
+                      <bdi>{n.number || t("status.invoice.brouillon")}</bdi>
+                    </Link>
+                    <bdi className="num font-medium">{fmt.money(invoiceTotals(n).ttc)}</bdi>
+                  </li>
+                ))}
+              </ul>
+              {credits.credited >= tot.ttc && (
+                <p className="text-sm font-medium">{t("docs.fullyCredited")}</p>
+              )}
+            </Section>
+          )}
+
+          {!draft && takesPayments(inv) && <Payments inv={inv} onSave={(next) => save(next)} />}
 
           {draft && (
             <SaveBar dirty={dirty} saved={false}>
@@ -364,17 +500,17 @@ function InvoicePage() {
           )}
         </div>
 
-        <div className="min-w-0 lg:sticky lg:top-6 lg:self-start">
+        <div className={`min-w-0 lg:sticky lg:top-6 lg:self-start ${editorView.previewClass}`}>
           <p className="no-print mb-2 text-xs text-muted-foreground">{t("common.previewA4")}</p>
           <A4Preview
             d={{
               ...inv,
-              kind: "facture",
               secondDate: inv.dueDate,
               deposit: 0,
               logo: settings.logo,
               draft,
               quoteRef: inv.quoteNumber,
+              relatedRef: inv.relatedNumber ?? "",
               paid: tot.paid,
             }}
 

@@ -4,6 +4,7 @@ import { BellRing, ClipboardCopy } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppWidget";
 import { toast } from "sonner";
 import { AppHeader, EmptyState, PageTitle } from "@/components/Brand";
+import { Dropdown } from "@/components/Dropdown";
 import { useTranslation } from "react-i18next";
 import { makeFormat } from "@/i18n/format";
 import { tFor } from "@/i18n/index";
@@ -13,7 +14,9 @@ import {
   daysBetween,
   loadQuotes,
   quoteTotals,
+  darijaReminderText,
   reminderText,
+  type DarijaScript,
   saveQuote,
   today,
   whatsappUrl,
@@ -28,8 +31,10 @@ export const Route = createFileRoute("/relances")({
 
 const SOON = 7; // days before expiry
 
-/** Reminder message in the quote's document language. */
-const reminderFor = (q: Quote) => {
+type MessageLang = "doc" | DarijaScript;
+/** Reminder message in the quote's document language, or in Darija. */
+const reminderFor = (q: Quote, m: MessageLang) => {
+  if (m !== "doc") return darijaReminderText(q, m);
   const lang = q.lang ?? "fr";
   return reminderText(q, tFor(lang), makeFormat(lang));
 };
@@ -38,6 +43,7 @@ function FollowUps() {
   const { t } = useTranslation();
   const fmt = useFormat();
   const [quotes, setQuotes] = useState<Quote[] | null>(null);
+  const [messageLang, setMessageLang] = useState<MessageLang>("doc");
   useEffect(() => setQuotes(loadQuotes()), []);
 
   const now = today();
@@ -62,7 +68,7 @@ function FollowUps() {
     }
   };
   const prepare = (q: Quote) => {
-    window.open(whatsappUrl(q.client.phone, reminderFor(q)), "_blank", "noopener");
+    window.open(whatsappUrl(q.client.phone, reminderFor(q, messageLang)), "_blank", "noopener");
     toast(t("followups.preparedTitle"), {
       description: t("followups.preparedText"),
       duration: 12000,
@@ -71,7 +77,7 @@ function FollowUps() {
   };
   const copy = async (q: Quote) => {
     try {
-      await navigator.clipboard.writeText(reminderFor(q));
+      await navigator.clipboard.writeText(reminderFor(q, messageLang));
       toast.success(t("followups.copied"));
     } catch {
       toast.error(t("errors.copyFailed"));
@@ -138,6 +144,20 @@ function FollowUps() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         <PageTitle title={t("followups.title")} />
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("followups.intro")}</p>
+        <div className="mt-4 flex max-w-sm flex-col gap-1">
+          <label htmlFor="msglang" className="text-xs text-muted-foreground">
+            {t("followups.messageLang")}
+          </label>
+          <Dropdown
+            id="msglang"
+            value={messageLang}
+            onChange={(v) => setMessageLang(v as MessageLang)}
+            options={(["doc", "latin", "arabic"] as const).map((m) => ({
+              value: m,
+              label: t(`followups.messageLangs.${m}`),
+            }))}
+          />
+        </div>
 
         {quotes === null ? (
           <p className="mt-10 text-sm text-muted-foreground">{t("common.loading")}</p>

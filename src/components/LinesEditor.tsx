@@ -140,7 +140,7 @@ export function LinesEditor({
                 </div>
               )}
               <div
-                className={`mt-2 grid grid-cols-2 gap-2 ps-7 sm:grid-cols-3 ${showKind ? "lg:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.3fr)]" : "lg:grid-cols-5"} xl:items-end`}
+                className={`mt-2 grid grid-cols-3 gap-2 ps-7 ${showKind ? "lg:grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.3fr)]" : "lg:grid-cols-5"} xl:items-end`}
               >
                 <Field label={t("lines.qty")} id={`q-${l.id}`}>
                   <input

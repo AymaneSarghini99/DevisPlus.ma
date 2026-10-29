@@ -37,6 +37,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AccepterTokenRouteImport } from './routes/accepter.$token'
 import { Route as ApiAppConfigRouteImport } from './routes/api/app-config'
 import { Route as DevisIdRouteImport } from './routes/devis.$id'
 import { Route as FacturesIndexRouteImport } from './routes/factures.index'
@@ -55,6 +56,7 @@ import { Route as ApiGoogleUploadRouteImport } from './routes/api/google/upload'
 import { Route as ApiWorkspaceIndexRouteImport } from './routes/api/workspace/index'
 import { Route as ApiWorkspaceDomainRouteImport } from './routes/api/workspace/domain'
 import { Route as ApiWorkspaceStatusRouteImport } from './routes/api/workspace/status'
+import { Route as ApiPublicQuoteTokenRouteImport } from './routes/api/public/quote.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -196,6 +198,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccepterTokenRoute = AccepterTokenRouteImport.update({
+  id: '/accepter/$token',
+  path: '/accepter/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAppConfigRoute = ApiAppConfigRouteImport.update({
   id: '/api/app-config',
   path: '/api/app-config',
@@ -286,6 +293,11 @@ const ApiWorkspaceStatusRoute = ApiWorkspaceStatusRouteImport.update({
   path: '/api/workspace/status',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicQuoteTokenRoute = ApiPublicQuoteTokenRouteImport.update({
+  id: '/api/public/quote/$token',
+  path: '/api/public/quote/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -316,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
+  '/accepter/$token': typeof AccepterTokenRoute
   '/api/app-config': typeof ApiAppConfigRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
@@ -334,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/api/workspace/domain': typeof ApiWorkspaceDomainRoute
   '/api/workspace/status': typeof ApiWorkspaceStatusRoute
   '/api/workspace/': typeof ApiWorkspaceIndexRoute
+  '/api/public/quote/$token': typeof ApiPublicQuoteTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -364,6 +378,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
+  '/accepter/$token': typeof AccepterTokenRoute
   '/api/app-config': typeof ApiAppConfigRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
@@ -382,6 +397,7 @@ export interface FileRoutesByTo {
   '/api/workspace/domain': typeof ApiWorkspaceDomainRoute
   '/api/workspace/status': typeof ApiWorkspaceStatusRoute
   '/api/workspace': typeof ApiWorkspaceIndexRoute
+  '/api/public/quote/$token': typeof ApiPublicQuoteTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -413,6 +429,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tarifs': typeof TarifsRoute
   '/terms': typeof TermsRoute
+  '/accepter/$token': typeof AccepterTokenRoute
   '/api/app-config': typeof ApiAppConfigRoute
   '/devis/$id': typeof DevisIdRoute
   '/factures/$id': typeof FacturesIdRoute
@@ -431,6 +448,7 @@ export interface FileRoutesById {
   '/api/workspace/domain': typeof ApiWorkspaceDomainRoute
   '/api/workspace/status': typeof ApiWorkspaceStatusRoute
   '/api/workspace/': typeof ApiWorkspaceIndexRoute
+  '/api/public/quote/$token': typeof ApiPublicQuoteTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -463,6 +481,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
+    | '/accepter/$token'
     | '/api/app-config'
     | '/devis/$id'
     | '/factures/$id'
@@ -481,6 +500,7 @@ export interface FileRouteTypes {
     | '/api/workspace/domain'
     | '/api/workspace/status'
     | '/api/workspace/'
+    | '/api/public/quote/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -511,6 +531,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
+    | '/accepter/$token'
     | '/api/app-config'
     | '/devis/$id'
     | '/factures/$id'
@@ -529,6 +550,7 @@ export interface FileRouteTypes {
     | '/api/workspace/domain'
     | '/api/workspace/status'
     | '/api/workspace'
+    | '/api/public/quote/$token'
   id:
     | '__root__'
     | '/'
@@ -559,6 +581,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tarifs'
     | '/terms'
+    | '/accepter/$token'
     | '/api/app-config'
     | '/devis/$id'
     | '/factures/$id'
@@ -577,6 +600,7 @@ export interface FileRouteTypes {
     | '/api/workspace/domain'
     | '/api/workspace/status'
     | '/api/workspace/'
+    | '/api/public/quote/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -608,6 +632,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TarifsRoute: typeof TarifsRoute
   TermsRoute: typeof TermsRoute
+  AccepterTokenRoute: typeof AccepterTokenRoute
   ApiAppConfigRoute: typeof ApiAppConfigRoute
   DevisIdRoute: typeof DevisIdRoute
   FacturesIdRoute: typeof FacturesIdRoute
@@ -626,6 +651,7 @@ export interface RootRouteChildren {
   ApiWorkspaceDomainRoute: typeof ApiWorkspaceDomainRoute
   ApiWorkspaceStatusRoute: typeof ApiWorkspaceStatusRoute
   ApiWorkspaceIndexRoute: typeof ApiWorkspaceIndexRoute
+  ApiPublicQuoteTokenRoute: typeof ApiPublicQuoteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -826,6 +852,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/accepter/$token': {
+      id: '/accepter/$token'
+      path: '/accepter/$token'
+      fullPath: '/accepter/$token'
+      preLoaderRoute: typeof AccepterTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/app-config': {
       id: '/api/app-config'
       path: '/api/app-config'
@@ -952,6 +985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWorkspaceStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/quote/$token': {
+      id: '/api/public/quote/$token'
+      path: '/api/public/quote/$token'
+      fullPath: '/api/public/quote/$token'
+      preLoaderRoute: typeof ApiPublicQuoteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -984,6 +1024,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TarifsRoute: TarifsRoute,
   TermsRoute: TermsRoute,
+  AccepterTokenRoute: AccepterTokenRoute,
   ApiAppConfigRoute: ApiAppConfigRoute,
   DevisIdRoute: DevisIdRoute,
   FacturesIdRoute: FacturesIdRoute,
@@ -1002,6 +1043,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWorkspaceDomainRoute: ApiWorkspaceDomainRoute,
   ApiWorkspaceStatusRoute: ApiWorkspaceStatusRoute,
   ApiWorkspaceIndexRoute: ApiWorkspaceIndexRoute,
+  ApiPublicQuoteTokenRoute: ApiPublicQuoteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

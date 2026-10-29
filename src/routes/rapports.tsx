@@ -8,7 +8,17 @@ import { loadQuotes, today, type Quote } from "@/lib/quotes";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/i18n/LocaleProvider";
 import { pageMeta } from "@/i18n/meta";
-import { clientsCsv, invoicesCsv, paymentsCsv, quotesCsv, report } from "@/lib/reports";
+import {
+  clientsCsv,
+  invoicesCsv,
+  journalDocs,
+  journalVat,
+  paymentsCsv,
+  quotesCsv,
+  report,
+  salesJournalCsv,
+} from "@/lib/reports";
+import { Dropdown } from "@/components/Dropdown";
 import { loadClients, type Client } from "@/lib/store";
 
 export const Route = createFileRoute("/rapports")({
@@ -29,6 +39,43 @@ function download(name: string, csv: string, onError: () => void) {
   }
 }
 
+type PeriodKind = "month" | "quarter" | "year";
+const pad = (n: number) => String(n).padStart(2, "0");
+/** The last periods of a kind, newest first: { value, from, to } with inclusive dates. */
+function periods(kind: PeriodKind, ref: string) {
+  const [y, m] = ref.split("-").map(Number) as [number, number];
+  const lastDay = (yy: number, mm: number) => new Date(yy, mm, 0).getDate();
+  if (kind === "year")
+    return [y, y - 1, y - 2].map((yy) => ({
+      value: String(yy),
+      from: `${yy}-01-01`,
+      to: `${yy}-12-31`,
+    }));
+  if (kind === "quarter") {
+    const q0 = Math.floor((m - 1) / 3);
+    return Array.from({ length: 6 }, (_, i) => {
+      const n = y * 4 + q0 - i;
+      const yy = Math.floor(n / 4),
+        q = n % 4;
+      return {
+        value: `${yy}-T${q + 1}`,
+        from: `${yy}-${pad(q * 3 + 1)}-01`,
+        to: `${yy}-${pad(q * 3 + 3)}-${lastDay(yy, q * 3 + 3)}`,
+      };
+    });
+  }
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(y, m - 1 - i, 1);
+    const yy = d.getFullYear(),
+      mm = d.getMonth() + 1;
+    return {
+      value: `${yy}-${pad(mm)}`,
+      from: `${yy}-${pad(mm)}-01`,
+      to: `${yy}-${pad(mm)}-${lastDay(yy, mm)}`,
+    };
+  });
+}
+
 function Reports() {
   const { t } = useTranslation();
   const { fmt, locale } = useLocale();
@@ -38,6 +85,8 @@ function Reports() {
     clients: Client[];
   } | null>(null);
   const [hover, setHover] = useState<number | null>(null);
+  const [periodKind, setPeriodKind] = useState<PeriodKind>("month");
+  const [periodValue, setPeriodValue] = useState("");
   useEffect(
     () => setData({ quotes: loadQuotes(), invoices: loadInvoices(), clients: loadClients() }),
     [],
@@ -48,6 +97,9 @@ function Reports() {
   const r = report(data.quotes, data.invoices, now);
   const max = Math.max(1, ...r.months.map((m) => m.count));
   const stamp = now.replaceAll("-", "");
+  const periodList = periods(periodKind, now);
+  const period = periodList.find((p) => p.value === periodValue) ?? periodList[0]!;
+  const journal = journalDocs(data.invoices, period.from, period.to);
   const exports: [string, string, () => string, number][] = [
     [
       t("reports.export.clients"),
@@ -195,6 +247,58 @@ function Reports() {
             <Tile k={t("invoices.kpiReceived")} v={fmt.money(r.invoices.received)} />
             <Tile k={t("invoices.kpiOutstanding")} v={fmt.money(r.invoices.outstanding)} />
           </dl>
+        </section>
+
+        <section className="border bg-card p-4">
+          <h2 className="font-semibold">{t("journal.title")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("journal.text")}</p>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <div className="w-40">
+              <Dropdown
+                id="jkind"
+                ariaLabel={t("journal.period")}
+                value={periodKind}
+                onChange={(v) => {
+                  setPeriodKind(v as PeriodKind);
+                  setPeriodValue("");
+                }}
+                options={(["month", "quarter", "year"] as const).map((k) => ({
+                  value: k,
+                  label: t(`journal.${k}`),
+                }))}
+              />
+            </div>
+            <div className="w-40">
+              <Dropdown
+                id="jvalue"
+                ariaLabel={t("journal.period")}
+                value={period.value}
+                onChange={setPeriodValue}
+                options={periodList.map((p) => ({ value: p.value, label: p.value }))}
+              />
+            </div>
+            <button
+              className="btn btn-primary"
+              disabled={!journal.length}
+              onClick={() =>
+                download(
+                  `${t("journal.title")} ${period.value}.csv`,
+                  salesJournalCsv(data.invoices, period.from, period.to, t, locale),
+                  () => toast.error(t("errors.exportFailed")),
+                )
+              }
+            >
+              <Download className="size-4" /> {t("journal.download")}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {journal.length
+              ? t("journal.summary", {
+                  count: journal.length,
+                  vat: fmt.money(journalVat(journal)),
+                })
+              : t("journal.empty")}
+          </p>
         </section>
 
         <section>

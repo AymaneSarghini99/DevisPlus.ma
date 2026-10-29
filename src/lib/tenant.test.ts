@@ -160,7 +160,8 @@ describe("steps 2–6", () => {
     );
     const s = loadSettings();
     expect([s.validityDays, s.deposit, s.defaultVat, s.docLang]).toEqual([15, 40, 10, "ar"]);
-    expect(t.onboarding.current).toBe("domain");
+    // The address step is hidden while workspace addresses are not served (DOMAINS_ENABLED).
+    expect(t.onboarding.current).toBe("review");
   });
 
   it("rejects invalid quote settings", () => {
@@ -205,19 +206,12 @@ describe("steps 2–6", () => {
     expect(() => completeStep(newTenant(), "review")).toThrow();
     expect(incompleteSteps({ ...ready(), admin: newTenant().admin })).toContain("profile");
     let t = ready();
-    for (const s of ["logo", "branding", "quotes", "domain"] as const) t = completeStep(t, s);
+    for (const s of ["logo", "branding", "quotes"] as const) t = completeStep(t, s);
     expect(t.onboarding.current).toBe("review");
     expect(incompleteSteps(t)).toEqual([]);
     t = completeStep(t, "review");
     expect(t.onboarding.finishedAt).not.toBeNull();
-    expect(t.onboarding.completed).toEqual([
-      "profile",
-      "logo",
-      "branding",
-      "quotes",
-      "domain",
-      "review",
-    ]);
+    expect(t.onboarding.completed).toEqual(["profile", "logo", "branding", "quotes", "review"]);
     expect(loadTenant()?.onboarding.finishedAt).toBe(t.onboarding.finishedAt);
   });
 

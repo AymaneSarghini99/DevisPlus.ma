@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -29,6 +30,7 @@ import { AdminGate } from "../components/AdminGate";
 import { ConfirmHost } from "../components/ConfirmHost";
 import { SiteFooter } from "../components/SiteFooter";
 import { WhatsAppWidget } from "../components/WhatsAppWidget";
+import { isSharedQuotePath } from "@/lib/paths";
 
 function LocalizedToaster() {
   const { dir } = useLocale();
@@ -132,6 +134,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // Installable on a phone's home screen (see public/manifest.webmanifest).
+      { name: "theme-color", content: "#14213D" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "DevisPlus" },
       { title: "DevisPlus.ma" },
       { name: "description", content: "Devis professionnels pour entreprises marocaines." },
       { property: "og:type", content: "website" },
@@ -150,6 +156,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -188,6 +195,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient, locale } = Route.useRouteContext();
+  const shared = useRouterState({ select: (s) => isSharedQuotePath(s.location.pathname) });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -196,8 +204,8 @@ function RootComponent() {
         <AdminGate>
           <Outlet />
         </AdminGate>
-        <SiteFooter />
-        <WhatsAppWidget />
+        {!shared && <SiteFooter />}
+        {!shared && <WhatsAppWidget />}
         <LocalizedToaster />
         <ConfirmHost />
         <DevTools />

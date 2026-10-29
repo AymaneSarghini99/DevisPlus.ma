@@ -5,6 +5,7 @@ import * as drive from "./drive";
 import * as billing from "./billing";
 import * as design from "./design";
 import * as doc from "./doc";
+import * as docs from "./docs";
 import * as editor from "./editor";
 import * as pages from "./pages";
 import * as legal from "./legal";
@@ -17,6 +18,7 @@ export const en = {
   ...screens,
   ...design,
   ...doc,
+  ...docs,
   ...editor,
   ...billing,
   ...pages,

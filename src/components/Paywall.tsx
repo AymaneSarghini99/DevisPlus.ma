@@ -34,7 +34,7 @@ export function Paywall() {
   } catch {
     company = "";
   }
-  const limit = trialLimit() ?? 2;
+  const limit = trialLimit() ?? 10;
   const message = t("account.paywall.whatsappMessage", {
     company: company || "—",
     email: session?.user.email ?? "",

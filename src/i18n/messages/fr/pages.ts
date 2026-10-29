@@ -1,4 +1,11 @@
 export const followups = {
+  messageLang: "Langue des messages WhatsApp",
+  messageLangs: {
+    doc: "Langue du devis",
+    latin: "Darija (lettres latines)",
+    arabic: "Darija (حروف عربية)",
+  },
+
   title: "Relances",
   intro:
     "Les relances sont préparées dans WhatsApp et envoyées par vous. L'historique indique les relances que vous avez notées, pas leur réception par le client.",
@@ -79,7 +86,7 @@ export const catalogue = {
 export const reports = {
   title: "Rapports",
   intro:
-    "Calculés uniquement à partir des devis et factures enregistrés dans ce navigateur. Un montant devisé n'est pas un chiffre d'affaires : seules les factures émises et les paiements enregistrés le sont.",
+    "Calculés à partir des devis et factures de votre espace. Un montant devisé n'est pas un chiffre d'affaires : seules les factures émises et les paiements enregistrés le sont.",
   quotes: "Devis",
   created: "Devis créés",
   createdSub: "Brouillons : {{drafts}} · En attente : {{pending}}",

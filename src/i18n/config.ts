@@ -2,6 +2,11 @@
 export const LOCALES = ["fr", "en", "ar"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
+/**
+ * Languages offered for the interface: French and Arabic, for the Moroccan market. English stays
+ * available for documents (a quote for a foreign client) and for visitors who already chose it.
+ */
+export const UI_LOCALES: readonly Locale[] = ["fr", "ar"];
 export const LOCALE_COOKIE = "devisplus.lang";
 
 export const NATIVE_NAME: Record<Locale, string> = { fr: "Français", en: "English", ar: "العربية" };

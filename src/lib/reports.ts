@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import type { Locale } from "@/i18n/config";
-import { invoiceTotals, type Invoice } from "./invoices";
+import { accountingSign, dueOf, invoiceTotals, isAccounting, type Invoice } from "./invoices";
 import { quoteTotals, type Quote } from "./quotes";
 import type { Client } from "./store";
 
@@ -91,6 +91,7 @@ export const invoicesCsv = (invoices: Invoice[], t: TFunction, l: Locale = "fr")
     (
       [
         "number",
+        "type",
         "status",
         "date",
         "due",
@@ -108,6 +109,7 @@ export const invoicesCsv = (invoices: Invoice[], t: TFunction, l: Locale = "fr")
       const tt = invoiceTotals(i);
       return [
         i.number || t("csv.invoice.draftNumber"),
+        t(`docs.kind.${i.depositPct ? "acompte" : i.kind}`),
         t(`status.invoice.${i.status}`),
         i.issueDate,
         i.dueDate,
@@ -164,7 +166,9 @@ export function report(quotes: Quote[], invoices: Invoice[], ref: string) {
   const accepted = by("accepte"),
     refused = by("refuse");
   const decided = accepted.length + refused.length;
-  const issued = invoices.filter((i) => i.status === "emise");
+  // Invoices count, credit notes count negatively; pro formas and delivery notes do not count.
+  const accounting = invoices.filter(isAccounting);
+  const issued = accounting.filter((i) => i.status === "emise");
   return {
     months,
     quotes: {
@@ -177,11 +181,75 @@ export function report(quotes: Quote[], invoices: Invoice[], ref: string) {
       acceptanceRate: decided ? accepted.length / decided : null,
     },
     invoices: {
-      issued: issued.length,
-      drafts: invoices.length - issued.length,
-      issuedTtc: sum(issued.map((i) => invoiceTotals(i).ttc)),
+      issued: issued.filter((i) => i.kind === "facture").length,
+      drafts: accounting.length - issued.length,
+      issuedTtc: sum(issued.map((i) => accountingSign(i) * invoiceTotals(i).ttc)),
       received: sum(issued.map((i) => invoiceTotals(i).paid)),
-      outstanding: sum(issued.map((i) => invoiceTotals(i).outstanding)),
+      outstanding: sum(issued.map((i) => dueOf(i, invoices))),
     },
   };
+}
+
+// ---------- Sales journal for the accountant ----------
+/** Issued invoices and credit notes dated from..to (yyyy-mm-dd, inclusive), oldest first. */
+export const journalDocs = (invoices: Invoice[], from: string, to: string) =>
+  invoices
+    .filter((i) => isAccounting(i) && i.status === "emise")
+    .filter((i) => i.issueDate >= from && i.issueDate <= to)
+    .sort((a, b) => a.issueDate.localeCompare(b.issueDate) || a.number.localeCompare(b.number));
+
+/** VAT collected over the journal documents (credit notes deducted). */
+export const journalVat = (docs: Invoice[]) =>
+  sum(docs.map((i) => accountingSign(i) * invoiceTotals(i).tva));
+
+/**
+ * Sales journal (journal des ventes): one row per issued invoice or credit note, net and VAT
+ * for each rate used in the period, totals. Credit notes are negative. What a Moroccan
+ * accountant needs for the VAT return.
+ */
+export function salesJournalCsv(
+  invoices: Invoice[],
+  from: string,
+  to: string,
+  t: TFunction,
+  l: Locale = "fr",
+) {
+  const docs = journalDocs(invoices, from, to);
+  const rates = [...new Set(docs.flatMap((i) => invoiceTotals(i).byRate.map((r) => r.rate)))].sort(
+    (a, b) => b - a,
+  );
+  const pctLabel = (r: number) => `${String(r).replace(".", l === "en" ? "." : ",")} %`;
+  const header = [
+    t("journal.col.date"),
+    t("journal.col.number"),
+    t("journal.col.type"),
+    t("journal.col.client"),
+    t("journal.col.ice"),
+    ...rates.flatMap((r) => [
+      t("journal.col.ht", { rate: pctLabel(r) }),
+      t("journal.col.vat", { rate: pctLabel(r) }),
+    ]),
+    t("journal.col.totalHt"),
+    t("journal.col.totalVat"),
+    t("journal.col.ttc"),
+    t("journal.col.origin"),
+  ];
+  const rows = docs.map((i) => {
+    const tt = invoiceTotals(i);
+    const s = accountingSign(i);
+    const at = (r: number) => tt.byRate.find((x) => x.rate === r);
+    return [
+      i.issueDate,
+      i.number,
+      t(`docs.kind.${i.depositPct ? "acompte" : i.kind}`),
+      i.client.name,
+      i.client.ice,
+      ...rates.flatMap((r) => [s * (at(r)?.base ?? 0), s * (at(r)?.tva ?? 0)]),
+      s * tt.ht,
+      s * tt.tva,
+      s * tt.ttc,
+      i.relatedNumber || i.quoteNumber,
+    ];
+  });
+  return toCsv(header, rows, l);
 }

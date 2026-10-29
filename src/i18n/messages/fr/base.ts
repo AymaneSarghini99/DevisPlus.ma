@@ -21,6 +21,8 @@ export const common = {
   pdfPreparing: "Préparation du PDF…",
   pdfFailed: "Le PDF n'a pas pu être créé. Utilisez « PDF / Imprimer ».",
   printHint: "Choisissez « Enregistrer au format PDF » pour télécharger le fichier",
+  viewEdit: "Modifier",
+  viewPreview: "Aperçu",
   previewA4: "Aperçu A4 — ce qui sera imprimé ou enregistré en PDF",
   previewA4Short: "Aperçu A4",
   noClient: "Sans client",
@@ -117,6 +119,10 @@ export const meta = {
     title: "Créer un compte | DevisPlus.ma",
     description: "Créez votre compte DevisPlus gratuitement.",
   },
+  share: {
+    title: "Votre devis | DevisPlus.ma",
+    description: "Consultez le devis et acceptez-le en ligne.",
+  },
   waiting: {
     title: "Compte en attente | DevisPlus.ma",
     description: "Votre compte est en cours de validation par l'équipe DevisPlus.",
@@ -143,7 +149,7 @@ export const meta = {
 
 export const status = {
   quote: { brouillon: "Brouillon", envoye: "Envoyé", accepte: "Accepté", refuse: "Refusé" },
-  invoice: { brouillon: "Brouillon", emise: "Émise", paid: "Payée" },
+  invoice: { brouillon: "Brouillon", emise: "Émise", paid: "Payée", credited: "Annulée (avoir)" },
   all: "Tous les statuts",
 };
 
@@ -207,10 +213,12 @@ export const errors = {
     "Enregistrement impossible : le stockage du navigateur est plein ou bloqué (logo trop lourd ?).",
   unexpected: "Une erreur inattendue est survenue.",
   quoteNotAccepted: "Seul un devis accepté peut être converti en facture.",
+  creditNoteSource: "Un avoir se crée à partir d'une facture émise.",
+  creditNoteTooHigh: "L'avoir dépasse le montant restant de la facture d'origine.",
   alreadyIssued: "Cette facture est déjà émise.",
   invoiceClient: "Le nom du client est requis.",
   invoiceLines: "La facture ne contient aucune ligne.",
-  trialLimit: "Votre essai gratuit est limité à 2 devis.",
+  trialLimit: "Votre essai gratuit est limité à 10 devis.",
   issuedLocked: "Une facture émise ne peut pas être supprimée.",
   paymentDraft: "Les paiements s'enregistrent sur une facture émise.",
   paymentDate: "Indiquez la date du paiement.",

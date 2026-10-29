@@ -134,7 +134,10 @@ function Onboarding() {
 
   if (!tenant) return <p className="p-8 text-sm text-muted-foreground">{t("common.loading")}</p>;
 
-  const step = tenant.onboarding.current;
+  // A setup left on a hidden step (the address step) resumes on the review.
+  const step = ONBOARDING_STEPS.includes(tenant.onboarding.current)
+    ? tenant.onboarding.current
+    : "review";
   const index = ONBOARDING_STEPS.indexOf(step);
   // The password is checked as typed; an existing one can be kept by leaving the fields empty.
   const errors = { ...stepErrors(tenant, step) };

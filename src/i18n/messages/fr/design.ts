@@ -60,7 +60,7 @@ export const templates = {
   currentLogo: "Logo actuel",
   replaceLogo: "Remplacer le logo",
   uploadLogo: "Importer un logo",
-  logoHint: "PNG, JPG, WebP ou SVG. Réduit automatiquement ; conservé dans ce navigateur.",
+  logoHint: "PNG, JPG, WebP ou SVG. Réduit automatiquement ; enregistré avec vos réglages.",
   defaultWatermark: "Filigrane par défaut",
   watermarkHint: "Repris sur les nouveaux devis ; chaque devis peut le modifier.",
   unsavedHint: "Modifications non enregistrées : cliquez sur « Définir par défaut ».",

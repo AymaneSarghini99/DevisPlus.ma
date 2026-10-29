@@ -162,7 +162,74 @@ function Dashboard() {
                 ]}
               />
             </div>
-            <div className="mt-3 overflow-x-auto border bg-card">
+            {/* Phones: one card per quote instead of a wide table. */}
+            <ul className="mt-3 divide-y border bg-card md:hidden">
+              {list.map((q) => (
+                <li key={q.id} className="relative px-4 py-3">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <Link
+                      to="/devis/$id"
+                      params={{ id: q.id }}
+                      search={{}}
+                      className="num font-medium after:absolute after:inset-0"
+                    >
+                      <bdi>{q.number}</bdi>
+                    </Link>
+                    <span
+                      className={`whitespace-nowrap rounded-sm px-2 py-0.5 text-xs font-medium ${statusStyle[q.status]}`}
+                    >
+                      {t(`status.quote.${q.status}`)}
+                    </span>
+                  </div>
+                  <div className="mt-1 truncate text-sm">
+                    {q.client.name ? (
+                      <bdi>{q.client.name}</bdi>
+                    ) : (
+                      <span className="text-muted-foreground">{t("common.noClient")}</span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <span className="num text-xs text-muted-foreground">
+                      {fmt.date(q.issueDate)} → {fmt.date(q.validUntil)}
+                    </span>
+                    <bdi className="num whitespace-nowrap font-semibold">
+                      {fmt.money(quoteTotals(q).ttc)}
+                    </bdi>
+                  </div>
+                  <div className="relative z-10 -mb-1 mt-1 flex justify-end gap-1">
+                    <button
+                      aria-label={t("account.pdf.openOf", { number: q.number })}
+                      className="rounded-sm p-2 hover:bg-muted"
+                      onClick={() => setPdfOf(q)}
+                    >
+                      <GoogleDriveIcon
+                        className={`size-4 ${drive[`devis:${q.id}`]?.fileId ? "" : "opacity-40 grayscale"}`}
+                      />
+                    </button>
+                    <button
+                      aria-label={t("dashboard.duplicateOf", { number: q.number })}
+                      className="rounded-sm p-2 text-muted-foreground hover:bg-muted"
+                      onClick={() => duplicate(q)}
+                    >
+                      <Copy className="size-4" />
+                    </button>
+                    <button
+                      aria-label={t("dashboard.deleteOf", { number: q.number })}
+                      className="rounded-sm p-2 text-muted-foreground hover:bg-muted hover:text-destructive"
+                      onClick={() => remove(q)}
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                </li>
+              ))}
+              {!list.length && (
+                <li className="px-4 py-6 text-sm text-muted-foreground">
+                  {t("dashboard.noMatch")}
+                </li>
+              )}
+            </ul>
+            <div className="mt-3 hidden overflow-x-auto border bg-card md:block">
               <table className="w-full text-sm">
                 <thead className="border-b text-start text-xs text-muted-foreground">
                   <tr>

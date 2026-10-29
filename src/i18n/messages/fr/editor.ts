@@ -12,6 +12,10 @@ export const editor = {
   alreadyInvoiced: "Ce devis a déjà une facture.",
   invoiceCreated: "Brouillon de facture créé. Le devis reste inchangé.",
   waPrepared: "Message WhatsApp préparé",
+  shareLink: "Lien d'acceptation",
+  shareLinkHint: "Copie le lien où le client consulte le devis et l'accepte en ligne",
+  shareCopied: "Lien copié : envoyez-le au client.",
+  acceptedOnline: "Accepté en ligne par {{name}} le {{date}}.",
   waNoLink:
     "Aucun lien n'est partagé : joignez le PDF du devis dans la conversation avant d'envoyer.",
   markSent: "Marquer envoyé",

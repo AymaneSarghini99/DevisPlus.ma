@@ -2,7 +2,13 @@ import type { fr } from "../fr/index";
 type M = typeof fr;
 
 export const doc: M["doc"] = {
-  title: { devis: "عرض سعر", facture: "فاتورة" },
+  title: {
+    devis: "عرض سعر",
+    facture: "فاتورة",
+    avoir: "إشعار دائن",
+    proforma: "فاتورة أولية",
+    livraison: "وصل التسليم",
+  },
   draftBanner: "مسودة — فاتورة غير صادرة، بدون قيمة محاسبية",
   addressedTo: "موجّه إلى",
   billedTo: "الفاتورة باسم",
@@ -33,6 +39,17 @@ export const doc: M["doc"] = {
   depositShort: "التسبيق ({{pct}})",
   depositShortLabel: "التسبيق",
   balance: "الباقي",
+  draftBannerOther: "مسودة — وثيقة غير صادرة",
+  proformaBanner: "فاتورة أولية — بدون قيمة محاسبية",
+  invoiceRef: "الفاتورة الأصلية",
+  wordsAvoir: "حُدِّد مبلغ هذا الإشعار الدائن في",
+  wordsProforma: "حُدِّد مبلغ هذه الفاتورة الأولية في",
+  retention: "اقتطاع الضمان ({{pct}})",
+  netToPay: "الصافي المستحق",
+  deliveredTo: "سُلِّم إلى",
+  deliveryDate: "تاريخ التسليم",
+  deliverySupplier: "سلَّمه — الختم والتوقيع",
+  deliveryReceived: "استُلم في حالة جيدة — اسم الزبون والتاريخ والتوقيع",
   alreadyPaid: "المبلغ المؤدى",
   remaining: "المبلغ المتبقي",
   exemption: "الإعفاء من الضريبة",
@@ -78,6 +95,7 @@ export const defaults: M["defaults"] = {
 };
 
 export const whatsapp: M["whatsapp"] = {
+  link: "اطّلع على عرض السعر واقبله عبر الإنترنت: {{url}}",
   hello: "مرحبًا،",
   helloName: "مرحبًا {{name}}،",
   send: "{{greeting}}\n\nتجدون رفقته عرض السعر رقم {{number}} بمبلغ {{amount}} شامل الضريبة، صالح إلى غاية {{date}}.\n\nنبقى رهن إشارتكم لأي استفسار.\n\nمع خالص التحية،\n{{company}}",
@@ -116,6 +134,7 @@ export const csv: M["csv"] = {
   },
   invoice: {
     number: "رقم الفاتورة",
+    type: "النوع",
     status: "الحالة",
     date: "التاريخ",
     due: "تاريخ الاستحقاق",

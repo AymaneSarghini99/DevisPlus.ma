@@ -101,7 +101,9 @@ describe("main-address routing", () => {
     expect(go("https://devisplus.ma/api/auth/session")).toBeNull();
     expect(go("https://devisplus.ma/og-image.png")).toBeNull();
     expect(go("https://devisplus.ma/connexion", "POST")).toBeNull();
-    expect(canonicalRedirect(new URL("https://devisplus.ma/"), "GET", "https://devisplus.ma")).toBeNull();
+    expect(
+      canonicalRedirect(new URL("https://devisplus.ma/"), "GET", "https://devisplus.ma"),
+    ).toBeNull();
     expect(canonicalRedirect(new URL("https://devisplus.ma/"), "GET", "")).toBeNull();
   });
 });

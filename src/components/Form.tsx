@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Party } from "@/lib/quotes";
 
@@ -69,7 +70,7 @@ export function PartyFields({
     k: keyof Party,
     label: string,
     extra: Partial<React.InputHTMLAttributes<HTMLInputElement>> = {},
-    wide = false,
+    wide: boolean | "phone" = false,
   ) => (
     <F label={label} id={`${who}-${k}`} error={err(`${who}.${k}`)} wide={wide}>
       <input
@@ -87,14 +88,15 @@ export function PartyFields({
     </F>
   );
   return (
-    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+    // Two fields per row even on phones (short ones side by side) to keep the form short.
+    <div className="mt-3 grid grid-cols-2 gap-3">
       {f("name", t("party.name"), {}, true)}
       {f("ice", t("party.ice"), { inputMode: "numeric", maxLength: 15, className: "field num" })}
       {!compact && f("contact", t("party.contact"))}
       {f("address", t("party.address"), {}, true)}
       {f("city", t("party.city"))}
       {f("phone", t("party.phone"), { type: "tel", inputMode: "tel" })}
-      {f("email", t("party.email"), { type: "email" })}
+      {f("email", t("party.email"), { type: "email" }, "phone")}
       {!compact && f("if_", t("party.if"), { className: "field num" })}
       {!compact && f("rc", t("party.rc"), { className: "field num" })}
     </div>
@@ -105,18 +107,40 @@ export function Section({
   title,
   aside,
   children,
+  collapsible = false,
+  forceOpen = false,
 }: {
   title: string;
   aside?: ReactNode;
   children: ReactNode;
+  /** Folded on phones until tapped (always open from lg up), to keep long forms short. */
+  collapsible?: boolean;
+  /** Keeps a folded section open, e.g. when it holds a field with an error. */
+  forceOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const shown = !collapsible || open || forceOpen;
   return (
-    <section className="space-y-3 border-t pt-6">
+    <section className={`border-t ${shown ? "space-y-3 pt-6" : "pt-6 max-lg:pb-0"} lg:space-y-3`}>
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-sm font-semibold">{title}</h2>
+        {collapsible ? (
+          <button
+            type="button"
+            aria-expanded={shown}
+            onClick={() => setOpen(!open)}
+            className="flex items-center gap-2 text-sm font-semibold lg:pointer-events-none"
+          >
+            <ChevronDown
+              className={`size-4 transition-transform lg:hidden ${shown ? "" : "-rotate-90 rtl:rotate-90"}`}
+            />
+            {title}
+          </button>
+        ) : (
+          <h2 className="text-sm font-semibold">{title}</h2>
+        )}
         {aside}
       </div>
-      {children}
+      <div className={`space-y-3 ${shown ? "" : "max-lg:hidden"}`}>{children}</div>
     </section>
   );
 }
@@ -133,11 +157,16 @@ export function F({
   id: string;
   error?: string | undefined;
   hint?: string;
-  wide?: boolean;
+  /** Spans the row (two columns from sm up); "phone": full row on phones only. */
+  wide?: boolean | "phone";
   children: ReactNode;
 }) {
   return (
-    <div className={wide ? "sm:col-span-2" : ""}>
+    <div
+      className={
+        wide === "phone" ? "max-sm:col-span-full" : wide ? "max-sm:col-span-full sm:col-span-2" : ""
+      }
+    >
       <label className="label" htmlFor={id}>
         {label}
       </label>

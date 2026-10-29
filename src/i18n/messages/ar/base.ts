@@ -24,6 +24,8 @@ export const common: M["common"] = {
   pdfPreparing: "جارٍ تجهيز ملف PDF…",
   pdfFailed: "تعذّر إنشاء ملف PDF. استخدم «PDF / طباعة».",
   printHint: "اختر «حفظ بصيغة PDF» لتنزيل الملف",
+  viewEdit: "تعديل",
+  viewPreview: "معاينة",
   previewA4: "معاينة A4 — ما سيُطبع أو يُحفظ بصيغة PDF",
   previewA4Short: "معاينة A4",
   noClient: "بدون عميل",
@@ -117,6 +119,10 @@ export const meta: M["meta"] = {
     title: "إنشاء حساب | DevisPlus.ma",
     description: "أنشئ حسابك على DevisPlus مجانًا.",
   },
+  share: {
+    title: "عرض السعر الخاص بك | DevisPlus.ma",
+    description: "اطّلع على عرض السعر واقبله عبر الإنترنت.",
+  },
   waiting: {
     title: "الحساب قيد المراجعة | DevisPlus.ma",
     description: "حسابك قيد المراجعة من طرف فريق DevisPlus.",
@@ -141,7 +147,7 @@ export const meta: M["meta"] = {
 
 export const status: M["status"] = {
   quote: { brouillon: "مسودة", envoye: "مُرسَل", accepte: "مقبول", refuse: "مرفوض" },
-  invoice: { brouillon: "مسودة", emise: "صادرة", paid: "مدفوعة" },
+  invoice: { brouillon: "مسودة", emise: "صادرة", paid: "مدفوعة", credited: "ملغاة (إشعار دائن)" },
   all: "كل الحالات",
 };
 
@@ -204,10 +210,12 @@ export const errors: M["errors"] = {
   storage: "تعذّر الحفظ: مساحة تخزين المتصفح ممتلئة أو محظورة (الشعار كبير جدًا؟).",
   unexpected: "حدث خطأ غير متوقع.",
   quoteNotAccepted: "لا يمكن تحويل عرض سعر إلى فاتورة إلا إذا كان مقبولًا.",
+  creditNoteSource: "يُنشأ الإشعار الدائن انطلاقًا من فاتورة صادرة.",
+  creditNoteTooHigh: "يتجاوز الإشعار الدائن المبلغ المتبقي من الفاتورة الأصلية.",
   alreadyIssued: "هذه الفاتورة صادرة بالفعل.",
   invoiceClient: "اسم العميل إلزامي.",
   invoiceLines: "لا تحتوي الفاتورة على أي بند.",
-  trialLimit: "تجربتك المجانية محدودة في عرضَي أسعار.",
+  trialLimit: "تجربتك المجانية محدودة في 10 عروض أسعار.",
   issuedLocked: "لا يمكن حذف فاتورة صادرة.",
   paymentDraft: "تُسجَّل الدفعات على الفواتير الصادرة فقط.",
   paymentDate: "أدخل تاريخ الدفع.",
